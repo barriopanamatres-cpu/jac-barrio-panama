@@ -27,6 +27,48 @@
     body { font-family: 'Work Sans', sans-serif; }
     h1, h2, h3, h4, h5, .font-heading { font-family: 'Montserrat', sans-serif; }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #modalRadicadoOficial,
+      #modalRadicadoOficial #hojaMembretadaImprimible,
+      #modalRadicadoOficial #hojaMembretadaImprimible * {
+        visibility: visible !important;
+      }
+      #modalRadicadoOficial {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        min-height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        display: block !important;
+        z-index: 9999999 !important;
+        overflow: visible !important;
+      }
+      #hojaMembretadaImprimible {
+        position: relative !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      @page {
+        size: letter portrait;
+        margin: 15mm 18mm 15mm 18mm;
+      }
+    }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
@@ -384,6 +426,402 @@
   </div>
 
 
+  <!-- ================= MODAL: EDITAR REPORTE (ANTES O DESPUÉS DE APROBAR) ================= -->
+  <div id="modalEditarReporte" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto">
+      
+      <!-- Encabezado Modal -->
+      <div class="bg-[#002D54] p-5 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-amber-400">
+            <i data-lucide="edit-3" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black tracking-tight leading-tight">Editar Reporte Ciudadano</h3>
+            <p class="text-xs text-blue-200">Ajusta los detalles técnicos y redacción antes de tramitar o radicar</p>
+          </div>
+        </div>
+        <button onclick="cerrarModalEditar()" class="text-white/70 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Formulario de Edición -->
+      <form id="formEditarReporte" onsubmit="guardarEdicionReporte(event)" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+        <input type="hidden" id="editReporteId">
+
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <span class="text-xs text-slate-500 font-medium">Código Radicado:</span>
+          <span id="editBadgeId" class="font-mono text-xs font-black bg-blue-50 text-[#004884] px-2.5 py-1 rounded-md border border-blue-200"></span>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Título del Reclamo / Problema</label>
+          <input type="text" id="editTitulo" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:border-[#004884] focus:ring-4 focus:ring-blue-100 outline-none transition" required>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Categoría</label>
+            <select id="editCategoria" onchange="actualizarEntidadSugeridaEnEdicion()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:border-[#004884] outline-none transition">
+              <option value="Alumbrado Público">Alumbrado Público</option>
+              <option value="Vías y Pavimentación">Vías y Pavimentación</option>
+              <option value="Acueducto y Alcantarillado">Acueducto y Alcantarillado</option>
+              <option value="Parques y Zonas Verdes">Parques y Zonas Verdes</option>
+              <option value="Aseo y Basuras">Aseo y Basuras</option>
+              <option value="Seguridad Ciudadana">Seguridad Ciudadana</option>
+              <option value="Salud y Control Vectores">Salud y Control Vectores (Dengue)</option>
+              <option value="Espacio Público">Espacio Público</option>
+              <option value="Otro">Otro Asunto Comunal</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Entidad Responsable de Trámite</label>
+            <select id="editEntidad" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:border-[#004884] outline-none transition">
+              <option value="Alcaldía de Valledupar - Secretaría de Obras Públicas">Alcaldía de Valledupar - Obras Públicas</option>
+              <option value="EMDUPAR S.A. E.S.P. (Acueducto y Alcantarillado)">EMDUPAR S.A. E.S.P. (Agua / Alcantarillado)</option>
+              <option value="AFINIA - Grupo EPM (Energía Eléctrica)">AFINIA - Grupo EPM (Redes Eléctricas)</option>
+              <option value="ESTIV S.A.S. E.S.P. (Alumbrado Público)">ESTIV S.A.S. E.S.P. (Alumbrado Público)</option>
+              <option value="Aseo del Norte S.A. E.S.P. (Aseo y Basuras)">Aseo del Norte S.A. E.S.P. (Basuras / Poda)</option>
+              <option value="Policía Nacional / Secretaría de Gobierno">Policía Nacional / Secretaría de Gobierno</option>
+              <option value="Secretaría de Salud Municipal de Valledupar">Secretaría de Salud (Vectores / Fumigación)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ubicación / Dirección Exacta</label>
+            <input type="text" id="editUbicacion" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:border-[#004884] outline-none transition" required>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Sector</label>
+            <select id="editSector" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:border-[#004884] outline-none transition">
+              <option value="Panamá II">Panamá II</option>
+              <option value="Panamá III">Panamá III</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tiempo que Lleva el Problema</label>
+            <input type="text" id="editTiempo" placeholder="Ej: 3 semanas, 2 meses" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:border-[#004884] outline-none transition" required>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Comunidad Afectada</label>
+            <input type="text" id="editAfectados" placeholder="Ej: 40 familias de la Manzana 12" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:border-[#004884] outline-none transition">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Descripción Detallada de los Hechos</label>
+          <textarea id="editDescripcion" rows="4" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-normal text-slate-800 focus:bg-white focus:border-[#004884] outline-none transition" required></textarea>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+          <button type="button" onclick="cerrarModalEditar()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition cursor-pointer">
+            Cancelar
+          </button>
+          <button type="submit" id="btnGuardarEdicion" class="bg-[#004884] hover:bg-[#002D54] text-white font-black text-xs py-2.5 px-5 rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Guardar Cambios</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+
+  <!-- ================= MODAL: GENERADOR DE RADICADO / OFICIO FORMAL JAC ================= -->
+  <div id="modalRadicadoOficial" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center p-2 sm:p-6 overflow-y-auto hidden">
+    
+    <!-- Barra Superior de Herramientas (Oculta en Impresión) -->
+    <div class="max-w-4xl w-full bg-white rounded-2xl shadow-xl border border-slate-200 p-4 mb-4 flex flex-wrap items-center justify-between gap-3 sticky top-2 z-20 no-print">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+          <i data-lucide="file-text" class="w-5 h-5 text-amber-600"></i>
+        </div>
+        <div>
+          <h4 class="text-sm font-black text-slate-900 leading-tight">Generador de Oficio Formal JAC</h4>
+          <p class="text-[11px] text-slate-500">Hoja Membretada Oficial · Personería No. 000015 / NIT 900218415-5</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Selector rápido de Entidad Destino -->
+        <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-xl">
+          <span class="text-[11px] font-bold text-slate-600">Dirigido a:</span>
+          <select id="radicadoSelectorEntidad" onchange="actualizarEntidadEnRadicado()" class="bg-transparent text-xs font-bold text-[#004884] outline-none cursor-pointer">
+            <option value="Alcaldía de Valledupar - Secretaría de Obras Públicas">Alcaldía de Valledupar (Obras)</option>
+            <option value="EMDUPAR S.A. E.S.P. (Acueducto y Alcantarillado)">EMDUPAR S.A. E.S.P.</option>
+            <option value="AFINIA - Grupo EPM (Energía Eléctrica)">AFINIA (Grupo EPM)</option>
+            <option value="ESTIV S.A.S. E.S.P. (Alumbrado Público)">ESTIV S.A.S. E.S.P.</option>
+            <option value="Aseo del Norte S.A. E.S.P. (Aseo y Basuras)">Aseo del Norte S.A. E.S.P.</option>
+            <option value="Policía Nacional / Secretaría de Gobierno">Policía / Gobierno</option>
+            <option value="Secretaría de Salud Municipal de Valledupar">Secretaría de Salud</option>
+          </select>
+        </div>
+
+        <button onclick="imprimirRadicadoOficial()" class="bg-[#004884] hover:bg-[#002D54] text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer" title="Imprimir o Guardar en PDF">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span>Imprimir / PDF</span>
+        </button>
+
+        <button onclick="copiarTextoRadicado()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer" title="Copiar texto formal para PQRS digital">
+          <i data-lucide="copy" class="w-4 h-4 text-slate-600"></i>
+          <span>Copiar Texto</span>
+        </button>
+
+        <button onclick="abrirModalRegistrarRadicadoDesdeVista()" class="bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 font-extrabold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer" title="Anotar el radicado asignado por la Alcaldía o empresa">
+          <i data-lucide="bookmark-plus" class="w-4 h-4 text-purple-600"></i>
+          <span>Registrar Radicado</span>
+        </button>
+
+        <button onclick="cerrarModalRadicado()" class="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+
+
+    <!-- ================= HOJA MEMBRETADA IMPRIMIBLE (DOCUMENTO FORMAL) ================= -->
+    <div id="hojaMembretadaImprimible" class="bg-white max-w-4xl w-full p-8 sm:p-14 shadow-2xl border border-slate-200 rounded-2xl text-slate-900 text-xs sm:text-sm leading-relaxed mb-12">
+      
+      <!-- ENCABEZADO OFICIAL EXACTO DE LA PLANTILLA WORD DE LA JAC -->
+      <div class="flex items-center justify-between gap-4 pb-4 border-b-2 border-slate-900">
+        <!-- Logo Izquierdo JAC (image1.jpeg) -->
+        <div class="w-24 sm:w-28 shrink-0 flex items-center justify-center">
+          <img src="assets/image1.jpeg" alt="Logo JAC Panamá" class="max-h-24 sm:max-h-28 w-auto object-contain">
+        </div>
+
+        <!-- Texto Central JAC -->
+        <div class="flex-grow text-center px-1">
+          <h2 class="text-xs sm:text-[13px] font-extrabold text-slate-950 uppercase tracking-tight leading-snug font-heading">
+            JUNTA DE ACCIÓN COMUNAL DEL BARRIO PANAMA 3. ETAPA<br>
+            DEL MUNICIPIO DE VALLEDUPAR, DEPARTAMENTO DEL CESAR
+          </h2>
+          <p class="text-[10px] sm:text-[11px] text-slate-700 font-medium mt-1 leading-tight">
+            Personería Jurídica No. 000015 del 12 de junio del 2003<br>
+            Emanada de la secretaría de Gobierno Departamental Del Cesar.<br>
+            <span class="font-extrabold text-slate-900">NIT. 900218415-5</span>
+          </p>
+          <p class="text-[11px] sm:text-xs font-semibold italic text-slate-900 mt-1">
+            ´´primero la comunidad´´
+          </p>
+        </div>
+
+        <!-- Logo Derecho Escudo / Bandera (image2.png) -->
+        <div class="w-20 sm:w-24 shrink-0 flex items-center justify-center">
+          <img src="assets/image2.png" alt="Escudo Valledupar / Bandera" class="max-h-16 sm:max-h-20 w-auto object-contain">
+        </div>
+      </div>
+
+      <!-- CUERPO DEL DERECHO DE PETICIÓN -->
+      <div class="pt-6 space-y-5 text-justify">
+        
+        <!-- Fecha y Radicado Interno -->
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-medium">
+          <div>
+            <span class="font-bold">Valledupar, Cesar,</span> <span id="docFechaActual" class="font-semibold"></span>
+          </div>
+          <div class="font-mono font-bold text-[#004884] bg-blue-50 px-2.5 py-1 rounded border border-blue-200">
+            Oficio No. <span id="docNumeroOficio">JAC-PANAMA-2026-0000</span>
+          </div>
+        </div>
+
+        <!-- Destinatario -->
+        <div class="pt-2 text-xs sm:text-sm">
+          <p class="font-extrabold uppercase text-slate-900" id="docEntidadNombre">ALCALDÍA DE VALLEDUPAR - SECRETARÍA DE OBRAS PÚBLICAS</p>
+          <p class="text-slate-700 font-semibold" id="docEntidadAtencion">Atn: Despacho Municipal y Dirección Operativa</p>
+          <p class="text-slate-600" id="docEntidadDireccion">Calle 16 # 8-36, Edificio de la Alcaldía</p>
+          <p class="text-slate-600 font-bold" id="docEntidadCiudad">Valledupar - Cesar</p>
+        </div>
+
+        <!-- Asunto Legal -->
+        <div class="p-3 bg-slate-50 border-l-4 border-[#004884] rounded-r text-xs sm:text-sm font-extrabold text-slate-900">
+          ASUNTO: DERECHO DE PETICIÓN EN INTERÉS GENERAL Y COMUNITARIO (ARTÍCULO 23 DE LA CONSTITUCIÓN POLÍTICA DE COLOMBIA Y LEY 1755 DE 2015)
+        </div>
+
+        <!-- Introducción Legal JAC -->
+        <p class="text-xs sm:text-sm leading-relaxed text-slate-800">
+          La <strong>JUNTA DE ACCIÓN COMUNAL DEL BARRIO PANAMÁ 3. ETAPA</strong>, organización cívica comunitaria sin ánimo de lucro, con Personería Jurídica No. 000015 del 12 de junio del 2003 emanada de la Secretaría de Gobierno Departamental del Cesar y <strong>NIT. 900218415-5</strong>, constituida legalmente bajo el amparo de la <strong>Ley 2166 de 2021</strong> y facultada para el control social y veeduría ciudadana comunal conforme a la <strong>Ley 1757 de 2015</strong>, en ejercicio de la representación legítima de los habitantes y vecinos del Barrio Panamá, por medio del presente oficio nos dirigimos respetuosamente a su despacho con el fin de formular la presente <strong>PETICIÓN EN INTERÉS GENERAL</strong>, con base en los siguientes:
+        </p>
+
+        <!-- Hechos -->
+        <div class="space-y-2">
+          <h4 class="font-black text-xs sm:text-sm text-slate-950 uppercase tracking-wide border-b border-slate-200 pb-1">
+            I. HECHOS Y LOCALIZACIÓN DEL DAÑO REPORTADO
+          </h4>
+          <ol class="list-decimal pl-5 space-y-2 text-xs sm:text-sm text-slate-800">
+            <li>
+              <strong>Ubicación exacta del problema:</strong> En la dirección <span id="docUbicacion" class="font-bold text-slate-950"></span>, correspondiente al sector <span id="docSector" class="font-bold text-slate-950"></span> de este barrio, se registra una problemática de <span id="docCategoria" class="font-bold text-[#004884]"></span>, correspondiente a: <span id="docTitulo" class="font-bold text-slate-950"></span>.
+            </li>
+            <li>
+              <strong>Descripción fáctica:</strong> <span id="docDescripcion" class="text-slate-800"></span>.
+            </li>
+            <li>
+              <strong>Tiempo de afectación:</strong> La comunidad vecinal reporta que este daño persiste desde hace <span id="docTiempo" class="font-bold text-red-700"></span>, tiempo durante el cual las familias no han contado con atención operativa ni solución de fondo.
+            </li>
+            <li>
+              <strong>Población afectada:</strong> Esta situación perjudica de forma directa e indirecta a <span id="docAfectados" class="font-bold text-slate-950"></span>, poniendo en riesgo la transitabilidad, la salubridad pública y la seguridad integral de niños, adultos mayores y habitantes del sector.
+            </li>
+          </ol>
+        </div>
+
+        <!-- Peticiones Concretas -->
+        <div class="space-y-2">
+          <h4 class="font-black text-xs sm:text-sm text-slate-950 uppercase tracking-wide border-b border-slate-200 pb-1">
+            II. PETICIONES CONCRETAS
+          </h4>
+          <ol class="list-decimal pl-5 space-y-1.5 text-xs sm:text-sm text-slate-800">
+            <li>
+              Se ordene en el menor tiempo posible una <strong>visita técnica de inspección en terreno</strong> a la dirección señalada para verificar la gravedad del daño denunciado.
+            </li>
+            <li>
+              Se programe y ejecute de forma prioritaria la <strong>cuadrilla de mantenimiento, reparación o reposición integral</strong> necesaria para normalizar el servicio e infraestructura pública en este punto del Barrio Panamá.
+            </li>
+            <li>
+              Se informe por escrito a esta Junta de Acción Comunal la <strong>fecha programada para la intervención</strong> y el radicado interno de cuadrilla asignado.
+            </li>
+          </ol>
+        </div>
+
+        <!-- Fundamentos de Derecho -->
+        <div class="space-y-1.5">
+          <h4 class="font-black text-xs sm:text-sm text-slate-950 uppercase tracking-wide border-b border-slate-200 pb-1">
+            III. FUNDAMENTOS DE DERECHO
+          </h4>
+          <p class="text-xs text-slate-700 leading-relaxed">
+            Fundamentamos esta solicitud en los Artículos 1, 2, 23, 79 y 365 de la <strong>Constitución Política de Colombia</strong>; la <strong>Ley Estatutaria 1755 de 2015</strong> (que regula el derecho fundamental de petición y fija término legal improrrogable de 15 días hábiles para respuesta de fondo); la <strong>Ley 1757 de 2015</strong> (Estatuto de Participación Democrática y Veedurías Ciudadanas); la <strong>Ley 2166 de 2021</strong> (Estatuto Comunal); y la <strong>Ley 142 de 1994</strong> (Régimen de Servicios Públicos Domiciliarios).
+          </p>
+        </div>
+
+        <!-- Anexo Fotográfico -->
+        <div class="space-y-2 pt-2">
+          <h4 class="font-black text-xs sm:text-sm text-slate-950 uppercase tracking-wide border-b border-slate-200 pb-1">
+            IV. ANEXO DE EVIDENCIA FOTOGRÁFICA Y GEORREFERENCIACIÓN
+          </h4>
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-center gap-4">
+            <div class="w-full sm:w-56 h-40 rounded-lg overflow-hidden bg-slate-200 border border-slate-300 shrink-0">
+              <img id="docFotoEvidencia" src="" alt="Evidencia Fotográfica" class="w-full h-full object-cover">
+            </div>
+            <div class="text-xs text-slate-700 space-y-1 w-full">
+              <p><strong>Evidencia:</strong> Registro fotográfico captado en sitio por los vecinos veedores.</p>
+              <p><strong>Punto GPS:</strong> <span id="docCoordenadas" class="font-mono font-bold text-slate-900">Lat: 10.4495, Lng: -73.2325</span></p>
+              <p><strong>Plataforma Comunal:</strong> Registro digital en la base comunitaria de veeduría del Barrio Panamá.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notificaciones y Firmas -->
+        <div class="pt-4 space-y-4">
+          <div class="text-xs text-slate-700 leading-snug">
+            <strong>NOTIFICACIONES:</strong> Recibiremos respuesta formal a este requerimiento en la dirección de la sede comunal: <strong>Calle 44 A # 5 A-89 Barrio Panamá 3. Etapa</strong>, Valledupar - Cesar, o a través del correo institucional: <strong class="text-blue-900">barriopanamatres@gmail.com</strong> (Teléfono / Celular de contacto: <strong>301-2732955</strong>).
+          </div>
+
+          <div class="pt-8 grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div class="border-t border-slate-900 pt-2">
+              <p class="font-extrabold text-xs sm:text-sm text-slate-950 uppercase">JUNTA DIRECTIVA JAC BARRIO PANAMÁ</p>
+              <p class="text-[11px] text-slate-600">Personería Jurídica No. 000015 de 2003 · NIT: 900218415-5</p>
+              <p class="text-[11px] text-slate-500 italic mt-0.5">´´Primero la comunidad´´</p>
+            </div>
+
+            <div class="border-t border-slate-900 pt-2 text-[11px] text-slate-600">
+              <p class="font-bold text-slate-800">CON COPIA PREVENTIVA A:</p>
+              <p>• <strong>Personería Municipal de Valledupar</strong> (Vigilancia del cumplimiento del Derecho de Petición y control a entidades públicas).</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PIE DE PÁGINA OFICIAL EXACTO DE LA PLANTILLA WORD -->
+      <div class="pt-4 mt-8 border-t border-slate-800 text-center text-[10px] sm:text-[11px] text-slate-700 leading-tight">
+        <p class="font-medium">
+          <strong>Dirección:</strong> Calle 44 A # 5 A-89 Barrio Panamá 3. Etapa – Valledupar - Cesar
+        </p>
+        <p class="mt-0.5 font-medium">
+          <strong>E-mail:</strong> <a href="mailto:barriopanamatres@gmail.com" class="underline text-blue-900 font-bold">barriopanamatres@gmail.com</a> · <strong>Cel.</strong> 301-2732955
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= MODAL: REGISTRAR RADICADO DE LA ENTIDAD ================= -->
+  <div id="modalRegistrarRadicadoEntidad" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 p-6 space-y-4">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+            <i data-lucide="bookmark-plus" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="text-sm font-black text-slate-900">Registrar Radicado de Entidad</h4>
+            <p class="text-[11px] text-slate-500">Número oficial otorgado por la Alcaldía o empresa</p>
+          </div>
+        </div>
+        <button onclick="cerrarModalRegistrarRadicado()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg transition cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="formRegistrarRadicadoEntidad" onsubmit="guardarRadicadoEntidad(event)" class="space-y-3.5">
+        <input type="hidden" id="regRadReporteId">
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Entidad donde se radicó</label>
+          <select id="regRadEntidad" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#004884]">
+            <option value="Alcaldía de Valledupar">Alcaldía de Valledupar</option>
+            <option value="EMDUPAR S.A. E.S.P.">EMDUPAR S.A. E.S.P.</option>
+            <option value="AFINIA - Grupo EPM">AFINIA (Grupo EPM)</option>
+            <option value="ESTIV S.A.S. E.S.P.">ESTIV S.A.S. E.S.P. (Alumbrado)</option>
+            <option value="Aseo del Norte S.A. E.S.P.">Aseo del Norte S.A. E.S.P.</option>
+            <option value="Policía Nacional / Gobierno">Policía Nacional / Secretaría de Gobierno</option>
+            <option value="Secretaría de Salud Municipal">Secretaría de Salud Municipal</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Número de Radicado / Ticket Oficial</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i data-lucide="hash" class="w-4 h-4 text-purple-600"></i>
+            </span>
+            <input type="text" id="regRadNumero" placeholder="Ej: PQRS-2026-0819 o VAL-49102" class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 outline-none focus:bg-white focus:border-purple-600" required>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1">Este número se mostrará en el muro público para que los vecinos hagan seguimiento.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Fecha de Radicación</label>
+          <input type="date" id="regRadFecha" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#004884]">
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button type="button" onclick="cerrarModalRegistrarRadicado()" class="px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+            Cancelar
+          </button>
+          <button type="submit" class="bg-purple-700 hover:bg-purple-800 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Guardar Radicado</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+
   <!-- ================= LÓGICA JAVASCRIPT DEL DASHBOARD ADMIN ================= -->
   <script>
     // Credenciales Supabase
@@ -403,137 +841,114 @@
 
     let todosLosReclamos = [];
     let todosLosVecinos = [];
+    let casoActivoRadicado = null;
 
-    // Inicialización al cargar la página
-    document.addEventListener("DOMContentLoaded", () => {
-      verificarSesion();
-      lucide.createIcons();
-    });
-
-    function verificarSesion() {
-      const sesionActiva = localStorage.getItem("jac_sesion_activa") === "true";
-      const vistaLogin = document.getElementById("vistaLoginAdmin");
-      const vistaDash = document.getElementById("vistaDashboardAdmin");
-
-      if (sesionActiva) {
-        vistaLogin.style.display = "none";
-        vistaDash.style.display = "flex";
-        vistaLogin.classList.add("hidden");
-        vistaDash.classList.remove("hidden");
-        cargarTodoElPanel();
-      } else {
-        vistaLogin.style.display = "flex";
-        vistaDash.style.display = "none";
-        vistaLogin.classList.remove("hidden");
-        vistaDash.classList.add("hidden");
+    // Directorio Oficial de Entidades Competentes en Valledupar
+    const ENTIDADES_INFO = {
+      "Alcaldía de Valledupar - Secretaría de Obras Públicas": {
+        nombre: "ALCALDÍA DE VALLEDUPAR - SECRETARÍA DE OBRAS PÚBLICAS E INFRAESTRUCTURA",
+        atencion: "Dr. Ernesto Miguel Orozco Durán - Alcalde Municipal\nSecretaría de Obras Públicas e Infraestructura de Valledupar",
+        direccion: "Calle 16 # 8-36, Edificio de la Alcaldía de Valledupar",
+        ciudad: "Valledupar - Cesar",
+        email: "contactenos@valledupar-cesar.gov.co",
+        pqrsUrl: "https://www.valledupar-cesar.gov.co/PeticionesQuejasReclamos"
+      },
+      "EMDUPAR S.A. E.S.P. (Acueducto y Alcantarillado)": {
+        nombre: "EMPRESA DE SERVICIOS PÚBLICOS DE VALLEDUPAR (EMDUPAR S.A. E.S.P.)",
+        atencion: "Gerencia General y Dirección Técnica Operativa de Redes y Alcantarillado",
+        direccion: "Carrera 14 # 16A-40",
+        ciudad: "Valledupar - Cesar",
+        email: "pqr@emdupar.gov.co",
+        pqrsUrl: "https://emdupar.gov.co"
+      },
+      "AFINIA - Grupo EPM (Energía Eléctrica)": {
+        nombre: "AFINIA (GRUPO EPM) - MERCADO DE ENERGÍA ZONA CESAR",
+        atencion: "Gerencia Territorial Cesar y Dirección de Redes de Distribución",
+        direccion: "Carrera 9 # 9-41",
+        ciudad: "Valledupar - Cesar",
+        email: "atencionusuarios@afinia.com.co",
+        pqrsUrl: "https://www.afinia.com.co"
+      },
+      "ESTIV S.A.S. E.S.P. (Alumbrado Público)": {
+        nombre: "ESTIV S.A.S. E.S.P. - CONCESIÓN DE ALUMBRADO PÚBLICO DE VALLEDUPAR",
+        atencion: "Dirección Técnica de Operaciones y Mantenimiento de Luminarias",
+        direccion: "Calle 16B # 12-42",
+        ciudad: "Valledupar - Cesar",
+        email: "peticiones@estivalumbrado.com",
+        pqrsUrl: "https://estivalumbrado.com"
+      },
+      "Aseo del Norte S.A. E.S.P. (Aseo y Basuras)": {
+        nombre: "ASEO DEL NORTE S.A. E.S.P. - SERVICIO PÚBLICO DE ASEO",
+        atencion: "Gerencia de Operaciones y Atención de Puntos Críticos y Poda",
+        direccion: "Carrera 12 # 13B-40",
+        ciudad: "Valledupar - Cesar",
+        email: "atencionalcliente@aseodelnorte.com.co",
+        pqrsUrl: "https://aseodelnorte.com.co"
+      },
+      "Policía Nacional / Secretaría de Gobierno": {
+        nombre: "POLICÍA NACIONAL DE COLOMBIA / SECRETARÍA DE GOBIERNO MUNICIPAL",
+        atencion: "Comandante de Estación Valledupar / Secretaría de Gobierno y Convivencia",
+        direccion: "Calle 16 # 8-36 / Carrera 13 # 14-45",
+        ciudad: "Valledupar - Cesar",
+        email: "gobierno@valledupar-cesar.gov.co",
+        pqrsUrl: "https://www.valledupar-cesar.gov.co"
+      },
+      "Secretaría de Salud Municipal de Valledupar": {
+        nombre: "ALCALDÍA DE VALLEDUPAR - SECRETARÍA LOCAL DE SALUD",
+        atencion: "Despacho de Secretaría de Salud / Programa de Prevención y Control del Dengue",
+        direccion: "Carrera 15 # 14-23",
+        ciudad: "Valledupar - Cesar",
+        email: "salud@valledupar-cesar.gov.co",
+        pqrsUrl: "https://www.valledupar-cesar.gov.co"
       }
-      lucide.createIcons();
-    }
-
-    // Toggle Password en Login
-    window.toggleClaveAdmin = function() {
-      const input = document.getElementById("loginAdminClave");
-      const eye = document.getElementById("eyeClaveAdmin");
-      if (input.type === "password") {
-        input.type = "text";
-        eye.setAttribute("data-lucide", "eye-off");
-      } else {
-        input.type = "password";
-        eye.setAttribute("data-lucide", "eye");
-      }
-      lucide.createIcons();
     };
 
-    // Procesar Login de Administrador
-    window.procesarLoginAdmin = async function(e) {
-      if (e && e.preventDefault) e.preventDefault();
-      
-      const email = document.getElementById("loginAdminUsuario").value.trim();
-      const password = document.getElementById("loginAdminClave").value.trim();
-      const err = document.getElementById("errorLoginAdmin");
-      const form = document.getElementById("formLoginAdminDirecto");
-      const btn = form.querySelector("button[type='submit']");
-      const originalText = `<span>Iniciar Sesión en el Dashboard</span><i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+    // Sugerir entidad según la categoría del reclamo
+    function sugerirEntidadPorCategoria(categoria) {
+      const cat = (categoria || "").toLowerCase();
+      if (cat.includes("alumbrado") || cat.includes("luz") || cat.includes("luminaria")) {
+        return "ESTIV S.A.S. E.S.P. (Alumbrado Público)";
+      }
+      if (cat.includes("acueducto") || cat.includes("alcantarillado") || cat.includes("agua") || cat.includes("manjol") || cat.includes("tubo")) {
+        return "EMDUPAR S.A. E.S.P. (Acueducto y Alcantarillado)";
+      }
+      if (cat.includes("energ") || cat.includes("eléctr") || cat.includes("transformador") || cat.includes("afinia") || cat.includes("poste") || cat.includes("cable")) {
+        return "AFINIA - Grupo EPM (Energía Eléctrica)";
+      }
+      if (cat.includes("aseo") || cat.includes("basura") || cat.includes("escombro") || cat.includes("poda")) {
+        return "Aseo del Norte S.A. E.S.P. (Aseo y Basuras)";
+      }
+      if (cat.includes("seguridad") || cat.includes("polic") || cat.includes("convivencia") || cat.includes("drogas") || cat.includes("parque oscuro")) {
+        return "Policía Nacional / Secretaría de Gobierno";
+      }
+      if (cat.includes("salud") || cat.includes("dengue") || cat.includes("plaga") || cat.includes("fumig")) {
+        return "Secretaría de Salud Municipal de Valledupar";
+      }
+      return "Alcaldía de Valledupar - Secretaría de Obras Públicas";
+    }
 
-      btn.disabled = true;
-      btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> <span>Verificando credenciales...</span>`;
-      lucide.createIcons();
-
+    // Persistencia Local de Metadatos de Radicados
+    function obtenerMetadatosExtra(id) {
       try {
-        let autenticado = false;
-
-        // 1. Intentar inicio de sesión directo con Supabase Auth
-        if (supabaseClient) {
-          try {
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-              email: email,
-              password: password
-            });
-            if (!error && data && data.session) {
-              autenticado = true;
-            }
-          } catch (authErr) {
-            console.warn("Intento Supabase Auth:", authErr);
-          }
-        }
-
-        // 2. Soporte para clave comunal de la JAC (con o sin asterisco o clave 2026)
-        if (!autenticado && (password === CLAVE_OFICIAL_JAC || password === CLAVE_OFICIAL_JAC_ALT || password === "2026")) {
-          autenticado = true;
-        }
-
-        if (autenticado) {
-          err.classList.add("hidden");
-          localStorage.setItem("jac_sesion_activa", "true");
-          verificarSesion();
-          return;
-        } else {
-          err.classList.remove("hidden");
-          err.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-red-500"></i><span>Credenciales inválidas. Verifica tu correo y contraseña.</span>`;
-          lucide.createIcons();
-        }
-      } catch (ex) {
-        console.error("Error en login:", ex);
-        err.classList.remove("hidden");
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-        lucide.createIcons();
+        const raw = localStorage.getItem("jac_radicados_extra");
+        if (!raw) return {};
+        const dict = JSON.parse(raw);
+        return dict[id] || {};
+      } catch (e) {
+        return {};
       }
-    };
-
-    // Registrar listener redundante por seguridad
-    const formAdminElem = document.getElementById("formLoginAdminDirecto");
-    if (formAdminElem) {
-      formAdminElem.addEventListener("submit", window.procesarLoginAdmin);
     }
 
-    window.cerrarSesionAdmin = async function() {
-      if (confirm("¿Deseas cerrar la sesión de administración?")) {
-        if (supabaseClient) {
-          try { await supabaseClient.auth.signOut(); } catch (e) {}
-        }
-        localStorage.removeItem("jac_sesion_activa");
-        verificarSesion();
+    function guardarMetadatoExtra(id, datos) {
+      try {
+        const raw = localStorage.getItem("jac_radicados_extra");
+        const dict = raw ? JSON.parse(raw) : {};
+        dict[id] = { ...(dict[id] || {}), ...datos };
+        localStorage.setItem("jac_radicados_extra", JSON.stringify(dict));
+      } catch (e) {
+        console.warn("Aviso guardar extra:", e);
       }
-    };
-
-    // Cambio de Pestañas
-    window.cambiarPestana = function(pestana) {
-      const tabs = ["pendientes", "validados", "solucionados", "censo"];
-      tabs.forEach(t => {
-        const sec = document.getElementById(`seccion${t.charAt(0).toUpperCase() + t.slice(1)}`);
-        const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
-        if (t === pestana) {
-          sec.classList.remove("hidden");
-          btn.className = "tab-btn px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 transition bg-[#004884] text-white shadow-sm";
-        } else {
-          sec.classList.add("hidden");
-          btn.className = "tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition";
-        }
-      });
-      lucide.createIcons();
-    };
+    }
 
     // Carga de Datos desde Supabase
     async function cargarTodoElPanel() {
@@ -547,7 +962,29 @@
           .order('created_at', { ascending: false });
 
         if (!errReclamos && reclamosData) {
-          todosLosReclamos = reclamosData;
+          todosLosReclamos = reclamosData.map(caso => {
+            const extra = obtenerMetadatosExtra(caso.id);
+            let radEntidad = caso.radicado_entidad || extra.radicado_entidad || "";
+            let entDestino = caso.entidad_destino || extra.entidad_destino || sugerirEntidadPorCategoria(caso.categoria);
+            let fechaRadEntidad = caso.fecha_radicado_entidad || extra.fecha_radicado_entidad || "";
+
+            // Parsear marca de respaldo en 'afectados' si existe
+            if (caso.afectados && caso.afectados.includes("[RAD:")) {
+              const match = caso.afectados.match(/\[RAD:([^|\]]+)(?:\|([^\]]+))?\]/);
+              if (match) {
+                if (!radEntidad) radEntidad = match[1];
+                if (!entDestino && match[2]) entDestino = match[2];
+              }
+            }
+
+            return {
+              ...caso,
+              radicado_entidad: radEntidad,
+              entidad_destino: entDestino,
+              fecha_radicado_entidad: fechaRadEntidad
+            };
+          });
+
           renderizarMetricasYListas();
         }
 
@@ -621,7 +1058,7 @@
         item.className = "bg-white rounded-2xl border border-amber-200/80 shadow-sm p-5 flex flex-col lg:flex-row gap-5 items-start hover:border-amber-300 transition";
         item.innerHTML = `
           <div class="w-full lg:w-48 h-44 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200 relative">
-            <img src="${caso.foto}" alt="Evidencia" class="w-full h-full object-cover">
+            <img src="${caso.foto || 'assets/image1.jpeg'}" alt="Evidencia" class="w-full h-full object-cover">
             <span class="absolute top-2 left-2 bg-black/75 backdrop-blur text-white text-[10px] font-mono px-2 py-0.5 rounded">
               ${caso.id}
             </span>
@@ -649,21 +1086,41 @@
               <div>🕒 <strong>Tiempo sin arreglo:</strong> ${caso.tiempo}</div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-100 mt-2">
+            <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100 mt-2">
               <button 
                 onclick="accionAprobar('${caso.id}')" 
-                class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-2.5 px-5 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-2 px-3.5 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+                title="Aprobar para publicar en el muro vecinal"
               >
                 <i data-lucide="check" class="w-4 h-4"></i>
-                <span>✓ Procede: Aprobar y Publicar en el Muro</span>
+                <span>✓ Aprobar y Publicar</span>
+              </button>
+
+              <button 
+                onclick="abrirModalEditar('${caso.id}')" 
+                class="bg-blue-50 hover:bg-blue-100 text-[#004884] border border-blue-200 font-extrabold text-xs py-2 px-3.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+                title="Editar redacción, ubicación, entidad o datos"
+              >
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                <span>✏️ Editar Reporte</span>
+              </button>
+
+              <button 
+                onclick="abrirModalRadicado('${caso.id}')" 
+                class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-extrabold text-xs py-2 px-3.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+                title="Generar oficio formal en hoja membretada de la JAC"
+              >
+                <i data-lucide="file-text" class="w-4 h-4 text-amber-600"></i>
+                <span>📄 Hacer Radicado</span>
               </button>
 
               <button 
                 onclick="accionRechazar('${caso.id}')" 
-                class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs py-2.5 px-4 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+                class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs py-2 px-3 rounded-xl transition flex items-center gap-1 cursor-pointer ml-auto"
+                title="Rechazar si no procede"
               >
-                <i data-lucide="x" class="w-4 h-4"></i>
-                <span>✕ No Procede (Rechazar)</span>
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                <span>✕ No Procede</span>
               </button>
             </div>
           </div>
@@ -703,16 +1160,57 @@
             <h5 class="text-sm font-bold text-slate-900 leading-snug line-clamp-2">${caso.titulo}</h5>
             <p class="text-xs text-slate-500 mt-1 line-clamp-2">${caso.descripcion}</p>
             <div class="text-[11px] text-slate-600 mt-2 font-medium">📍 ${caso.ubicacion} · ${caso.sector}</div>
+            
+            ${caso.radicado_entidad ? `
+              <div class="mt-2.5 p-2 bg-purple-50 border border-purple-200 rounded-lg text-xs flex items-center justify-between text-purple-900">
+                <span class="font-bold flex items-center gap-1">
+                  <i data-lucide="file-check-2" class="w-3.5 h-3.5 text-purple-700"></i>
+                  Radicado Oficial:
+                </span>
+                <span class="font-mono font-black">${caso.radicado_entidad}</span>
+              </div>
+            ` : ''}
           </div>
 
-          <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-            <button onclick="accionMarcarSolucionado('${caso.id}')" class="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
-              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
-              <span>Marcar Solucionado</span>
-            </button>
-            <a href="index.html#muro" target="_blank" class="text-xs text-blue-600 hover:underline font-bold">
-              Ver en Muro
-            </a>
+          <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5">
+              <button 
+                onclick="abrirModalRadicado('${caso.id}')" 
+                class="text-xs font-bold text-[#004884] bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
+                title="Ver u obtener oficio formal en hoja membretada"
+              >
+                <i data-lucide="file-text" class="w-3.5 h-3.5 text-[#004884]"></i>
+                <span>📄 Radicado JAC</span>
+              </button>
+              
+              <button 
+                onclick="abrirModalEditar('${caso.id}')" 
+                class="text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
+                title="Editar reporte"
+              >
+                <i data-lucide="edit-2" class="w-3 h-3"></i>
+                <span>Editar</span>
+              </button>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <button 
+                onclick="abrirModalRegistrarRadicado('${caso.id}')" 
+                class="text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
+                title="Registrar número de radicado asignado por la Alcaldía o entidad"
+              >
+                <i data-lucide="bookmark-plus" class="w-3.5 h-3.5"></i>
+                <span>${caso.radicado_entidad ? '✏️ ' + caso.radicado_entidad : '+ Radicado'}</span>
+              </button>
+
+              <button 
+                onclick="accionMarcarSolucionado('${caso.id}')" 
+                class="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
+              >
+                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                <span>Solucionado</span>
+              </button>
+            </div>
           </div>
         `;
         contenedor.appendChild(card);
@@ -782,6 +1280,398 @@
         tbody.appendChild(tr);
       });
     }
+
+    // ==============================================================
+    // GESTIÓN DEL MODAL DE EDICIÓN DE REPORTES
+    // ==============================================================
+    window.abrirModalEditar = function(id) {
+      const caso = todosLosReclamos.find(r => r.id === id);
+      if (!caso) return;
+
+      document.getElementById("editReporteId").value = caso.id;
+      document.getElementById("editBadgeId").textContent = caso.id;
+      document.getElementById("editTitulo").value = caso.titulo || "";
+      document.getElementById("editCategoria").value = caso.categoria || "Vías y Pavimentación";
+      
+      const entidadSugerida = caso.entidad_destino || sugerirEntidadPorCategoria(caso.categoria);
+      document.getElementById("editEntidad").value = entidadSugerida;
+      
+      document.getElementById("editUbicacion").value = caso.ubicacion || "";
+      document.getElementById("editSector").value = caso.sector || "Panamá II";
+      document.getElementById("editTiempo").value = caso.tiempo || "";
+      
+      // Limpiar texto de afectados si tiene marcas previas
+      const afectadosLimpio = (caso.afectados || "Comunidad Barrio Panamá").replace(/\[RAD:[^\]]+\]/g, "").trim();
+      document.getElementById("editAfectados").value = afectadosLimpio;
+      
+      document.getElementById("editDescripcion").value = caso.descripcion || "";
+
+      document.getElementById("modalEditarReporte").classList.remove("hidden");
+      lucide.createIcons();
+    };
+
+    window.cerrarModalEditar = function() {
+      document.getElementById("modalEditarReporte").classList.add("hidden");
+    };
+
+    window.actualizarEntidadSugeridaEnEdicion = function() {
+      const cat = document.getElementById("editCategoria").value;
+      document.getElementById("editEntidad").value = sugerirEntidadPorCategoria(cat);
+    };
+
+    window.guardarEdicionReporte = async function(e) {
+      if (e && e.preventDefault) e.preventDefault();
+
+      const id = document.getElementById("editReporteId").value;
+      const titulo = document.getElementById("editTitulo").value.trim();
+      const categoria = document.getElementById("editCategoria").value;
+      const entidad = document.getElementById("editEntidad").value;
+      const ubicacion = document.getElementById("editUbicacion").value.trim();
+      const sector = document.getElementById("editSector").value;
+      const tiempo = document.getElementById("editTiempo").value.trim();
+      const afectados = document.getElementById("editAfectados").value.trim();
+      const descripcion = document.getElementById("editDescripcion").value.trim();
+
+      const btn = document.getElementById("btnGuardarEdicion");
+      const btnOriginal = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Guardando...`;
+      lucide.createIcons();
+
+      try {
+        // 1. Guardar metadatos locales
+        guardarMetadatoExtra(id, { entidad_destino: entidad });
+
+        // 2. Actualizar Supabase
+        if (supabaseClient) {
+          const updateData = {
+            titulo,
+            categoria,
+            ubicacion,
+            sector,
+            tiempo,
+            afectados,
+            descripcion
+          };
+
+          const { error } = await supabaseClient.from('reclamos').update(updateData).eq('id', id);
+          if (error) {
+            console.warn("Aviso update Supabase:", error);
+          }
+        }
+
+        // 3. Actualizar memoria local
+        const idx = todosLosReclamos.findIndex(r => r.id === id);
+        if (idx !== -1) {
+          todosLosReclamos[idx] = {
+            ...todosLosReclamos[idx],
+            titulo,
+            categoria,
+            entidad_destino: entidad,
+            ubicacion,
+            sector,
+            tiempo,
+            afectados,
+            descripcion
+          };
+        }
+
+        renderizarMetricasYListas();
+        cerrarModalEditar();
+        alert("✅ Reporte actualizado con éxito.");
+      } catch (ex) {
+        console.error("Error al guardar edición:", ex);
+        alert("Error al actualizar el reporte.");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = btnOriginal;
+        lucide.createIcons();
+      }
+    };
+
+
+    // ==============================================================
+    // GENERADOR DE RADICADO FORMAL EN HOJA MEMBRETADA OFICIAL
+    // ==============================================================
+    window.abrirModalRadicado = function(id) {
+      const caso = todosLosReclamos.find(r => r.id === id);
+      if (!caso) return;
+
+      casoActivoRadicado = caso;
+
+      // 1. Fecha formal en español
+      const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+      const ahora = new Date();
+      const fechaTexto = `${ahora.getDate()} de ${meses[ahora.getMonth()]} de ${ahora.getFullYear()}`;
+      document.getElementById("docFechaActual").textContent = fechaTexto;
+
+      // 2. Número de Oficio JAC
+      const numJAC = caso.id.replace("RAD-PANAMA-2026-", "");
+      document.getElementById("docNumeroOficio").textContent = `JAC-PANAMA-2026-${numJAC}`;
+
+      // 3. Entidad de destino
+      const entidadSeleccionada = caso.entidad_destino || sugerirEntidadPorCategoria(caso.categoria);
+      const selector = document.getElementById("radicadoSelectorEntidad");
+      if (selector) selector.value = entidadSeleccionada;
+      actualizarBloqueEntidadDocumento(entidadSeleccionada);
+
+      // 4. Datos del Daño
+      document.getElementById("docUbicacion").textContent = caso.ubicacion || "Barrio Panamá";
+      document.getElementById("docSector").textContent = caso.sector || "Panamá II";
+      document.getElementById("docCategoria").textContent = caso.categoria || "Mantenimiento Urbano";
+      document.getElementById("docTitulo").textContent = caso.titulo || "Petición comunitaria";
+      document.getElementById("docDescripcion").textContent = caso.descripcion || "Sin descripción";
+      document.getElementById("docTiempo").textContent = caso.tiempo || "varias semanas";
+      
+      const afectadosLimpio = (caso.afectados || "la comunidad del Barrio Panamá").replace(/\[RAD:[^\]]+\]/g, "").trim();
+      document.getElementById("docAfectados").textContent = afectadosLimpio || "los habitantes del sector";
+
+      // 5. Fotografía y Georreferenciación
+      const imgElem = document.getElementById("docFotoEvidencia");
+      if (imgElem) {
+        imgElem.src = caso.foto || "assets/image1.jpeg";
+      }
+      const coordsElem = document.getElementById("docCoordenadas");
+      if (coordsElem) {
+        coordsElem.textContent = `Latitud: ${caso.lat || 10.4495}, Longitud: ${caso.lng || -73.2325} (Barrio Panamá)`;
+      }
+
+      document.getElementById("modalRadicadoOficial").classList.remove("hidden");
+      lucide.createIcons();
+    };
+
+    window.cerrarModalRadicado = function() {
+      document.getElementById("modalRadicadoOficial").classList.add("hidden");
+    };
+
+    window.actualizarEntidadEnRadicado = function() {
+      const entKey = document.getElementById("radicadoSelectorEntidad").value;
+      if (casoActivoRadicado) {
+        casoActivoRadicado.entidad_destino = entKey;
+        guardarMetadatoExtra(casoActivoRadicado.id, { entidad_destino: entKey });
+      }
+      actualizarBloqueEntidadDocumento(entKey);
+    };
+
+    function actualizarBloqueEntidadDocumento(entKey) {
+      const info = ENTIDADES_INFO[entKey] || ENTIDADES_INFO["Alcaldía de Valledupar - Secretaría de Obras Públicas"];
+      document.getElementById("docEntidadNombre").textContent = info.nombre;
+      document.getElementById("docEntidadAtencion").innerText = info.atencion;
+      document.getElementById("docEntidadDireccion").textContent = info.direccion;
+      document.getElementById("docEntidadCiudad").textContent = info.ciudad;
+    }
+
+    // Imprimir o Guardar PDF
+    window.imprimirRadicadoOficial = function() {
+      window.print();
+    };
+
+    // Copiar Texto Formal para radicar vía PQRSDF / Web
+    window.copiarTextoRadicado = function() {
+      if (!casoActivoRadicado) return;
+      const caso = casoActivoRadicado;
+      const info = ENTIDADES_INFO[caso.entidad_destino] || ENTIDADES_INFO["Alcaldía de Valledupar - Secretaría de Obras Públicas"];
+      const numJAC = caso.id.replace("RAD-PANAMA-2026-", "");
+      const fechaTexto = document.getElementById("docFechaActual").textContent;
+      const afectadosLimpio = (caso.afectados || "la comunidad del Barrio Panamá").replace(/\[RAD:[^\]]+\]/g, "").trim();
+
+      const texto = `Valledupar, Cesar, ${fechaTexto}
+OFICIO No. JAC-PANAMA-2026-${numJAC}
+
+SEÑORES:
+${info.nombre}
+${info.atencion}
+${info.direccion}
+${info.ciudad}
+
+ASUNTO: DERECHO DE PETICIÓN EN INTERÉS GENERAL Y COMUNITARIO (ARTÍCULO 23 DE LA CONSTITUCIÓN POLÍTICA DE COLOMBIA Y LEY 1755 DE 2015)
+
+La JUNTA DE ACCIÓN COMUNAL DEL BARRIO PANAMÁ 3. ETAPA (Personería Jurídica No. 000015 del 12 de junio del 2003, NIT. 900218415-5), organización comunitaria legalmente facultada por la Ley 2166 de 2021 y la Ley 1757 de 2015 para el ejercicio del control social y la veeduría comunitaria, en representación de los habitantes del sector, formula respetuosamente la siguiente petición:
+
+I. HECHOS:
+1. En la dirección ${caso.ubicacion} (${caso.sector || 'Panamá II'}), se presenta una grave problemática en materia de ${caso.categoria}: "${caso.titulo}".
+2. Detalle fáctico: ${caso.descripcion}
+3. Tiempo de persistencia: El daño persiste desde hace ${caso.tiempo} sin haber recibido intervención de cuadrillas.
+4. Comunidad afectada: Afecta a ${afectadosLimpio}, generando riesgo para la seguridad, salubridad y calidad de vida.
+
+II. PETICIONES CONCRETAS:
+1. Ordenar de manera prioritaria una visita técnica de inspección en terreno a la dirección mencionada.
+2. Disponer la inclusión inmediata en el cronograma de cuadrillas para la reparación, reposición o mantenimiento requerido.
+3. Notificar por escrito a esta Junta de Acción Comunal la fecha programada para la intervención y el funcionario a cargo.
+
+III. FUNDAMENTOS DE DERECHO:
+Artículos 23, 79 y 365 de la Constitución Política de Colombia; Ley 1755 de 2015 (término improrrogable de 15 días hábiles); Ley 1757 de 2015; y Ley 2166 de 2021.
+
+IV. NOTIFICACIONES:
+Dirección: Calle 44 A # 5 A-89 Barrio Panamá 3. Etapa – Valledupar - Cesar
+E-mail: barriopanamatres@gmail.com · Celular: 301-2732955
+
+Atentamente,
+
+JUNTA DIRECTIVA JAC BARRIO PANAMÁ 3. ETAPA
+NIT: 900218415-5 · "Primero la comunidad"
+
+Con copia a: Personería Municipal de Valledupar (Control Preventivo)`;
+
+      navigator.clipboard.writeText(texto).then(() => {
+        alert("📋 ¡Texto de la petición copiado al portapapeles!\nPuedes pegarlo en el portal de la Alcaldía (" + info.pqrsUrl + ") o enviarlo por correo electrónico.");
+      }).catch(() => {
+        prompt("Copia el texto del oficio aquí:", texto);
+      });
+    };
+
+
+    // ==============================================================
+    // REGISTRO DEL RADICADO OTORGADO POR LA ENTIDAD GUBERNAMENTAL
+    // ==============================================================
+    window.abrirModalRegistrarRadicado = function(id) {
+      const caso = todosLosReclamos.find(r => r.id === id);
+      if (!caso) return;
+
+      document.getElementById("regRadReporteId").value = caso.id;
+      document.getElementById("regRadEntidad").value = caso.entidad_destino ? caso.entidad_destino.split(' ')[0] : "Alcaldía de Valledupar";
+      document.getElementById("regRadNumero").value = caso.radicado_entidad || "";
+      document.getElementById("regRadFecha").value = caso.fecha_radicado_entidad || new Date().toISOString().slice(0, 10);
+
+      document.getElementById("modalRegistrarRadicadoEntidad").classList.remove("hidden");
+      lucide.createIcons();
+    };
+
+    window.abrirModalRegistrarRadicadoDesdeVista = function() {
+      if (!casoActivoRadicado) return;
+      abrirModalRegistrarRadicado(casoActivoRadicado.id);
+    };
+
+    window.cerrarModalRegistrarRadicado = function() {
+      document.getElementById("modalRegistrarRadicadoEntidad").classList.add("hidden");
+    };
+
+    window.guardarRadicadoEntidad = async function(e) {
+      if (e && e.preventDefault) e.preventDefault();
+
+      const id = document.getElementById("regRadReporteId").value;
+      const entidad = document.getElementById("regRadEntidad").value;
+      const numero = document.getElementById("regRadNumero").value.trim();
+      const fecha = document.getElementById("regRadFecha").value;
+
+      if (!numero) {
+        alert("Por favor digita el número de radicado asignado por la entidad.");
+        return;
+      }
+
+      try {
+        // 1. Persistir en almacenamiento local
+        guardarMetadatoExtra(id, {
+          radicado_entidad: numero,
+          entidad_destino: entidad,
+          fecha_radicado_entidad: fecha
+        });
+
+        // 2. Actualizar Supabase de forma resiliente
+        if (supabaseClient) {
+          // Intentar actualizar directamente
+          const { error } = await supabaseClient.from('reclamos').update({
+            radicado_entidad: numero,
+            entidad_destino: entidad,
+            fecha_radicado_entidad: fecha,
+            estado: 'En espera'
+          }).eq('id', id);
+
+          // Si las columnas no existen aún en la base de datos de Supabase, almacenar marca en 'afectados'
+          if (error && error.code === 'PGRST204') {
+            const caso = todosLosReclamos.find(r => r.id === id);
+            const marca = `[RAD:${numero}|${entidad}]`;
+            const afectadoLimpio = (caso.afectados || "").replace(/\[RAD:[^\]]+\]/g, "").trim();
+            await supabaseClient.from('reclamos').update({
+              afectados: `${afectadoLimpio} ${marca}`.trim(),
+              estado: 'En espera'
+            }).eq('id', id);
+          }
+        }
+
+        // 3. Actualizar memoria local
+        const caso = todosLosReclamos.find(r => r.id === id);
+        if (caso) {
+          caso.radicado_entidad = numero;
+          caso.entidad_destino = entidad;
+          caso.fecha_radicado_entidad = fecha;
+          caso.estado = 'En espera';
+        }
+
+        renderizarMetricasYListas();
+        cerrarModalRegistrarRadicado();
+        alert(`✅ Radicado Oficial "${numero}" registrado con éxito para el reporte ${id}.`);
+      } catch (ex) {
+        console.error("Error al registrar radicado:", ex);
+        alert("Error al registrar el radicado.");
+      }
+    };
+
+
+    // ==============================================================
+    // ACCIONES DE MODERACIÓN (APROBAR / RECHAZAR / SOLUCIONAR)
+    // ==============================================================
+    window.accionAprobar = async function(id) {
+      if (!confirm(`¿Confirmas que el reporte ${id} PROCEDE legalmente y debe publicarse en el Muro Comunitario del Barrio Panamá?`)) return;
+
+      try {
+        await supabaseClient.from('reclamos').update({ estado: 'En espera' }).eq('id', id);
+        
+        // Actualizar en memoria local
+        const caso = todosLosReclamos.find(r => r.id === id);
+        if (caso) caso.estado = 'En espera';
+        renderizarMetricasYListas();
+
+        // Preguntar si desea generar el oficio formal inmediatamente
+        if (confirm(`✅ Caso ${id} aprobado y publicado en el Muro Comunitario.\n\n¿Deseas abrir el Generador de Oficio Formal (Hoja Membretada) para radicarlo ante la entidad competente en este momento?`)) {
+          abrirModalRadicado(id);
+        }
+      } catch (e) {
+        alert("Error al actualizar estado en Supabase.");
+      }
+    };
+
+    window.accionRechazar = async function(id) {
+      const motivo = prompt("Motivo por el cual este reporte NO procede:\n(Ej: Fuera del perímetro del barrio, foto ilegible, reclamo duplicado):", "No corresponde al sector del Barrio Panamá");
+      if (!motivo) return;
+
+      try {
+        await supabaseClient.from('reclamos').update({ estado: 'Rechazado' }).eq('id', id);
+        alert(`Reporte ${id} marcado como 'No Procede'.`);
+        cargarTodoElPanel();
+      } catch (e) {
+        alert("Error al rechazar en Supabase.");
+      }
+    };
+
+    window.accionMarcarSolucionado = async function(id) {
+      if (!confirm(`¿Confirmas que este problema ya fue solucionado y reparado por la entidad?`)) return;
+
+      try {
+        await supabaseClient.from('reclamos').update({ estado: 'Solucionado' }).eq('id', id);
+        alert(`🎉 Caso ${id} marcado como solucionado.`);
+        cargarTodoElPanel();
+      } catch (e) {
+        alert("Error al actualizar en Supabase.");
+      }
+    };
+
+    window.exportarCensoCSV = function() {
+      if (todosLosVecinos.length === 0) {
+        alert("No hay registros en el censo para exportar.");
+        return;
+      }
+      let csv = "Nombre,Cedula,Sector,Direccion,Telefono,Condicion,EsVeedor\n";
+      todosLosVecinos.forEach(v => {
+        csv += `"${v.nombre}","${v.cedula}","${v.sector}","${v.direccion}","${v.telefono}","${v.condicion || ''}","${v.es_veedor ? 'SI' : 'NO'}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Censo_JAC_Barrio_Panama_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    };
 
     // Acciones de Moderación
     window.accionAprobar = async function(id) {

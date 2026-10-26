@@ -169,3 +169,13 @@ BEGIN
     WHERE email = admin_email;
   END IF;
 END $$;
+
+
+-- ==============================================================================
+-- 6. GESTIÓN DE RADICADOS OFICIALES Y ENTIDADES COMPETENTES
+-- Agrega soporte para almacenar el número de radicado asignado formalmente
+-- por la Alcaldía de Valledupar, Emdupar, Afinia, Estiv, Aseo del Norte, etc.
+-- ==============================================================================
+ALTER TABLE public.reclamos ADD COLUMN IF NOT EXISTS radicado_entidad TEXT;
+ALTER TABLE public.reclamos ADD COLUMN IF NOT EXISTS entidad_destino TEXT;
+ALTER TABLE public.reclamos ADD COLUMN IF NOT EXISTS fecha_radicado_entidad TEXT;

@@ -417,23 +417,48 @@ async function cargarReclamos() {
         // (no los archivados, ni rechazados, ni los que están 'En revisión')
         reclamos = data
           .filter(r => r.estado && r.estado !== 'Archivado' && r.estado !== 'En revisión' && r.estado !== 'Rechazado')
-          .map(r => ({
-            id: r.id,
-            titulo: r.titulo,
-            categoria: r.categoria,
-            ubicacion: r.ubicacion,
-            sector: r.sector || "Panamá II",
-            tiempo: r.tiempo,
-            diasNumero: r.dias_numero || 1,
-            descripcion: r.descripcion,
-            foto: r.foto,
-            estado: r.estado || "En espera",
-            afectados: r.afectados || "Comunidad Panamá",
-            fecha: r.fecha,
-            solicitante: r.solicitante || "Habitante Panamá",
-            lat: r.lat || PANAMA_CENTRO_II[0],
-            lng: r.lng || PANAMA_CENTRO_II[1]
-          }));
+          .map(r => {
+            let extra = {};
+            try {
+              const raw = localStorage.getItem("jac_radicados_extra");
+              if (raw) extra = JSON.parse(raw)[r.id] || {};
+            } catch (e) {}
+
+            let radEntidad = r.radicado_entidad || extra.radicado_entidad || "";
+            let entDestino = r.entidad_destino || extra.entidad_destino || "";
+            let fechaRadEntidad = r.fecha_radicado_entidad || extra.fecha_radicado_entidad || "";
+
+            if (r.afectados && r.afectados.includes("[RAD:")) {
+              const match = r.afectados.match(/\[RAD:([^|\]]+)(?:\|([^\]]+))?\]/);
+              if (match) {
+                if (!radEntidad) radEntidad = match[1];
+                if (!entDestino && match[2]) entDestino = match[2];
+              }
+            }
+
+            const afectadosLimpio = (r.afectados || "Comunidad Panamá").replace(/\[RAD:[^\]]+\]/g, "").trim();
+
+            return {
+              id: r.id,
+              titulo: r.titulo,
+              categoria: r.categoria,
+              ubicacion: r.ubicacion,
+              sector: r.sector || "Panamá II",
+              tiempo: r.tiempo,
+              diasNumero: r.dias_numero || 1,
+              descripcion: r.descripcion,
+              foto: r.foto,
+              estado: r.estado || "En espera",
+              afectados: afectadosLimpio,
+              fecha: r.fecha,
+              solicitante: r.solicitante || "Habitante Panamá",
+              lat: r.lat || PANAMA_CENTRO_II[0],
+              lng: r.lng || PANAMA_CENTRO_II[1],
+              radicadoEntidad: radEntidad,
+              entidadDestino: entDestino,
+              fechaRadicadoEntidad: fechaRadEntidad
+            };
+          });
         cargadosDesdeSupabase = true;
         localStorage.setItem("jac_panama2_reclamos", JSON.stringify(reclamos));
       }
@@ -598,6 +623,15 @@ function renderizarMuro(filtro = "todos") {
                 <span>Solucionado con gestión comunitaria</span>
               </div>
             `}
+            ${caso.radicadoEntidad ? `
+              <div class="mt-2.5 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs flex items-center justify-between text-[#004884]">
+                <div class="flex items-center gap-1.5 font-bold">
+                  <i data-lucide="file-check" class="w-3.5 h-3.5 text-[#004884] shrink-0"></i>
+                  <span>Radicado Oficial: <span class="font-mono font-black text-blue-950">${caso.radicadoEntidad}</span></span>
+                </div>
+                ${caso.entidadDestino ? `<span class="text-[10px] bg-blue-100 font-bold px-1.5 py-0.5 rounded text-blue-900 truncate max-w-[110px]">${caso.entidadDestino.split(' ')[0]}</span>` : ''}
+              </div>
+            ` : ''}
           </div>
         </div>
       </div>
@@ -1257,7 +1291,11 @@ function configurarEventos() {
       btnBuscar.innerHTML = `<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i>`;
       lucide.createIcons();
 
-      let encontrado = reclamos.find(r => r.id.toUpperCase() === q || r.id.toUpperCase().includes(q));
+      let encontrado = reclamos.find(r => 
+        r.id.toUpperCase() === q || 
+        r.id.toUpperCase().includes(q) || 
+        (r.radicadoEntidad && r.radicadoEntidad.toUpperCase().includes(q))
+      );
 
       // Si no está en reclamos validados (porque está 'En revisión' o 'Rechazado'), consultar directamente en Supabase
       if (!encontrado && supabaseClient) {
@@ -1285,12 +1323,15 @@ function configurarEventos() {
         } else if (encontrado.estado === "En espera" || encontrado.estado === "Ignorado") {
           badgeColor = "bg-blue-100 text-[#004884] border-blue-300";
           statusText = "Procede: Validado y publicado";
-          statusDesc = "El reporte procede legalmente y se encuentra activo en el muro vecinal y en trámite ante la Alcaldía de Valledupar.";
+          statusDesc = "El reporte procede legalmente y se encuentra activo en el muro vecinal y en trámite ante la Alcaldía de Valledupar o entidad competente.";
         } else if (encontrado.estado === "Rechazado") {
           badgeColor = "bg-red-100 text-red-900 border-red-300";
           statusText = "No Procede";
           statusDesc = "El reporte no cumplió los criterios de radicación comunal (ubicación fuera de la zona o información insuficiente).";
         }
+
+        const radNum = encontrado.radicadoEntidad || encontrado.radicado_entidad;
+        const entNom = encontrado.entidadDestino || encontrado.entidad_destino;
 
         resultadoBusqueda.innerHTML = `
           <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-800 space-y-2">
@@ -1302,6 +1343,17 @@ function configurarEventos() {
             </div>
             <h5 class="font-bold text-sm text-slate-900 leading-snug">${encontrado.titulo}</h5>
             <p class="text-xs text-slate-600">${encontrado.ubicacion} · <span class="font-semibold">${encontrado.sector || "Panamá II"}</span></p>
+            
+            ${radNum ? `
+              <div class="p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-xs space-y-0.5">
+                <div class="flex items-center gap-1.5 font-bold text-blue-900">
+                  <i data-lucide="file-check-2" class="w-4 h-4 text-[#004884]"></i>
+                  <span>Radicado Oficial de Trámite: <span class="font-mono font-black">${radNum}</span></span>
+                </div>
+                ${entNom ? `<div class="text-[11px] text-blue-800 pl-5">🏢 Radicado ante: <strong>${entNom}</strong></div>` : ''}
+              </div>
+            ` : ''}
+
             <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-[11px] text-slate-600 leading-relaxed">
               ℹ️ <strong>Estado del trámite:</strong> ${statusDesc}
             </div>
