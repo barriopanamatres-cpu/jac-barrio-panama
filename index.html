@@ -769,10 +769,18 @@
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
-              Descripción y Riesgo a la Comunidad *
-            </label>
-            <textarea id="descripcion" required rows="3" placeholder="Describe el daño y por qué es urgente que la Alcaldía intervenga..." class="w-full bg-slate-50 border border-slate-300 rounded-md px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#004884]"></textarea>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-bold text-slate-700 uppercase">
+                ¿Qué problema o daño físico hay en el lugar? *
+              </label>
+              <span class="text-[10px] text-blue-800 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                Solo hechos (sin cartas ni saludos)
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 mb-1.5 leading-snug">
+              💡 <strong>Describe lo que ves:</strong> (Ej: <em>"Maleza alta de 1.5m, árboles sin podar y escombros en el parque"</em> o <em>"Manjol rebosado con aguas negras en la vía"</em>). No necesitas poner saludos ni cartas tipo "Señores...", la JAC arma el oficio formal.
+            </p>
+            <textarea id="descripcion" required rows="3" placeholder="Ejemplo: Hay acumulación de ramas secas y escombros en la zona verde del parque que generan malos olores y proliferación de plagas..." class="w-full bg-slate-50 border border-slate-300 rounded-md px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#004884]"></textarea>
           </div>
 
           <!-- Foto -->

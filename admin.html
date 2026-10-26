@@ -530,8 +530,28 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Descripción Detallada de los Hechos</label>
+          <div class="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
+            <label class="block text-xs font-bold text-slate-700">Descripción Detallada de los Hechos</label>
+            <button 
+              type="button" 
+              onclick="limpiarYFormalizarHechosModal()" 
+              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-black transition cursor-pointer shadow-xs"
+              title="Quita saludos ('Señores...'), despedidas y peticiones coloquiales convirtiéndolo en un hecho formal objetivo"
+            >
+              <i data-lucide="wand-2" class="w-3.5 h-3.5 text-amber-600"></i>
+              <span>✨ Limpiar / Redactar como Hecho Formal</span>
+            </button>
+          </div>
           <textarea id="editDescripcion" rows="4" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-normal text-slate-800 focus:bg-white focus:border-[#004884] outline-none transition" required></textarea>
+          
+          <!-- Plantillas rápidas de redacción técnica por categoría -->
+          <div class="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
+            <span class="text-slate-400 font-bold">Plantillas rápidas:</span>
+            <button type="button" onclick="insertarPlantillaHecho('aseo')" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md border border-slate-200 transition cursor-pointer">🌿 Aseo y Parques</button>
+            <button type="button" onclick="insertarPlantillaHecho('alumbrado')" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md border border-slate-200 transition cursor-pointer">💡 Alumbrado</button>
+            <button type="button" onclick="insertarPlantillaHecho('alcantarillado')" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md border border-slate-200 transition cursor-pointer">💧 Alcantarillado</button>
+            <button type="button" onclick="insertarPlantillaHecho('vias')" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md border border-slate-200 transition cursor-pointer">🚧 Vías / Pavimento</button>
+          </div>
         </div>
 
         <!-- Botones de Acción -->
@@ -1488,6 +1508,72 @@
       document.getElementById("editEntidad").value = sugerirEntidadPorCategoria(cat);
     };
 
+    // Convertidor Inteligente de Lenguaje Coloquial/Cartas a Hechos Fácticos Objetivos
+    window.convertirAHechosFormales = function(texto, categoria = '') {
+      if (!texto) return '';
+      let t = texto.trim();
+
+      // 1. Quitar saludos a entidades o personas ("Señores Aseo del Norte, cordial saludo", "Buenos días", etc.)
+      t = t.replace(/^.*?(cordial saludo|saludo cordial|buenos d[ií]as|buenas tardes|respetados se[ñn]ores|atento saludo)[.,:;\s-]*/i, '');
+      t = t.replace(/^se[ñn]ores?\s+[^.,:;]+[.,:;\s-]*/i, '');
+      t = t.replace(/^(estimados|respetados|apreciados)\s+se[ñn]ores[.,:;\s-]*/i, '');
+
+      // 2. Quitar fórmulas introductorias redundantes
+      t = t.replace(/^(por medio de la presente|de manera formal|de forma atenta|por la presente|mediante este escrito|a trav[eé]s de la presente)[\s,.:;-]*/i, '');
+      t = t.replace(/^(se hace la petici[oó]n de|solicito|solicitamos|se solicita|se requiere|pido que|pedimos que|hago la petici[oó]n de|es para pedir|me dirijo a ustedes para)\s+(intervenir en\s+|que intervengan en\s+|hacer\s+|que vengan a\s+|que arreglen\s+|que limpien\s+)?/i, '');
+
+      // 3. Quitar agradecimientos / despedidas finales
+      t = t.replace(/(se agradece|muchas gracias|agradezco|quedo atento|esperamos pronta respuesta|atentamente|gracias por su atenci[oó]n|cordialmente|en espera de su respuesta)[\s\S]*$/i, '');
+
+      // 4. Limpieza de puntuación y espacios
+      t = t.trim().replace(/\s+([,.:;])/g, '$1').replace(/\s{2,}/g, ' ');
+
+      // 5. Normalizar inicio a estilo fáctico
+      if (/^(la\s+)?limpieza\s+general/i.test(t)) {
+        t = 'Se evidencia la necesidad de limpieza general ' + t.replace(/^(la\s+)?limpieza\s+general\s*(en|de)?\s*/i, 'en ');
+      } else if (/^(limpieza|poda|recolecci[oó]n|reparaci[oó]n|mantenimiento|cambio|reposici[oó]n)/i.test(t)) {
+        t = 'Se evidencia en el sector la necesidad de ' + t;
+      } else if (!/^(en\s|se\s|la\s|el\s|los\s|las\s|existe\s|persiste\s|debido\s|falta\s|acumulaci[oó]n\s|da[ñn]o\s|presencia\s|constante\s|deterioro\s)/i.test(t)) {
+        t = 'En el sitio se registra la siguiente situación: ' + t;
+      }
+
+      t = t.charAt(0).toUpperCase() + t.slice(1);
+      if (!t.endsWith('.')) t += '.';
+      return t;
+    };
+
+    window.limpiarYFormalizarHechosModal = function() {
+      const textarea = document.getElementById("editDescripcion");
+      if (!textarea) return;
+      const original = textarea.value;
+      if (!original.trim()) {
+        alert("Primero ingresa una descripción para formalizar.");
+        return;
+      }
+      const categoria = document.getElementById("editCategoria").value;
+      const formalizado = window.convertirAHechosFormales(original, categoria);
+      textarea.value = formalizado;
+      textarea.classList.add("ring-4", "ring-emerald-400/30");
+      setTimeout(() => textarea.classList.remove("ring-4", "ring-emerald-400/30"), 1200);
+    };
+
+    window.insertarPlantillaHecho = function(tipo) {
+      const textarea = document.getElementById("editDescripcion");
+      if (!textarea) return;
+      const plantillas = {
+        aseo: "Se evidencia falta de mantenimiento y limpieza en la zona pública, presentándose acumulación de maleza alta, residuos vegetales provenientes de podas sin recolectar y escombros arrojados que generan focos de contaminación y proliferación de plagas.",
+        alumbrado: "Se registran luminarias de alumbrado público apagadas y fuera de servicio, dejando el sector en completa oscuridad durante las noches, lo cual genera grave riesgo para la seguridad ciudadana y la movilidad peatonal.",
+        alcantarillado: "Se presenta rebosamiento continuo de aguas residuales sobre la vía pública provenientes del sistema de alcantarillado con emanación de fuertes olores fétidos, generando riesgo biológico y sanitario para los residentes.",
+        vias: "Deterioro crítico de la malla vial con presencia de baches profundos, hundimientos y deformación del asfalto que obstaculizan la transitabilidad vehicular y ponen en riesgo la integridad de conductores y transeúntes."
+      };
+      if (plantillas[tipo]) {
+        if (textarea.value.trim() && !confirm("¿Deseas reemplazar el texto actual por la plantilla técnica seleccionada?")) {
+          return;
+        }
+        textarea.value = plantillas[tipo];
+      }
+    };
+
     window.guardarEdicionReporte = async function(e) {
       if (e && e.preventDefault) e.preventDefault();
 
@@ -1584,12 +1670,14 @@
       if (selector) selector.value = entidadSeleccionada;
       actualizarBloqueEntidadDocumento(entidadSeleccionada);
 
-      // 4. Datos del Daño
+      // 4. Datos del Daño (se formaliza automáticamente si el vecino redactó una carta)
       document.getElementById("docUbicacion").textContent = caso.ubicacion || "Barrio Panamá";
       document.getElementById("docSector").textContent = caso.sector || "Panamá II";
       document.getElementById("docCategoria").textContent = caso.categoria || "Mantenimiento Urbano";
       document.getElementById("docTitulo").textContent = caso.titulo || "Petición comunitaria";
-      document.getElementById("docDescripcion").textContent = caso.descripcion || "Sin descripción";
+      
+      const descripcionFormalizada = window.convertirAHechosFormales(caso.descripcion || "Sin descripción", caso.categoria);
+      document.getElementById("docDescripcion").textContent = descripcionFormalizada;
       document.getElementById("docTiempo").textContent = caso.tiempo || "varias semanas";
       
       const afectadosLimpio = (caso.afectados || "la comunidad del Barrio Panamá").replace(/\[RAD:[^\]]+\]/g, "").trim();
