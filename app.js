@@ -171,9 +171,10 @@ function inicializarMapaPicker() {
     maxBoundsViscosity: 1.0 // Impide estrictamente salirse de Panamá II y III
   });
 
-  // Capa de mapas OpenStreetMap
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '© OpenStreetMap | JAC Panamá II y III',
+  // Capa de mapas CartoDB Voyager (Rápida, nítida y sin bloqueo 403)
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a> | JAC Panamá',
+    subdomains: 'abcd',
     maxZoom: 19
   }).addTo(mapaPicker);
 
@@ -246,8 +247,9 @@ function inicializarMapaComunitario() {
     maxBoundsViscosity: 1.0
   });
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '© OpenStreetMap | Veeduría JAC Panamá II y III',
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a> | JAC Panamá',
+    subdomains: 'abcd',
     maxZoom: 19
   }).addTo(mapaGeneral);
 
