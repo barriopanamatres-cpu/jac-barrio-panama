@@ -165,8 +165,7 @@ BEGIN
     -- Si el usuario ya existe, actualizar contraseña y confirmar correo automáticamente
     UPDATE auth.users 
     SET encrypted_password = crypt(admin_pass, gen_salt('bf')),
-        email_confirmed_at = now(),
-        confirmed_at = now()
+        email_confirmed_at = now()
     WHERE email = admin_email;
   END IF;
 END $$;
