@@ -192,60 +192,140 @@
     </div>
   </header>
 
-  <!-- ================= 3. MENÚ HORIZONTAL OFICIAL (Idéntico a Foto 1) ================= -->
+  <!-- ================= 3. MENÚ HORIZONTAL OFICIAL (Ingeniería Inversa Sede Electrónica) ================= -->
   <nav class="bg-white border-b border-slate-200 text-xs font-semibold text-slate-700 sticky top-0 z-40 shadow-sm">
     <div class="max-w-[1440px] mx-auto px-4 md:px-12 flex items-center overflow-x-auto scrollbar-none">
       
-      <!-- Botón Inicio Azul Sólido -->
-      <a href="#" class="bg-[#004884] text-white font-bold px-5 py-3 flex items-center gap-1.5 shrink-0">
+      <!-- Botón Inicio Azul Sólido (Idéntico a Alcaldía) -->
+      <a href="index.html" class="bg-[#004884] text-white font-bold px-5 py-3 flex items-center gap-1.5 shrink-0 hover:bg-[#00386B] transition">
         <i data-lucide="home" class="w-4 h-4"></i>
         <span>Inicio</span>
       </a>
 
-      <!-- Botón Directo: Reportes del Barrio -->
+      <!-- 1. Transparencia y acceso a la información (Vinculado a Sede Oficial) -->
+      <a 
+        href="https://www.valledupar-cesar.gov.co/transparencia" 
+        target="_blank" 
+        class="px-4 py-3 hover:text-[#004884] hover:bg-slate-50 transition shrink-0 whitespace-nowrap flex items-center gap-1"
+        title="Abrir Transparencia y Acceso a la Información en la Alcaldía Oficial"
+      >
+        <span>Transparencia y acceso a la información</span>
+        <i data-lucide="arrow-up-right" class="w-3 h-3 text-slate-400"></i>
+      </a>
+
+      <!-- 2. Atención y Servicios a la Ciudadanía (Con Dropdown Oficial) -->
+      <div class="relative group shrink-0">
+        <a 
+          href="https://www.valledupar-cesar.gov.co/tramites-y-servicios" 
+          target="_blank" 
+          class="px-4 py-3 hover:text-[#004884] hover:bg-slate-50 transition flex items-center gap-1 whitespace-nowrap"
+        >
+          <span>Atención y Servicios a la Ciudadanía</span>
+          <svg class="w-3 h-3 opacity-60 group-hover:rotate-180 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+        </a>
+        <div class="absolute left-0 top-full hidden group-hover:block bg-white border border-slate-200 shadow-xl rounded-b-xl py-2 min-w-[260px] z-50 animate-in fade-in">
+          <a href="https://www.valledupar-cesar.gov.co/tramites-y-servicios" target="_blank" class="px-4 py-2.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#004884] font-medium flex items-center justify-between">
+            <span>Trámites y Servicios (Sede Digital)</span>
+            <i data-lucide="external-link" class="w-3 h-3 opacity-60"></i>
+          </a>
+          <a href="https://www.valledupar-cesar.gov.co/procedures" target="_blank" class="px-4 py-2.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#004884] font-medium flex items-center justify-between border-t border-slate-100">
+            <span>Procedimientos y Guías Oficiales</span>
+            <i data-lucide="external-link" class="w-3 h-3 opacity-60"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- 3. Participa (Vinculado a Sede Oficial) -->
+      <a 
+        href="https://www.valledupar-cesar.gov.co/participa" 
+        target="_blank" 
+        class="px-4 py-3 hover:text-[#004884] hover:bg-slate-50 transition shrink-0 whitespace-nowrap flex items-center gap-1"
+        title="Abrir Participa Ciudadana Oficial"
+      >
+        <span>Participa</span>
+        <i data-lucide="arrow-up-right" class="w-3 h-3 text-slate-400"></i>
+      </a>
+
+      <!-- 4. PQRSDF (Menú Dual: Alcaldía Oficial y Radicación Comunal Barrio Panamá) -->
+      <div class="relative group shrink-0">
+        <a 
+          href="#radicar" 
+          class="px-4 py-3 text-[#004884] font-black border-b-2 border-[#004884] hover:bg-blue-50/50 transition flex items-center gap-1.5 whitespace-nowrap"
+        >
+          <span class="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+          <span>PQRSDF</span>
+          <svg class="w-3 h-3 opacity-60 group-hover:rotate-180 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+        </a>
+        <div class="absolute left-0 top-full hidden group-hover:block bg-white border border-slate-200 shadow-xl rounded-b-xl py-2 min-w-[280px] z-50 animate-in fade-in">
+          <a href="#radicar" class="px-4 py-2.5 text-xs text-slate-800 hover:bg-blue-50 hover:text-[#004884] font-bold flex items-center justify-between">
+            <span class="flex items-center gap-2">
+              <i data-lucide="megaphone" class="w-3.5 h-3.5 text-red-600"></i>
+              <span>Radicar Veeduría JAC Panamá II y III</span>
+            </span>
+            <span class="text-[9px] bg-red-100 text-red-700 px-1.5 py-0.2 rounded font-black">Comunal</span>
+          </a>
+          <a href="https://www.valledupar-cesar.gov.co/pqrsdf" target="_blank" class="px-4 py-2.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#004884] font-medium flex items-center justify-between border-t border-slate-100">
+            <span class="flex items-center gap-2">
+              <i data-lucide="building-2" class="w-3.5 h-3.5 text-[#004884]"></i>
+              <span>PQRSDF Alcaldía de Valledupar</span>
+            </span>
+            <i data-lucide="external-link" class="w-3 h-3 opacity-60"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- 5. La Alcaldía (Con Dropdown Oficial) -->
+      <div class="relative group shrink-0">
+        <a 
+          href="https://www.valledupar-cesar.gov.co/cabinet" 
+          target="_blank" 
+          class="px-4 py-3 hover:text-[#004884] hover:bg-slate-50 transition flex items-center gap-1 whitespace-nowrap"
+        >
+          <span>La Alcaldía</span>
+          <svg class="w-3 h-3 opacity-60 group-hover:rotate-180 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+        </a>
+        <div class="absolute left-0 top-full hidden group-hover:block bg-white border border-slate-200 shadow-xl rounded-b-xl py-2 min-w-[260px] z-50 animate-in fade-in">
+          <a href="https://www.valledupar-cesar.gov.co/cabinet" target="_blank" class="px-4 py-2.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#004884] font-medium flex items-center justify-between">
+            <span>Gabinete y Despacho del Alcalde</span>
+            <i data-lucide="external-link" class="w-3 h-3 opacity-60"></i>
+          </a>
+          <a href="https://www.valledupar-cesar.gov.co/normativas" target="_blank" class="px-4 py-2.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#004884] font-medium flex items-center justify-between border-t border-slate-100">
+            <span>Normatividad, Acuerdos y Decretos</span>
+            <i data-lucide="external-link" class="w-3 h-3 opacity-60"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- 6. Sala de Prensa (Con Dropdown Oficial) -->
+      <div class="relative group shrink-0">
+        <a 
+          href="https://www.valledupar-cesar.gov.co/sala-de-prensa" 
+          target="_blank" 
+          class="px-4 py-3 hover:text-[#004884] hover:bg-slate-50 transition flex items-center gap-1 whitespace-nowrap"
+        >
+          <span>Sala de Prensa</span>
+          <svg class="w-3 h-3 opacity-60 group-hover:rotate-180 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+        </a>
+        <div class="absolute left-0 top-full hidden group-hover:block bg-white border border-slate-200 shadow-xl rounded-b-xl py-2 min-w-[260px] z-50 animate-in fade-in">
+          <a href="https://www.valledupar-cesar.gov.co/noticias" target="_blank" class="px-4 py-2.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#004884] font-medium flex items-center justify-between">
+            <span>Noticias y Comunicados Oficiales</span>
+            <i data-lucide="external-link" class="w-3 h-3 opacity-60"></i>
+          </a>
+          <a href="https://www.valledupar-cesar.gov.co/eventos" target="_blank" class="px-4 py-2.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#004884] font-medium flex items-center justify-between border-t border-slate-100">
+            <span>Eventos y Agenda Institucional</span>
+            <i data-lucide="external-link" class="w-3 h-3 opacity-60"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Botón Directo Comunitario: Reportes del Barrio -->
       <a href="#muro" class="px-4 py-3 hover:text-[#004884] hover:bg-slate-50 transition shrink-0 whitespace-nowrap flex items-center gap-1.5 font-bold text-slate-800 border-b-2 border-transparent hover:border-[#004884]">
         <i data-lucide="clipboard-list" class="w-4 h-4 text-[#004884]"></i>
         <span>Reportes del Barrio</span>
       </a>
 
-      <!-- Enlaces con dropdowns idénticos -->
-      <a href="#muro" class="px-4 py-3 hover:text-[#004884] hover:bg-slate-50 transition shrink-0 whitespace-nowrap">
-        Transparencia y acceso a la Información
-      </a>
-
-      <div class="relative group shrink-0">
-        <button class="px-4 py-3 hover:text-[#004884] hover:bg-slate-50 transition flex items-center gap-1 whitespace-nowrap">
-          <span>Atención y Servicios a la Ciudadanía</span>
-          <svg class="w-3 h-3 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
-        </button>
-      </div>
-
-      <a href="#radicar" class="px-4 py-3 hover:text-[#004884] hover:bg-slate-50 transition shrink-0 whitespace-nowrap">
-        Participa
-      </a>
-
-      <!-- PQRSDF DESTACADO PARA PANAMÁ II -->
-      <a href="#radicar" class="px-4 py-3 text-[#004884] font-black border-b-2 border-[#004884] hover:bg-blue-50/50 transition shrink-0 whitespace-nowrap flex items-center gap-1">
-        <span class="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
-        <span>PQRSDF / Reclamos Panamá II</span>
-      </a>
-
-      <div class="relative group shrink-0">
-        <button class="px-4 py-3 hover:text-[#004884] hover:bg-slate-50 transition flex items-center gap-1 whitespace-nowrap">
-          <span>La Alcaldía</span>
-          <svg class="w-3 h-3 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
-        </button>
-      </div>
-
-      <div class="relative group shrink-0">
-        <button class="px-4 py-3 hover:text-[#004884] hover:bg-slate-50 transition flex items-center gap-1 whitespace-nowrap">
-          <span>Sala de Prensa</span>
-          <svg class="w-3 h-3 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
-        </button>
-      </div>
-
       <!-- Enlace directo a Instagram -->
-      <a href="https://www.instagram.com/barriopanamatres/" target="_blank" class="ml-auto px-4 py-3 text-pink-600 font-bold hover:bg-pink-50 transition shrink-0 flex items-center gap-1.5">
+      <a href="https://www.instagram.com/barriopanamatres/" target="_blank" class="ml-auto px-4 py-3 text-pink-600 font-bold hover:bg-pink-50 transition shrink-0 flex items-center gap-1.5" title="Instagram Oficial de Barrio Panamá">
         <i data-lucide="instagram" class="w-4 h-4"></i>
         <span class="hidden lg:inline">@barriopanamatres</span>
       </a>
@@ -672,10 +752,11 @@
               </select>
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
-                Dirección / Manzana y Casa *
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
+                <span>Dirección / Manzana y Casa *</span>
+                <span id="badgeAutoDireccion" class="text-[10px] text-emerald-700 font-bold lowercase bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-200 hidden">📍 autocompletada con mapa</span>
               </label>
-              <input type="text" id="ubicacion" required placeholder="Ej: Manzana 14 Casa 8 / Calle 44 con Cra 6" class="w-full bg-slate-50 border border-slate-300 rounded-md px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#004884]">
+              <input type="text" id="ubicacion" required placeholder="Ej: Manzana 14 Casa 8 / Calle 44 con Cra 6" class="w-full bg-slate-50 border border-slate-300 rounded-md px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#004884] transition-all">
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 uppercase mb-1">

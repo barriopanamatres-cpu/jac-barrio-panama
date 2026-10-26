@@ -27,28 +27,27 @@ const PANAMA_CENTRO = [10.44980, -73.23250];
 const PANAMA_CENTRO_II = [10.44980, -73.23330]; // Entre Carrera 5ª A 2 y Carrera 5ª A
 const PANAMA_CENTRO_III = [10.45030, -73.23120]; // Entre Carrera 5ª A y Carrera 5ª Bis
 
-// PERÍMETRO ÚNICO EXACTO (Tomando la vía completa de Carrera 5ª Bis de andén a andén y todas las manzanas)
+// PERÍMETRO CONTINUO Y EXACTO (Cubre de extremo a extremo Calle 44, Carrera 5ª Bis, Calle 45B y Cra 5ª A 2)
 const POLIGONO_BARRIO_PANAMA = [
-  [10.44925, -73.23455], // 1. Calle 44 esquina izquierda (una cuadra antes de Cra 5ª A 2)
-  [10.45021, -73.23399], // 2. Quiebre de Calle 44 frente a Calle 39 (inicio Cra 5ª A 2)
-  [10.45120, -73.23275], // 3. Esquina Calle 44 con Carrera 5ª A
-  [10.44994, -73.23197], // 4. Bajando por Carrera 5ª A hasta la esquina con Calle 45
-  [10.45065, -73.23075], // 5. Calle 45 hasta el andén occidental de Carrera 5ª Bis
-  [10.45218, -73.23152], // 6. Subiendo por Carrera 5ª Bis hasta la esquina con Calle 44 (punto Sejes / andén occidental)
-  [10.45238, -73.23120], // 7. Cruzando la boca de Carrera 5ª Bis en Calle 44 (andén oriental)
-  [10.44985, -73.22980], // 8. Bajando por el andén oriental de Carrera 5ª Bis (pasando TransCar y Karines) hasta Calle 45B
-  [10.44805, -73.23325]  // 9. Bajando por Calle 45B (borde sur) hasta la esquina inferior suroccidental
+  [10.44925, -73.23455], // 1. Calle 44 esquina occidental (Cra 5A 2)
+  [10.45030, -73.23390], // 2. Calle 44 con Cra 5A 1
+  [10.45130, -73.23270], // 3. Calle 44 con Cra 5A
+  [10.45255, -73.23110], // 4. Calle 44 con Cra 5 Bis (esquina nororiental Sejes)
+  [10.45070, -73.23000], // 5. Bajando por Cra 5 Bis pasando Calle 45
+  [10.44960, -73.22940], // 6. Cra 5 Bis frente a Karines
+  [10.44850, -73.23120], // 7. Cra 5 Bis esquina con Calle 45B
+  [10.44750, -73.23350], // 8. Borde sur Calle 45B
+  [10.44810, -73.23490]  // 9. Esquina suroccidental
 ];
 
-// Validación matemática: ¿El punto está estrictamente dentro del polígono del barrio?
+// Validación matemática: Raycasting Point-in-Polygon riguroso y sin cortes cóncavos
 function estaDentroDelBarrio(lat, lng) {
-  let x = lat, y = lng;
   let inside = false;
   const vs = POLIGONO_BARRIO_PANAMA;
   for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
     let xi = vs[i][0], yi = vs[i][1];
     let xj = vs[j][0], yj = vs[j][1];
-    let intersect = ((yi > y) != (yj > y)) && (x < (xj - x) * (y - yi) / (yj - yi) + xi);
+    let intersect = ((yi > lng) !== (yj > lng)) && (lat < (xj - xi) * (lng - yi) / (yj - yi) + xi);
     if (intersect) inside = !inside;
   }
   return inside;
@@ -67,11 +66,69 @@ function mostrarAvisoFueraPerimetro() {
   }
 }
 
+// Autocompletado inteligente de Dirección según el punto del mapa
+async function autocompletarDireccionDesdeCoordenadas(lat, lng) {
+  const inputUbicacion = document.getElementById("ubicacion");
+  const selectSector = document.getElementById("sector");
+  const badgeAuto = document.getElementById("badgeAutoDireccion");
+  if (!inputUbicacion) return;
+
+  // 1. Detección inmediata de Sector y Vías principales de Panamá II y III
+  const sector = lng < -73.2322 ? "Panamá II" : "Panamá III";
+  if (selectSector) selectSector.value = sector;
+
+  let carrera = "";
+  if (lng <= -73.2333) {
+    carrera = "Carrera 5ª A 2";
+  } else if (lng <= -73.2318) {
+    carrera = "Carrera 5ª A";
+  } else {
+    carrera = "Carrera 5ª Bis";
+  }
+
+  let calle = "";
+  if (lat >= 10.4509) {
+    calle = "Calle 44";
+  } else if (lat >= 10.4497) {
+    calle = "Calle 45";
+  } else {
+    calle = "Calle 45B";
+  }
+
+  const direccionEstimada = `${carrera} con ${calle}, Barrio ${sector}`;
+  inputUbicacion.value = direccionEstimada;
+
+  if (badgeAuto) {
+    badgeAuto.classList.remove("hidden");
+    badgeAuto.textContent = "📍 Ubicación detectada";
+  }
+
+  // 2. Consulta adicional en segundo plano a OpenStreetMap para mayor precisión si hay red
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1500);
+    const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+      signal: controller.signal,
+      headers: { 'Accept-Language': 'es' }
+    });
+    clearTimeout(timeoutId);
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data && data.address && data.address.road) {
+        inputUbicacion.value = `${data.address.road} con ${calle}, Barrio ${sector}`;
+      }
+    }
+  } catch (err) {
+    // Si la red externa no responde, la dirección local calculada ya está puesta
+  }
+}
+
 function actualizarPosicionPin(lat, lng) {
   if (estaDentroDelBarrio(lat, lng)) {
     ultimaPosicionValida = [lat, lng];
     pickerMarker.setLatLng([lat, lng]);
     actualizarCoordenadasFormulario(lat, lng);
+    autocompletarDireccionDesdeCoordenadas(lat, lng);
   } else {
     // Si intenta ubicar fuera del barrio, regresarlo de inmediato al último punto válido
     pickerMarker.setLatLng(ultimaPosicionValida);
@@ -197,15 +254,23 @@ function inicializarMapaPicker() {
     title: "Arrastra para fijar la manzana o casa afectada"
   }).addTo(mapaPicker);
 
-  // Restricción: solo permitir fijar el pin dentro del perímetro
+  // Al hacer clic en el mapa o sobre el polígono del barrio, mover el pin y autocompletar la dirección
+  mapaPicker.on("click", (e) => {
+    actualizarPosicionPin(e.latlng.lat, e.latlng.lng);
+  });
+
+  perimetroPanama.on("click", (e) => {
+    actualizarPosicionPin(e.latlng.lat, e.latlng.lng);
+  });
+
+  // Restricción: solo permitir fijar el pin dentro del perímetro al arrastrarlo
   pickerMarker.on("dragend", (e) => {
     const latLng = e.target.getLatLng();
     actualizarPosicionPin(latLng.lat, latLng.lng);
   });
 
-  mapaPicker.on("click", (e) => {
-    actualizarPosicionPin(e.latlng.lat, e.latlng.lng);
-  });
+  // Autocompletar datos iniciales al cargar
+  actualizarPosicionPin(PANAMA_CENTRO_II[0], PANAMA_CENTRO_II[1]);
 }
 
 function actualizarCoordenadasFormulario(lat, lng) {
