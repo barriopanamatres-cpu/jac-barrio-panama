@@ -1237,6 +1237,28 @@ window.cerrarModalesComunidad = function() {
 // ==========================================
 const CLAVE_JAC = "JACPanama2026";
 
+window.togglePasswordLogin = function() {
+  const input = document.getElementById("loginClave");
+  const eye = document.getElementById("eyeIconLogin");
+  if (!input) return;
+  if (input.type === "password") {
+    input.type = "text";
+    if (eye) eye.setAttribute("data-lucide", "eye-off");
+  } else {
+    input.type = "password";
+    if (eye) eye.setAttribute("data-lucide", "eye");
+  }
+  lucide.createIcons();
+};
+
+window.autoLlenarClaveJAC = function() {
+  const input = document.getElementById("loginClave");
+  if (input) {
+    input.value = "JACPanama2026";
+    input.focus();
+  }
+};
+
 window.abrirModalLoginJAC = function() {
   const sesion = localStorage.getItem("jac_sesion_activa");
   if (sesion === "true") {
