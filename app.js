@@ -17,27 +17,27 @@ if (window.supabase) {
   }
 }
 
-// DELIMITACIÓN EXACTA SEGÚN EL PLANO OFICIAL TRAZADO POR LA JAC (Valledupar Comuna 2 Sur)
-// Bounding box estricto ajustado al milímetro
+// DELIMITACIÓN EXACTA NODO POR NODO SOBRE LAS CALLES REALES DEL PLANO
 const PANAMA_BOUNDS = [
-  [10.4455, -73.2385], // Suroccidente (Calle 44 / Arboleda)
-  [10.4535, -73.2285]  // Nororiente (Carrera 5ª Bis / Calle 44)
+  [10.4470, -73.2358], // Suroccidente (incluye Arboleda de Comfacesar y Confort Canino como referencia)
+  [10.4528, -73.2290]  // Nororiente (incluye Calle 39 y punta de Carrera 5ª Bis)
 ];
 
-const PANAMA_CENTRO = [10.4495, -73.2335];
-const PANAMA_CENTRO_II = [10.4492, -73.2345]; // Centro Sector Panamá II (Cercano a Mz 14)
-const PANAMA_CENTRO_III = [10.4505, -73.2315]; // Centro Sector Panamá III
+const PANAMA_CENTRO = [10.44980, -73.23250];
+const PANAMA_CENTRO_II = [10.44980, -73.23330]; // Entre Carrera 5ª A 2 y Carrera 5ª A
+const PANAMA_CENTRO_III = [10.45030, -73.23120]; // Entre Carrera 5ª A y Carrera 5ª Bis
 
-// PERÍMETRO ÚNICO OFICIAL - BARRIO PANAMÁ II Y III (Trazado exacto del plano enviado)
+// PERÍMETRO ÚNICO EXACTO (Coordenadas exactas de las esquinas de las calles en el plano)
 const POLIGONO_BARRIO_PANAMA = [
-  [10.44770, -73.23715], // 1. Esquina suroccidente en Calle 44
-  [10.45040, -73.23535], // 2. Subiendo por Calle 44 (quiebre frente a Calle 39)
-  [10.45115, -73.23385], // 3. Esquina norte de Panamá II (Calle 44 con Cra 5A)
-  [10.45015, -73.23210], // 4. Bajando por Carrera 5A hasta Calle 45
-  [10.45082, -73.23059], // 5. Cruzando por Calle 45 hasta Carrera 5ª Bis
-  [10.45225, -73.23140], // 6. Punta norte superior en Carrera 5ª Bis
-  [10.44990, -73.22995], // 7. Esquina oriental en Carrera 5ª Bis con Calle 45A
-  [10.44665, -73.23485]  // 8. Esquina sur detrás de Calle 45A
+  [10.44925, -73.23452], // 1. Calle 44 esquina izquierda (una cuadra antes de Cra 5ª A 2)
+  [10.45021, -73.23399], // 2. Quiebre de Calle 44 frente a Calle 39 (inicio Cra 5ª A 2)
+  [10.45119, -73.23276], // 3. Esquina Calle 44 con Carrera 5ª A
+  [10.44994, -73.23197], // 4. Bajando por Carrera 5ª A hasta la esquina con Calle 45
+  [10.45083, -73.23059], // 5. Subiendo por Calle 45 hasta la esquina con Carrera 5ª Bis
+  [10.45199, -73.23132], // 6. Punta norte de Carrera 5ª Bis (costado occidental)
+  [10.45208, -73.23115], // 7. Punta norte de Carrera 5ª Bis (costado oriental)
+  [10.45004, -73.23008], // 8. Bajando por Carrera 5ª Bis hasta esquina con Calle 45B
+  [10.44813, -73.23316]  // 9. Bajando por Calle 45B hasta la esquina inferior sur
 ];
 
 // Variables de Mapas Leaflet
@@ -177,10 +177,10 @@ function inicializarMapaPicker() {
   const bounds = L.latLngBounds(southWest, northEast);
 
   mapaPicker = L.map("mapaPanamaPicker", {
-    center: PANAMA_CENTRO_II,
+    center: PANAMA_CENTRO,
     zoom: 17,
-    minZoom: 15,
-    maxZoom: 19,
+    minZoom: 16,
+    maxZoom: 20,
     maxBounds: bounds,
     maxBoundsViscosity: 1.0 // Impide estrictamente salirse de Panamá II y III
   });
@@ -205,25 +205,25 @@ function inicializarMapaPicker() {
     "🛰️ Google Satélite": googleSatellite
   }, null, { position: 'topright' }).addTo(mapaPicker);
 
-  // PERÍMETRO ÚNICO EXACTO (Trazado oficial dibujado por la JAC)
+  // PERÍMETRO ÚNICO EXACTO (Línea negra limpia tal cual la imagen)
   const perimetroPanama = L.polygon(POLIGONO_BARRIO_PANAMA, {
-    color: '#0f172a',
-    weight: 4,
-    opacity: 0.95,
+    color: '#000000',
+    weight: 3.5,
+    opacity: 1,
     fillColor: '#004884',
-    fillOpacity: 0.08,
+    fillOpacity: 0.04,
     lineCap: 'round',
     lineJoin: 'round'
   }).addTo(mapaPicker);
-  perimetroPanama.bindTooltip("<span class='text-slate-900 font-extrabold'>📍 LÍMITE BARRIO PANAMÁ II Y III</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
+
+  // Encuadrar automáticamente al nivel de zoom de las casas y manzanas (Zoom 17-18)
+  mapaPicker.fitBounds(perimetroPanama.getBounds(), { padding: [20, 20], maxZoom: 18 });
 
   // Marcador seleccionable
   pickerMarker = L.marker(PANAMA_CENTRO_II, {
     draggable: true,
     title: "Arrastra para fijar la manzana o casa afectada"
   }).addTo(mapaPicker);
-
-  pickerMarker.bindPopup("<b>Ubicación seleccionada</b><br>Manzana 14 Casa 8 (Barrio Panamá II)").openPopup();
 
   // Actualizar coordenadas al arrastrar el pin
   pickerMarker.on("dragend", (e) => {
@@ -263,10 +263,10 @@ function inicializarMapaComunitario() {
   const bounds = L.latLngBounds(southWest, northEast);
 
   mapaGeneral = L.map("mapaPanamaGeneral", {
-    center: PANAMA_CENTRO_II,
+    center: PANAMA_CENTRO,
     zoom: 17,
-    minZoom: 15,
-    maxZoom: 19,
+    minZoom: 16,
+    maxZoom: 20,
     maxBounds: bounds,
     maxBoundsViscosity: 1.0
   });
@@ -291,17 +291,18 @@ function inicializarMapaComunitario() {
     "🛰️ Google Satélite": gGoogleSatellite
   }, null, { position: 'topright' }).addTo(mapaGeneral);
 
-  // PERÍMETRO ÚNICO EXACTO (Trazado oficial dibujado por la JAC)
+  // PERÍMETRO ÚNICO EXACTO (Línea negra limpia tal cual la imagen)
   const gPerimetroPanama = L.polygon(POLIGONO_BARRIO_PANAMA, {
-    color: '#0f172a',
-    weight: 4,
-    opacity: 0.95,
+    color: '#000000',
+    weight: 3.5,
+    opacity: 1,
     fillColor: '#004884',
-    fillOpacity: 0.08,
+    fillOpacity: 0.04,
     lineCap: 'round',
     lineJoin: 'round'
   }).addTo(mapaGeneral);
-  gPerimetroPanama.bindTooltip("<span class='text-slate-900 font-extrabold'>📍 LÍMITE BARRIO PANAMÁ II Y III</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
+
+  mapaGeneral.fitBounds(gPerimetroPanama.getBounds(), { padding: [20, 20], maxZoom: 18 });
 
   marcadoresCapa = L.layerGroup().addTo(mapaGeneral);
   actualizarMarcadoresComunitarios();
