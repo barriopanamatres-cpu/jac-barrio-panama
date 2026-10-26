@@ -171,10 +171,9 @@ function inicializarMapaPicker() {
     maxBoundsViscosity: 1.0 // Impide estrictamente salirse de Panamá II y III
   });
 
-  // Capa de mapas CartoDB Voyager (Rápida, nítida y sin bloqueo 403)
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a> | JAC Panamá',
-    subdomains: 'abcd',
+  // Capa de mapas oficial Esri ArcGIS World Street Map (Totalmente abierta, ultra rápida y sin clave API)
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+    attribution: 'Tiles &copy; Esri &mdash; Valledupar | JAC Panamá II y III',
     maxZoom: 19
   }).addTo(mapaPicker);
 
@@ -247,9 +246,8 @@ function inicializarMapaComunitario() {
     maxBoundsViscosity: 1.0
   });
 
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a> | JAC Panamá',
-    subdomains: 'abcd',
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+    attribution: 'Tiles &copy; Esri &mdash; Valledupar | JAC Panamá II y III',
     maxZoom: 19
   }).addTo(mapaGeneral);
 
