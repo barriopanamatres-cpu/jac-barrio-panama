@@ -1547,13 +1547,27 @@
           center: [centroLat, centroLng],
           zoom: 17,
           minZoom: 15,
-          maxZoom: 19
+          maxZoom: 20
         });
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '&copy; OpenStreetMap'
+        // Capa Oficial de Calles Google Maps (Nítida, con nombres de calles de Valledupar y sin bloqueos de OSM)
+        const capaCalles = L.tileLayer("https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", {
+          subdomains: ['0', '1', '2', '3'],
+          attribution: '&copy; Google Maps · JAC Panamá II y III',
+          maxZoom: 20
         }).addTo(mapaEditor);
+
+        const capaSatelite = L.tileLayer("https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", {
+          subdomains: ['0', '1', '2', '3'],
+          attribution: '&copy; Google Satélite · JAC Panamá II y III',
+          maxZoom: 20
+        });
+
+        // Selector de vista Calles / Satélite
+        L.control.layers({
+          "🗺️ Calles": capaCalles,
+          "🛰️ Satélite": capaSatelite
+        }, null, { position: 'topright' }).addTo(mapaEditor);
 
         poligonoEditor = L.polygon(POLIGONO_BARRIO_PANAMA, {
           color: '#004884',
