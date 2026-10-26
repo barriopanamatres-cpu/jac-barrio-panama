@@ -1,0 +1,61 @@
+/* Estilos Oficiales - Sede Electrónica Alcaldía de Valledupar / JAC Panamá II */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;600;700&display=swap');
+
+:root {
+  --primary: 0 72 132;          /* #004884 */
+  --primary-active: 1 48 87;    /* #013057 */
+  --primary-surface: 230 239 253; /* #E6EFFD */
+  --primary-accent: 51 102 204;  /* #3366CC */
+  --valle-yellow: #FDB813;
+  --valle-green: #006837;
+}
+
+body {
+  font-family: 'Montserrat', 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #333333;
+}
+
+/* Efectos de elevación para tarjetas */
+.shadow-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.shadow-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -6px rgba(0, 72, 132, 0.12), 0 4px 8px -4px rgba(0, 0, 0, 0.06);
+}
+
+/* Insignias de Estado Oficiales */
+.badge-ignorado {
+  background-color: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FCA5A5;
+}
+
+.badge-espera {
+  background-color: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FCD34D;
+}
+
+.badge-solucionado {
+  background-color: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #6EE7B7;
+}
+
+/* Botones de filtro del muro */
+.filter-btn.active {
+  background-color: #004884 !important;
+  color: #FFFFFF !important;
+  border-color: #004884 !important;
+}
+
+/* Ocultar barra de desplazamiento manteniendo funcionalidad */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
