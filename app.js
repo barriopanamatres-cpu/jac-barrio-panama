@@ -1168,3 +1168,56 @@ window.cambiarEstado = async function(id) {
     }
   }
 };
+
+// ==========================================
+// MODALES DE SERVICIOS A LA COMUNIDAD (JAC)
+// ==========================================
+window.irAlMapaComunitario = function(e) {
+  if (e) e.preventDefault();
+  const btnMapa = document.getElementById("btnVistaMapa");
+  const muro = document.getElementById("muro");
+  if (btnMapa) btnMapa.click();
+  if (muro) muro.scrollIntoView({ behavior: 'smooth' });
+};
+
+window.abrirModalRendicion = function() {
+  const mTotal = document.getElementById("mRendicionTotal");
+  const mIgn = document.getElementById("mRendicionIgnorados");
+  const mEsp = document.getElementById("mRendicionEspera");
+  const mRes = document.getElementById("mRendicionResueltos");
+
+  const total = reclamos.length;
+  const ignorados = reclamos.filter(r => r.estado === "Ignorado").length;
+  const enEspera = reclamos.filter(r => r.estado === "En espera").length;
+  const resueltos = reclamos.filter(r => r.estado === "Solucionado").length;
+
+  if (mTotal) mTotal.textContent = total;
+  if (mIgn) mIgn.textContent = ignorados;
+  if (mEsp) mEsp.textContent = enEspera;
+  if (mRes) mRes.textContent = resueltos;
+
+  const modal = document.getElementById("modalRendicion");
+  if (modal) modal.classList.remove("hidden");
+  lucide.createIcons();
+};
+
+window.abrirModalPeticiones = function() {
+  const modal = document.getElementById("modalPeticiones");
+  if (modal) modal.classList.remove("hidden");
+  lucide.createIcons();
+};
+
+window.abrirModalPoliticaDatos = function() {
+  const modal = document.getElementById("modalPoliticaDatos");
+  if (modal) modal.classList.remove("hidden");
+  lucide.createIcons();
+};
+
+window.cerrarModalesComunidad = function() {
+  const m1 = document.getElementById("modalRendicion");
+  const m2 = document.getElementById("modalPeticiones");
+  const m3 = document.getElementById("modalPoliticaDatos");
+  if (m1) m1.classList.add("hidden");
+  if (m2) m2.classList.add("hidden");
+  if (m3) m3.classList.add("hidden");
+};
