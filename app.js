@@ -1260,14 +1260,7 @@ window.autoLlenarClaveJAC = function() {
 };
 
 window.abrirModalLoginJAC = function() {
-  const sesion = localStorage.getItem("jac_sesion_activa");
-  if (sesion === "true") {
-    window.location.href = "admin.html";
-    return;
-  }
-  const modal = document.getElementById("modalLoginJAC");
-  if (modal) modal.classList.remove("hidden");
-  lucide.createIcons();
+  window.location.href = "admin.html";
 };
 
 window.abrirModalRegistroVecino = function() {
@@ -1277,12 +1270,8 @@ window.abrirModalRegistroVecino = function() {
 };
 
 window.cerrarModalesAuth = function() {
-  const m1 = document.getElementById("modalLoginJAC");
-  const m2 = document.getElementById("modalModeracionJAC");
   const m3 = document.getElementById("modalRegistroVecino");
   const m4 = document.getElementById("modalConfirmacionRadicado");
-  if (m1) m1.classList.add("hidden");
-  if (m2) m2.classList.add("hidden");
   if (m3) m3.classList.add("hidden");
   if (m4) m4.classList.add("hidden");
 };
@@ -1314,7 +1303,7 @@ window.actualizarBarraNavJAC = function() {
     `;
   } else {
     authTopNav.innerHTML = `
-      <a href="javascript:void(0)" onclick="abrirModalLoginJAC()" class="hover:underline flex items-center gap-1 cursor-pointer">
+      <a href="admin.html" class="hover:underline flex items-center gap-1 cursor-pointer">
         <i data-lucide="lock" class="w-3.5 h-3.5 opacity-80"></i>
         <span>Inicio de sesión</span>
       </a>
