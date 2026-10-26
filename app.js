@@ -185,14 +185,22 @@ let reclamoSeleccionado = null;
 
 // Inicialización de la aplicación
 document.addEventListener("DOMContentLoaded", async () => {
-  actualizarBarraNavJAC();
-  await cargarReclamos();
-  inicializarCarruselAlcaldia();
-  cargarNoticias();
-  renderizarMuro("todos");
-  inicializarMapaPicker();
-  configurarEventos();
-  lucide.createIcons();
+  // 1. Inicializar componentes visuales de inmediato y de forma resiliente
+  try { inicializarCarruselAlcaldia(); } catch (e) { console.error("Carrusel:", e); }
+  try { actualizarBarraNavJAC(); } catch (e) { console.error("Nav:", e); }
+  try { cargarNoticias(); } catch (e) { console.error("Noticias:", e); }
+  try { renderizarMuro("todos"); } catch (e) { console.error("Muro:", e); }
+  try { inicializarMapaPicker(); } catch (e) { console.error("Mapa:", e); }
+  try { configurarEventos(); } catch (e) { console.error("Eventos:", e); }
+  try { lucide.createIcons(); } catch (e) {}
+
+  // 2. Conectar a Supabase en segundo plano sin congelar la UI
+  try {
+    await cargarReclamos();
+    renderizarMuro("todos");
+  } catch (e) {
+    console.error("Reclamos Supabase:", e);
+  }
 });
 
 // ==========================================
@@ -1572,7 +1580,7 @@ window.cerrarSesionJAC = function() {
   alert("Sesión de la Directiva JAC finalizada.");
 };
 
-window.actualizarBarraNavJAC = function() {
+function actualizarBarraNavJAC() {
   const authTopNav = document.getElementById("authTopNav");
   if (!authTopNav) return;
   const sesion = localStorage.getItem("jac_sesion_activa") === "true";
@@ -1607,7 +1615,8 @@ window.actualizarBarraNavJAC = function() {
     `;
   }
   lucide.createIcons();
-};
+}
+window.actualizarBarraNavJAC = actualizarBarraNavJAC;
 
 window.abrirPanelModeracionJAC = async function() {
   const modalLogin = document.getElementById("modalLoginJAC");
