@@ -62,7 +62,7 @@
       </div>
 
       <div class="p-7 space-y-4">
-        <form id="formLoginAdminDirecto" class="space-y-4">
+        <form id="formLoginAdminDirecto" class="space-y-4" onsubmit="event.preventDefault(); window.procesarLoginAdmin(event);">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1.5">Correo Electrónico Institucional</label>
             <div class="relative">
@@ -389,17 +389,22 @@
     // Credenciales Supabase
     const SUPABASE_URL = "https://qumwwqmfdszwrwtcznfq.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_eharY6YnMohsirphNAizng_db4PD0bV";
-    const CLAVE_OFICIAL_JAC = "JACPanama2026";
+    const CLAVE_OFICIAL_JAC = "JACPanama2026*";
+    const CLAVE_OFICIAL_JAC_ALT = "JACPanama2026";
 
-    let supabase = null;
-    if (window.supabase) {
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let supabaseClient = null;
+    if (window.supabase && typeof window.supabase.createClient === "function") {
+      try {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      } catch (errInit) {
+        console.warn("Aviso inicialización Supabase:", errInit);
+      }
     }
 
     let todosLosReclamos = [];
     let todosLosVecinos = [];
 
-    // Inicialización
+    // Inicialización al cargar la página
     document.addEventListener("DOMContentLoaded", () => {
       verificarSesion();
       lucide.createIcons();
@@ -411,10 +416,14 @@
       const vistaDash = document.getElementById("vistaDashboardAdmin");
 
       if (sesionActiva) {
+        vistaLogin.style.display = "none";
+        vistaDash.style.display = "flex";
         vistaLogin.classList.add("hidden");
         vistaDash.classList.remove("hidden");
         cargarTodoElPanel();
       } else {
+        vistaLogin.style.display = "flex";
+        vistaDash.style.display = "none";
         vistaLogin.classList.remove("hidden");
         vistaDash.classList.add("hidden");
       }
@@ -435,14 +444,16 @@
       lucide.createIcons();
     };
 
-    // Formulario de Login con Supabase Auth y Respaldo Comunal
-    document.getElementById("formLoginAdminDirecto").addEventListener("submit", async (e) => {
-      e.preventDefault();
+    // Procesar Login de Administrador
+    window.procesarLoginAdmin = async function(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      
       const email = document.getElementById("loginAdminUsuario").value.trim();
       const password = document.getElementById("loginAdminClave").value.trim();
       const err = document.getElementById("errorLoginAdmin");
-      const btn = e.target.querySelector("button[type='submit']");
-      const originalText = btn.innerHTML;
+      const form = document.getElementById("formLoginAdminDirecto");
+      const btn = form.querySelector("button[type='submit']");
+      const originalText = `<span>Iniciar Sesión en el Dashboard</span><i data-lucide="arrow-right" class="w-4 h-4"></i>`;
 
       btn.disabled = true;
       btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> <span>Verificando credenciales...</span>`;
@@ -452,9 +463,9 @@
         let autenticado = false;
 
         // 1. Intentar inicio de sesión directo con Supabase Auth
-        if (supabase) {
+        if (supabaseClient) {
           try {
-            const { data, error } = await supabase.auth.signInWithPassword({
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
               email: email,
               password: password
             });
@@ -466,8 +477,8 @@
           }
         }
 
-        // 2. Soporte para clave comunal de la JAC
-        if (!autenticado && (password === CLAVE_OFICIAL_JAC || password === "2026")) {
+        // 2. Soporte para clave comunal de la JAC (con o sin asterisco o clave 2026)
+        if (!autenticado && (password === CLAVE_OFICIAL_JAC || password === CLAVE_OFICIAL_JAC_ALT || password === "2026")) {
           autenticado = true;
         }
 
@@ -475,24 +486,32 @@
           err.classList.add("hidden");
           localStorage.setItem("jac_sesion_activa", "true");
           verificarSesion();
+          return;
         } else {
           err.classList.remove("hidden");
-          err.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-red-500"></i><span>Credenciales inválidas. Correo o contraseña incorrectos.</span>`;
+          err.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-red-500"></i><span>Credenciales inválidas. Verifica tu correo y contraseña.</span>`;
           lucide.createIcons();
         }
       } catch (ex) {
+        console.error("Error en login:", ex);
         err.classList.remove("hidden");
       } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
         lucide.createIcons();
       }
-    });
+    };
+
+    // Registrar listener redundante por seguridad
+    const formAdminElem = document.getElementById("formLoginAdminDirecto");
+    if (formAdminElem) {
+      formAdminElem.addEventListener("submit", window.procesarLoginAdmin);
+    }
 
     window.cerrarSesionAdmin = async function() {
       if (confirm("¿Deseas cerrar la sesión de administración?")) {
-        if (supabase) {
-          try { await supabase.auth.signOut(); } catch (e) {}
+        if (supabaseClient) {
+          try { await supabaseClient.auth.signOut(); } catch (e) {}
         }
         localStorage.removeItem("jac_sesion_activa");
         verificarSesion();
@@ -518,11 +537,11 @@
 
     // Carga de Datos desde Supabase
     async function cargarTodoElPanel() {
-      if (!supabase) return;
+      if (!supabaseClient) return;
 
       try {
         // 1. Cargar Reclamos
-        const { data: reclamosData, error: errReclamos } = await supabase
+        const { data: reclamosData, error: errReclamos } = await supabaseClient
           .from('reclamos')
           .select('*')
           .order('created_at', { ascending: false });
@@ -533,7 +552,7 @@
         }
 
         // 2. Cargar Censo
-        const { data: censoData, error: errCenso } = await supabase
+        const { data: censoData, error: errCenso } = await supabaseClient
           .from('censo_vecinos')
           .select('*')
           .order('created_at', { ascending: false });
@@ -769,7 +788,7 @@
       if (!confirm(`¿Confirmas que el reporte ${id} PROCEDE legalmente y debe publicarse en el Muro Comunitario del Barrio Panamá?`)) return;
 
       try {
-        await supabase.from('reclamos').update({ estado: 'En espera' }).eq('id', id);
+        await supabaseClient.from('reclamos').update({ estado: 'En espera' }).eq('id', id);
         alert(`✅ Caso ${id} aprobado y publicado en el portal vecinal.`);
         cargarTodoElPanel();
       } catch (e) {
@@ -782,7 +801,7 @@
       if (!motivo) return;
 
       try {
-        await supabase.from('reclamos').update({ estado: 'Rechazado' }).eq('id', id);
+        await supabaseClient.from('reclamos').update({ estado: 'Rechazado' }).eq('id', id);
         alert(`Reporte ${id} marcado como 'No Procede'.`);
         cargarTodoElPanel();
       } catch (e) {
@@ -794,7 +813,7 @@
       if (!confirm(`¿Confirmas que este problema ya fue solucionado y reparado por la entidad?`)) return;
 
       try {
-        await supabase.from('reclamos').update({ estado: 'Solucionado' }).eq('id', id);
+        await supabaseClient.from('reclamos').update({ estado: 'Solucionado' }).eq('id', id);
         alert(`🎉 Caso ${id} marcado como solucionado.`);
         cargarTodoElPanel();
       } catch (e) {
