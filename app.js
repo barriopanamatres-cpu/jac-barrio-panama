@@ -17,31 +17,43 @@ if (window.supabase) {
   }
 }
 
-// Delimitación Geográfica Estricta de Barrio Panamá II y III (Comuna 2 Sur de Valledupar)
-// Coordenadas calibradas con precisión según el plano comunal oficial
+// DELIMITACIÓN EXACTA SEGÚN EL PLANO OFICIAL TRAZADO POR LA JAC (Valledupar Comuna 2 Sur)
+// Bounding box estricto ajustado al milímetro
 const PANAMA_BOUNDS = [
-  [10.4430, -73.2385], // Suroccidente (Transversal 4 / Calle 46)
-  [10.4530, -73.2260]  // Nororiente (Calle 44 con Carrera 5)
+  [10.4455, -73.2385], // Suroccidente (Calle 44 / Arboleda)
+  [10.4535, -73.2285]  // Nororiente (Carrera 5ª Bis / Calle 44)
 ];
-const PANAMA_CENTRO_GLOBAL = [10.4485, -73.2325];
-const PANAMA_CENTRO_II = [10.4496, -73.2345]; // Sector Panamá II (Zona Verde Azulada / Cian)
-const PANAMA_CENTRO_III = [10.4480, -73.2305]; // Sector Panamá III (Zona Morada)
 
-// Polígono 1: BARRIO PANAMÁ II (Verde Azulado / Cian #14b8a6)
+const PANAMA_CENTRO_II = [10.4492, -73.2345]; // Centro Sector Panamá II (Cercano a Mz 14)
+const PANAMA_CENTRO_III = [10.4505, -73.2315]; // Centro Sector Panamá III
+
+// Perímetro General Negro (Trazado Oficial JAC en Google Maps)
+const PERIMETRO_OFICIAL_PANAMA = [
+  [10.44785, -73.23690], // Calle 44 suroccidente
+  [10.45030, -73.23540], // Calle 44 quiebre cerca a Calle 39
+  [10.45115, -73.23385], // Calle 44 con Carrera 5A
+  [10.45220, -73.23145], // Punta norte en Carrera 5ª Bis
+  [10.44990, -73.22995], // Esquina oriente Carrera 5ª Bis con Calle 45A
+  [10.44685, -73.23460]  // Esquina sur detrás de Calle 45A
+];
+
+// Polígono 1: BARRIO PANAMÁ II (Sector Izquierdo en Verde Azulado / Cian)
 const POLIGONO_PANAMA_II = [
-  [10.4516, -73.2346], // Calle 44 límite norte
-  [10.4498, -73.2324], // Calle 44 con Carrera 5A
-  [10.4475, -73.2344], // Carrera 5A bajando hacia Carrera 5A 2
-  [10.4479, -73.2366], // Transversal 3 / Transversal 3b
-  [10.4503, -73.2360]  // Retorno hacia Calle 44
+  [10.44785, -73.23690], // Calle 44 esquina suroccidente
+  [10.45030, -73.23540], // Calle 44 quiebre
+  [10.45115, -73.23385], // Calle 44 con Carrera 5A
+  [10.45015, -73.23210], // Carrera 5A bajando hacia Calle 45
+  [10.44730, -73.23440], // Límite sur Carrera 5A hacia Cra 5A 2
+  [10.44685, -73.23460]  // Esquina sur
 ];
 
-// Polígono 2: BARRIO PANAMÁ III (Morado #a855f7)
+// Polígono 2: BARRIO PANAMÁ III (Sector Derecho en Morado)
 const POLIGONO_PANAMA_III = [
-  [10.4509, -73.2322], // Carrera 5A con Calle 44B
-  [10.4492, -73.2278], // Calle 45A / Calle 45B hacia Carrera 5
-  [10.4460, -73.2306], // Calle 46 hacia Carrera 5
-  [10.4473, -73.2350]  // Carrera 5A Bis / Carrera 5A 2
+  [10.45115, -73.23385], // Carrera 5A con Calle 44A
+  [10.45220, -73.23145], // Punta norte Carrera 5ª Bis
+  [10.44990, -73.22995], // Esquina oriente Carrera 5ª Bis con Calle 45A
+  [10.44840, -73.23250], // Calle 45A cruzando hacia Carrera 5A
+  [10.45015, -73.23210]  // Carrera 5A con Calle 45
 ];
 
 // Variables de Mapas Leaflet
@@ -189,43 +201,53 @@ function inicializarMapaPicker() {
     maxBoundsViscosity: 1.0 // Impide estrictamente salirse de Panamá II y III
   });
 
-  // Capa de mapas oficial Esri ArcGIS World Street Map (Totalmente abierta, ultra rápida y sin clave API)
-  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
-    attribution: 'Tiles &copy; Esri &mdash; Valledupar | JAC Panamá II y III',
-    maxZoom: 19
+  // Capa Google Maps Calles (Nítida, moderna y con nombres exactos)
+  const googleStreets = L.tileLayer("https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", {
+    subdomains: ['0', '1', '2', '3'],
+    attribution: '&copy; Google Maps | JAC Panamá II y III',
+    maxZoom: 20
+  });
+
+  const googleSatellite = L.tileLayer("https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", {
+    subdomains: ['0', '1', '2', '3'],
+    attribution: '&copy; Google Satellite | JAC Panamá II y III',
+    maxZoom: 20
+  });
+
+  googleStreets.addTo(mapaPicker);
+
+  L.control.layers({
+    "🗺️ Google Calles": googleStreets,
+    "🛰️ Google Satélite": googleSatellite
+  }, null, { position: 'topright' }).addTo(mapaPicker);
+
+  // 1. PERÍMETRO GENERAL NEGRO (Trazado oficial dibujado por la JAC)
+  L.polygon(PERIMETRO_OFICIAL_PANAMA, {
+    color: '#0f172a',
+    weight: 4,
+    opacity: 0.95,
+    fill: false,
+    lineCap: 'round',
+    lineJoin: 'round'
   }).addTo(mapaPicker);
 
-  // Polígono 1: BARRIO PANAMÁ II (Verde Azulado / Cian #14b8a6)
+  // 2. SECTOR PANAMÁ II (Verde Azulado / Cian)
   const poliII = L.polygon(POLIGONO_PANAMA_II, {
     color: '#0d9488',
     fillColor: '#14b8a6',
-    fillOpacity: 0.22,
-    weight: 3.5,
-    dashArray: '5, 5'
+    fillOpacity: 0.18,
+    weight: 2.5
   }).addTo(mapaPicker);
   poliII.bindTooltip("<span class='text-teal-800 font-extrabold'>🟢 PANAMÁ II</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
 
-  // Polígono 2: BARRIO PANAMÁ III (Morado #a855f7)
+  // 3. SECTOR PANAMÁ III (Morado)
   const poliIII = L.polygon(POLIGONO_PANAMA_III, {
     color: '#7e22ce',
     fillColor: '#a855f7',
-    fillOpacity: 0.22,
-    weight: 3.5,
-    dashArray: '5, 5'
+    fillOpacity: 0.18,
+    weight: 2.5
   }).addTo(mapaPicker);
   poliIII.bindTooltip("<span class='text-purple-800 font-extrabold'>🟣 PANAMÁ III</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
-
-  // Línea diagonal límite Calle 44
-  L.polyline([
-    [10.4525, -73.2355],
-    [10.4498, -73.2324],
-    [10.4475, -73.2270]
-  ], {
-    color: '#475569',
-    weight: 2,
-    dashArray: '4, 4',
-    opacity: 0.8
-  }).addTo(mapaPicker);
 
   // Marcador seleccionable
   pickerMarker = L.marker(PANAMA_CENTRO_II, {
@@ -281,42 +303,53 @@ function inicializarMapaComunitario() {
     maxBoundsViscosity: 1.0
   });
 
-  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
-    attribution: 'Tiles &copy; Esri &mdash; Valledupar | JAC Panamá II y III',
-    maxZoom: 19
+  // Capa Google Maps Calles
+  const gGoogleStreets = L.tileLayer("https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", {
+    subdomains: ['0', '1', '2', '3'],
+    attribution: '&copy; Google Maps | JAC Panamá II y III',
+    maxZoom: 20
+  });
+
+  const gGoogleSatellite = L.tileLayer("https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", {
+    subdomains: ['0', '1', '2', '3'],
+    attribution: '&copy; Google Satellite | JAC Panamá II y III',
+    maxZoom: 20
+  });
+
+  gGoogleStreets.addTo(mapaGeneral);
+
+  L.control.layers({
+    "🗺️ Google Calles": gGoogleStreets,
+    "🛰️ Google Satélite": gGoogleSatellite
+  }, null, { position: 'topright' }).addTo(mapaGeneral);
+
+  // 1. PERÍMETRO GENERAL NEGRO
+  L.polygon(PERIMETRO_OFICIAL_PANAMA, {
+    color: '#0f172a',
+    weight: 4,
+    opacity: 0.95,
+    fill: false,
+    lineCap: 'round',
+    lineJoin: 'round'
   }).addTo(mapaGeneral);
 
-  // Polígono 1: BARRIO PANAMÁ II (Cian)
+  // 2. Polígono 1: BARRIO PANAMÁ II (Cian)
   const gPoliII = L.polygon(POLIGONO_PANAMA_II, {
     color: '#0d9488',
     fillColor: '#14b8a6',
     fillOpacity: 0.18,
-    weight: 3.5,
-    dashArray: '5, 5'
+    weight: 2.5
   }).addTo(mapaGeneral);
   gPoliII.bindTooltip("<span class='text-teal-800 font-extrabold'>🟢 PANAMÁ II</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
 
-  // Polígono 2: BARRIO PANAMÁ III (Morado)
+  // 3. Polígono 2: BARRIO PANAMÁ III (Morado)
   const gPoliIII = L.polygon(POLIGONO_PANAMA_III, {
     color: '#7e22ce',
     fillColor: '#a855f7',
     fillOpacity: 0.18,
-    weight: 3.5,
-    dashArray: '5, 5'
+    weight: 2.5
   }).addTo(mapaGeneral);
   gPoliIII.bindTooltip("<span class='text-purple-800 font-extrabold'>🟣 PANAMÁ III</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
-
-  // Línea diagonal límite Calle 44
-  L.polyline([
-    [10.4525, -73.2355],
-    [10.4498, -73.2324],
-    [10.4475, -73.2270]
-  ], {
-    color: '#475569',
-    weight: 2,
-    dashArray: '4, 4',
-    opacity: 0.8
-  }).addTo(mapaGeneral);
 
   marcadoresCapa = L.layerGroup().addTo(mapaGeneral);
   actualizarMarcadoresComunitarios();
