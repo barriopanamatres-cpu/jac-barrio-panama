@@ -333,94 +333,56 @@
     </div>
   </nav>
 
-  <!-- ================= 4. CARRUSEL DE BANNERS OFICIAL (Idéntico a Foto 1) ================= -->
-  <section class="relative bg-white border-b border-slate-200 overflow-hidden">
-    <div class="max-w-[1440px] mx-auto relative">
+  <!-- ================= 4. CARRUSEL DE BANNERS OFICIAL (Sincronizado en Vivo con Alcaldía de Valledupar) ================= -->
+  <section id="carruselAlcaldiaContainer" class="relative bg-slate-950 border-b border-slate-200 overflow-hidden select-none group">
+    <div class="max-w-[1600px] mx-auto relative">
       
-      <!-- Banner Central del POT Valledupar 2024 / 2027 -->
-      <div class="relative w-full min-h-[300px] md:min-h-[380px] bg-gradient-to-r from-white via-white/90 to-transparent flex items-center overflow-hidden">
-        
-        <!-- Imagen de Fondo Real de Valledupar -->
-        <img 
-          src="https://valledupar-sedigov.s-integrations.co/attachment/files/download/4C894F3E-F36B-1410-8C8A-00A971D655DB" 
-          alt="Valledupar POT" 
-          class="absolute inset-0 w-full h-full object-cover object-center"
+      <!-- Contenedor Dinámico de Slides del Carrusel -->
+      <div id="carruselSlidesWrapper" class="relative w-full aspect-[16/7] sm:aspect-[16/6] md:aspect-[3.8/1] max-h-[460px] min-h-[190px] overflow-hidden bg-slate-950">
+        <!-- Render dinámico con banners oficiales y links reales de la Alcaldía -->
+      </div>
+
+      <!-- Flecha Anterior -->
+      <button 
+        type="button" 
+        onclick="cambiarSlideBanner(-1)" 
+        class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/75 text-white flex items-center justify-center backdrop-blur-sm transition-all z-30 cursor-pointer shadow-lg hover:scale-105"
+        aria-label="Diapositiva anterior"
+      >
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"></path></svg>
+      </button>
+
+      <!-- Flecha Siguiente -->
+      <button 
+        type="button" 
+        onclick="cambiarSlideBanner(1)" 
+        class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/75 text-white flex items-center justify-center backdrop-blur-sm transition-all z-30 cursor-pointer shadow-lg hover:scale-105"
+        aria-label="Diapositiva siguiente"
+      >
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"></path></svg>
+      </button>
+
+      <!-- Barra Inferior de Control Oficial (Pausar / Reanudar + Bolitas) -->
+      <div class="absolute bottom-2.5 sm:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/50 backdrop-blur-md px-4 py-1.5 rounded-full z-30 shadow-lg border border-white/10">
+        <!-- Botón Pausar / Reanudar -->
+        <button 
+          type="button" 
+          onclick="togglePausaBanner()" 
+          id="btnPausaBanner" 
+          class="flex items-center gap-1.5 text-[11px] font-bold text-white hover:text-amber-300 transition cursor-pointer"
+          title="Pausar o reanudar rotación automática"
         >
-
-        <!-- Banner Overlay Gráfico con la curva blanca oficial (Foto 1) -->
-        <div class="relative z-10 w-full px-6 md:px-16 py-8 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-          
-          <!-- Lado Izquierdo: PARTICIPA EN LA REVISIÓN DEL POT -->
-          <div class="md:col-span-5 bg-white/95 backdrop-blur-md p-6 rounded-2xl shadow-xl border-l-8 border-[#D83744]">
-            <h2 class="text-2xl sm:text-3xl font-black text-[#D83744] tracking-tight leading-none">
-              PARTICIPA <span class="text-xs font-bold text-slate-800">EN LA</span>
-            </h2>
-            <h3 class="text-sm sm:text-base font-extrabold text-slate-900 mt-1 leading-snug">
-              REVISIÓN DEL PLAN DE ORDENAMIENTO TERRITORIAL (POT) <br>
-              <span class="text-xs font-normal text-slate-600">Y VEEDURÍA ESPECIAL BARRIO PANAMÁ II</span>
-            </h3>
-
-            <!-- Escudo Valledupar Footer del banner -->
-            <div class="flex items-center gap-2 mt-4 pt-3 border-t border-slate-200">
-              <img 
-                src="https://valledupar-sedigov.s-integrations.co/attachment/files/download/A0E2AA57-0D9E-F011-BFB4-08BFB81D5CA8" 
-                alt="Escudo" 
-                class="h-8 w-auto object-contain"
-              >
-              <div class="text-[10px] font-bold text-slate-700 leading-tight">
-                ALCALDÍA DE <br><strong class="text-slate-900">VALLEDUPAR</strong>
-              </div>
-            </div>
-          </div>
-
-          <!-- Centro: Logo POT 2024 / 2027 -->
-          <div class="md:col-span-3 text-center hidden md:block">
-            <div class="inline-block bg-white/90 backdrop-blur-sm p-4 rounded-2xl shadow-md border border-white">
-              <div class="text-4xl font-black text-[#004884] tracking-tighter">
-                P<span class="text-emerald-600">O</span>T
-              </div>
-              <div class="text-[9px] font-bold text-slate-600 uppercase tracking-widest">
-                Plan de Ordenamiento Territorial
-              </div>
-              <div class="text-[10px] font-black text-[#004884] mt-1">
-                Alcaldía de Valledupar 2024 / 2027
-              </div>
-            </div>
-          </div>
-
-          <!-- Lado Derecho: Tarjeta de Llamado a la Acción (Foto 1) -->
-          <div class="md:col-span-4 bg-[#004884]/95 text-white p-6 rounded-2xl shadow-2xl backdrop-blur-sm border border-blue-300/30">
-            <p class="text-xs leading-relaxed font-medium italic text-blue-50">
-              "La Junta de Acción Comunal de Panamá II y la comunidad invitan a radicar sus peticiones para que la administración atienda de inmediato los postes y vías del sector."
-            </p>
-            <div class="mt-4 flex items-center justify-between">
-              <a href="#radicar" class="inline-flex items-center gap-2 text-xs font-bold text-white bg-[#D83744] hover:bg-red-700 px-3.5 py-2 rounded-full transition shadow">
-                <span>Radicar Reclamo Aquí</span>
-                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-              </a>
-              <span class="text-[10px] text-blue-200 font-mono">RAD-2026</span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Flechas de navegación del carrusel (Exactas a Foto 1) -->
-        <button class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-slate-800 flex items-center justify-center shadow transition z-20">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"></path></svg>
-        </button>
-        <button class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-slate-800 flex items-center justify-center shadow transition z-20">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
+          <svg id="svgPausaBanner" class="w-3 h-3 fill-current" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+          <span id="textoPausaBanner">Pausar</span>
         </button>
 
-        <!-- Indicadores de bolitas inferiores -->
-        <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
-          <span class="w-2.5 h-2.5 rounded-full bg-white shadow"></span>
-          <span class="w-2 h-2 rounded-full bg-white/50"></span>
-          <span class="w-2 h-2 rounded-full bg-white/50"></span>
-          <span class="w-2 h-2 rounded-full bg-white/50"></span>
-          <span class="w-2 h-2 rounded-full bg-white/50"></span>
-        </div>
+        <!-- Divisor sutil -->
+        <div class="h-3 w-[1px] bg-white/30"></div>
 
+        <!-- Indicadores de bolitas (Dots) -->
+        <div id="carruselDotsWrapper" class="flex items-center gap-1.5 max-w-[220px] sm:max-w-none overflow-x-auto scrollbar-none py-0.5">
+          <!-- Render dinámico de bolitas -->
+        </div>
       </div>
 
     </div>

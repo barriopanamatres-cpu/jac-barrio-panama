@@ -187,6 +187,7 @@ let reclamoSeleccionado = null;
 document.addEventListener("DOMContentLoaded", async () => {
   actualizarBarraNavJAC();
   await cargarReclamos();
+  inicializarCarruselAlcaldia();
   cargarNoticias();
   renderizarMuro("todos");
   inicializarMapaPicker();
@@ -608,6 +609,229 @@ function renderizarMuro(filtro = "todos") {
   });
 
   lucide.createIcons();
+}
+
+// ==========================================
+// CARRUSEL OFICIAL DE BANNERS DE LA ALCALDÍA DE VALLEDUPAR
+// Sincronización en vivo con la API oficial GraphQL + Transiciones exactas
+// ==========================================
+const BANNERS_ALCALDIA_DEFAULT = [
+  {
+    id: "PEMP-1",
+    titulo: "Plan Especial de Manejo y Protección (PEMP) Valledupar",
+    imagen: "https://valledupar-sedigov.s-integrations.co/attachment/files/download/1CE34D3E-F36B-1410-8C8A-00A971D655DB",
+    enlace: "https://forms.gle/Uy8fTg5eYWpAiQ92A"
+  },
+  {
+    id: "IMPUESTOS-1",
+    titulo: "Descuento 99% Impuestos Municipales",
+    imagen: "https://valledupar-sedigov.s-integrations.co/attachment/files/download/C1604E3E-F36B-1410-8C8B-00A971D655DB",
+    enlace: "https://valledupar.taxationsmart.co/ords/f?p=150000:1:12355446337061:::1:F_CDGO_CLNTE:10"
+  },
+  {
+    id: "POT-1",
+    titulo: "Revisión Plan de Ordenamiento Territorial (POT)",
+    imagen: "https://valledupar-sedigov.s-integrations.co/attachment/files/download/AEE84D3E-F36B-1410-8C8B-00A971D655DB",
+    enlace: "https://forms.gle/GuDd6imUzXcY9bqYA"
+  },
+  {
+    id: "POT-2",
+    titulo: "POT Valledupar 2026",
+    imagen: "https://valledupar-sedigov.s-integrations.co/attachment/files/download/ABB513C5-190D-F111-AB1F-C45AB1C98469",
+    enlace: "https://forms.gle/3egV6Fm6g6AfkGba9"
+  },
+  {
+    id: "OMS-1",
+    titulo: "Observatorio de Salud OMS Valledupar",
+    imagen: "https://valledupar-sedigov.s-integrations.co/attachment/files/download/4C894F3E-F36B-1410-8C8A-00A971D655DB",
+    enlace: "https://oms.valledupar-cesar.gov.co/"
+  },
+  {
+    id: "DENGUE-1",
+    titulo: "Campaña Oficial Todos Contra el Dengue",
+    imagen: "https://valledupar-sedigov.s-integrations.co/attachment/files/download/0AE44986-3616-F111-AB1F-C45AB1C98469",
+    enlace: "https://www.valledupar-cesar.gov.co/sala-de-prensa/la-prevencion-del-dengue-comienza-en-casa-jaide-medina-secretaria-de-salud"
+  },
+  {
+    id: "ZAFA-1",
+    titulo: "Zafa Pago Diario",
+    imagen: "https://valledupar-sedigov.s-integrations.co/attachment/files/download/3FE94D3E-F36B-1410-8C8B-00A971D655DB",
+    enlace: "https://www.monet.com.co/alcaldia-de-valledupar/"
+  },
+  {
+    id: "CATASTRO-1",
+    titulo: "Trámites de Gestión Catastral",
+    imagen: "https://valledupar-sedigov.s-integrations.co/attachment/files/download/D09B20E1-5DBB-F011-BFB4-08BFB81D5CA8",
+    enlace: "https://www.instagram.com/p/DLpP98dOhR1/?img_index=1"
+  }
+];
+
+let listaBannersAlcaldia = [...BANNERS_ALCALDIA_DEFAULT];
+let indiceSlideBanner = 0;
+let timerBannerAutoplay = null;
+let bannerEnPausa = false;
+
+function inicializarCarruselAlcaldia() {
+  renderizarCarruselBanners();
+  iniciarAutoPlayBanner();
+  sincronizarBannersEnVivoDesdeAlcaldia();
+}
+
+function renderizarCarruselBanners() {
+  const wrapper = document.getElementById("carruselSlidesWrapper");
+  const dotsWrapper = document.getElementById("carruselDotsWrapper");
+  if (!wrapper || !dotsWrapper) return;
+
+  wrapper.innerHTML = "";
+  dotsWrapper.innerHTML = "";
+
+  listaBannersAlcaldia.forEach((banner, idx) => {
+    // 1. Elemento del Slide (Enlace oficial directo al hacer clic)
+    const slide = document.createElement("a");
+    slide.href = banner.enlace;
+    slide.target = "_blank";
+    slide.rel = "noopener noreferrer";
+    slide.id = `slideBannerItem-${idx}`;
+    slide.title = `Abrir en nueva pestaña: ${banner.titulo}`;
+    slide.className = `absolute inset-0 block w-full h-full transition-opacity duration-700 ease-in-out cursor-pointer ${
+      idx === indiceSlideBanner ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
+    }`;
+    slide.innerHTML = `
+      <img 
+        src="${banner.imagen}" 
+        alt="${banner.titulo}" 
+        class="w-full h-full object-cover object-center select-none"
+        loading="${idx === 0 ? 'eager' : 'lazy'}"
+      >
+    `;
+    wrapper.appendChild(slide);
+
+    // 2. Indicador en forma de bolita (Dot)
+    const dot = document.createElement("button");
+    dot.type = "button";
+    dot.id = `dotBannerItem-${idx}`;
+    dot.onclick = () => irASlideBanner(idx);
+    dot.className = `rounded-full transition-all cursor-pointer ${
+      idx === indiceSlideBanner 
+        ? "w-3 h-3 bg-white scale-110 shadow" 
+        : "w-2.5 h-2.5 bg-transparent border border-white/60 hover:border-white"
+    }`;
+    dotsWrapper.appendChild(dot);
+  });
+}
+
+function cambiarSlideBanner(delta) {
+  if (listaBannersAlcaldia.length === 0) return;
+  let nuevoIndice = indiceSlideBanner + delta;
+  if (nuevoIndice < 0) nuevoIndice = listaBannersAlcaldia.length - 1;
+  if (nuevoIndice >= listaBannersAlcaldia.length) nuevoIndice = 0;
+  irASlideBanner(nuevoIndice);
+}
+
+function irASlideBanner(indice) {
+  if (indice < 0 || indice >= listaBannersAlcaldia.length) return;
+  
+  // Ocultar slide anterior
+  const slideViejo = document.getElementById(`slideBannerItem-${indiceSlideBanner}`);
+  const dotViejo = document.getElementById(`dotBannerItem-${indiceSlideBanner}`);
+  if (slideViejo) {
+    slideViejo.className = "absolute inset-0 block w-full h-full transition-opacity duration-700 ease-in-out cursor-pointer opacity-0 z-0 pointer-events-none";
+  }
+  if (dotViejo) {
+    dotViejo.className = "w-2.5 h-2.5 bg-transparent border border-white/60 hover:border-white rounded-full transition-all cursor-pointer";
+  }
+
+  // Mostrar slide nuevo
+  indiceSlideBanner = indice;
+  const slideNuevo = document.getElementById(`slideBannerItem-${indiceSlideBanner}`);
+  const dotNuevo = document.getElementById(`dotBannerItem-${indiceSlideBanner}`);
+  if (slideNuevo) {
+    slideNuevo.className = "absolute inset-0 block w-full h-full transition-opacity duration-700 ease-in-out cursor-pointer opacity-100 z-10 pointer-events-auto";
+  }
+  if (dotNuevo) {
+    dotNuevo.className = "w-3 h-3 bg-white scale-110 shadow rounded-full transition-all cursor-pointer";
+  }
+
+  // Reiniciar autoplay si no está pausado
+  if (!bannerEnPausa) {
+    iniciarAutoPlayBanner();
+  }
+}
+
+function iniciarAutoPlayBanner() {
+  if (timerBannerAutoplay) clearInterval(timerBannerAutoplay);
+  timerBannerAutoplay = setInterval(() => {
+    cambiarSlideBanner(1);
+  }, 4000); // 4000ms idéntico a la Sede Electrónica oficial
+}
+
+window.togglePausaBanner = function() {
+  bannerEnPausa = !bannerEnPausa;
+  const texto = document.getElementById("textoPausaBanner");
+  const svg = document.getElementById("svgPausaBanner");
+
+  if (bannerEnPausa) {
+    if (timerBannerAutoplay) {
+      clearInterval(timerBannerAutoplay);
+      timerBannerAutoplay = null;
+    }
+    if (texto) texto.textContent = "Reanudar";
+    if (svg) svg.innerHTML = `<polygon points="5 3 19 12 5 21 5 3"></polygon>`;
+  } else {
+    iniciarAutoPlayBanner();
+    if (texto) texto.textContent = "Pausar";
+    if (svg) svg.innerHTML = `<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>`;
+  }
+};
+
+window.cambiarSlideBanner = cambiarSlideBanner;
+window.irASlideBanner = irASlideBanner;
+
+// Sincronización en vivo con la API oficial GraphQL de la Alcaldía de Valledupar
+async function sincronizarBannersEnVivoDesdeAlcaldia() {
+  try {
+    const res = await fetch("https://valledupar-sedigov.s-integrations.co/graphql", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: `query Home {
+          mainPage {
+            ... on PageSliderBlock {
+              sliders {
+                id
+                title
+                orderIndex
+                alternativeText
+                image { downloadUrl }
+                linkItem { url }
+              }
+            }
+          }
+        }`
+      })
+    });
+    if (res.ok) {
+      const json = await res.json();
+      const sliderBlock = json.data?.mainPage?.find(b => b.sliders && b.sliders.length > 0);
+      if (sliderBlock && sliderBlock.sliders.length > 0) {
+        const nuevosBanners = sliderBlock.sliders
+          .filter(s => s.image && s.image.downloadUrl)
+          .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
+          .map(s => ({
+            id: s.id,
+            titulo: s.alternativeText || s.title || "Alcaldía de Valledupar",
+            imagen: s.image.downloadUrl,
+            enlace: s.linkItem?.url || "https://www.valledupar-cesar.gov.co"
+          }));
+        if (nuevosBanners.length > 0) {
+          listaBannersAlcaldia = nuevosBanners;
+          renderizarCarruselBanners();
+        }
+      }
+    }
+  } catch (e) {
+    // Silencioso: usa la lista oficial local preconfigurada
+  }
 }
 
 // Cargar Noticias
