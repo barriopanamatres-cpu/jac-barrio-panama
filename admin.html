@@ -1525,20 +1525,27 @@
       // 3. Quitar agradecimientos / despedidas finales
       t = t.replace(/(se agradece|muchas gracias|agradezco|quedo atento|esperamos pronta respuesta|atentamente|gracias por su atenci[oó]n|cordialmente|en espera de su respuesta)[\s\S]*$/i, '');
 
-      // 4. Limpieza de puntuación y espacios
+      // 4. Limpieza de puntuación y espacios duplicados
       t = t.trim().replace(/\s+([,.:;])/g, '$1').replace(/\s{2,}/g, ' ');
 
-      // 5. Normalizar inicio a estilo fáctico
-      if (/^(la\s+)?limpieza\s+general/i.test(t)) {
-        t = 'Se evidencia la necesidad de limpieza general ' + t.replace(/^(la\s+)?limpieza\s+general\s*(en|de)?\s*/i, 'en ');
-      } else if (/^(limpieza|poda|recolecci[oó]n|reparaci[oó]n|mantenimiento|cambio|reposici[oó]n)/i.test(t)) {
-        t = 'Se evidencia en el sector la necesidad de ' + t;
+      // 5. Normalizar inicio de forma segura SIN recortar palabras existentes
+      if (/^la\s+limpieza\b/i.test(t)) {
+        t = 'Se evidencia la necesidad de ' + t;
+      } else if (/^limpieza\b/i.test(t)) {
+        t = 'Se evidencia la necesidad de la ' + t;
+      } else if (/^(poda|recolecci[oó]n|reparaci[oó]n|mantenimiento|cambio|reposici[oó]n)\b/i.test(t)) {
+        t = 'Se evidencia la necesidad urgente de ' + t;
+      } else if (/^(intervenir|hacer|arreglar|podar|reparar|limpiar|tapar|destapar)\b/i.test(t)) {
+        t = 'Se requiere ' + t;
       } else if (!/^(en\s|se\s|la\s|el\s|los\s|las\s|existe\s|persiste\s|debido\s|falta\s|acumulaci[oó]n\s|da[ñn]o\s|presencia\s|constante\s|deterioro\s)/i.test(t)) {
-        t = 'En el sitio se registra la siguiente situación: ' + t;
+        t = 'En el sitio se registra: ' + t;
       }
 
+      // Capitalizar primera letra
       t = t.charAt(0).toUpperCase() + t.slice(1);
-      if (!t.endsWith('.')) t += '.';
+
+      // Limpiar puntos al final para garantizar exactamente UN solo punto final (evita '..' o '...')
+      t = t.replace(/[.\s]+$/, '') + '.';
       return t;
     };
 
@@ -1670,14 +1677,16 @@
       if (selector) selector.value = entidadSeleccionada;
       actualizarBloqueEntidadDocumento(entidadSeleccionada);
 
-      // 4. Datos del Daño (se formaliza automáticamente si el vecino redactó una carta)
+      // 4. Datos del Daño
       document.getElementById("docUbicacion").textContent = caso.ubicacion || "Barrio Panamá";
       document.getElementById("docSector").textContent = caso.sector || "Panamá II";
       document.getElementById("docCategoria").textContent = caso.categoria || "Mantenimiento Urbano";
       document.getElementById("docTitulo").textContent = caso.titulo || "Petición comunitaria";
       
-      const descripcionFormalizada = window.convertirAHechosFormales(caso.descripcion || "Sin descripción", caso.categoria);
-      document.getElementById("docDescripcion").textContent = descripcionFormalizada;
+      // Respetar exactamente la descripción aprobada y guardada por el administrador (asegurando un solo punto final)
+      let descDoc = (caso.descripcion || "Sin descripción reportada.").trim();
+      descDoc = descDoc.replace(/[.\s]+$/, '') + '.';
+      document.getElementById("docDescripcion").textContent = descDoc;
       document.getElementById("docTiempo").textContent = caso.tiempo || "varias semanas";
       
       const afectadosLimpio = (caso.afectados || "la comunidad del Barrio Panamá").replace(/\[RAD:[^\]]+\]/g, "").trim();
