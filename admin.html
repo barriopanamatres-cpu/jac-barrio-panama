@@ -57,16 +57,27 @@
         width: 100% !important;
         max-width: 100% !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 16mm 20mm !important;
+        box-sizing: border-box !important;
         box-shadow: none !important;
         border: none !important;
       }
       .no-print {
         display: none !important;
       }
+      /* Anula cualquier inyección automática de enlaces en navegadores */
+      a, a:visited {
+        text-decoration: none !important;
+        color: inherit !important;
+      }
+      a[href]:after {
+        content: none !important;
+        display: none !important;
+      }
+      /* Margin 0 en la página elimina automáticamente los encabezados y pies por defecto del navegador (URL, fecha y título) */
       @page {
         size: letter portrait;
-        margin: 15mm 18mm 15mm 18mm;
+        margin: 0;
       }
     }
   </style>
@@ -748,7 +759,7 @@
           <strong>Dirección:</strong> Calle 44 A # 5 A-89 Barrio Panamá 3. Etapa – Valledupar - Cesar
         </p>
         <p class="mt-0.5 font-medium">
-          <strong>E-mail:</strong> <a href="mailto:barriopanamatres@gmail.com" class="underline text-blue-900 font-bold">barriopanamatres@gmail.com</a> · <strong>Cel.</strong> 301-2732955
+          <strong>E-mail:</strong> barriopanamatres@gmail.com · <strong>Cel.</strong> 301-2732955
         </p>
       </div>
 
