@@ -510,11 +510,45 @@
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Sector</label>
-            <select id="editSector" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:border-[#004884] outline-none transition">
+            <select id="editSector" onchange="actualizarSectorDesdeSelect()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:border-[#004884] outline-none transition">
               <option value="Panamá II">Panamá II</option>
               <option value="Panamá III">Panamá III</option>
             </select>
           </div>
+        </div>
+
+        <!-- Verificador y Editor de Ubicación en el Mapa -->
+        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <i data-lucide="map-pin" class="w-4 h-4 text-red-500"></i>
+              <span>Verificación de Ubicación en el Mapa (Panamá II y III)</span>
+            </span>
+            <span id="badgeEstadoPerimetroEdit" class="text-[10px] font-bold px-2 py-0.5 rounded border bg-emerald-100 text-emerald-800 border-emerald-300">
+              ✓ Dentro del perímetro
+            </span>
+          </div>
+
+          <p class="text-[11px] text-slate-500 leading-snug">
+            Mueve el pin rojo en el mapa o haz clic para ajustar el punto exacto. El sistema comprobará si la dirección coincide con la zona del Barrio Panamá.
+          </p>
+
+          <div id="mapaEditorReporte" class="w-full h-52 rounded-xl border border-slate-300 overflow-hidden shadow-inner relative z-0"></div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-slate-600">
+            <div class="flex items-center gap-1 font-mono text-[10px] sm:text-xs">
+              <span>Coordenadas GPS:</span>
+              <strong id="lblEditCoords" class="text-slate-900 font-bold">10.4495, -73.2325</strong>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] text-slate-400 font-bold">Centrar en:</span>
+              <button type="button" onclick="centrarEditorEnPunto('parque')" class="px-2 py-0.5 bg-white hover:bg-slate-100 text-slate-700 rounded border border-slate-200 text-[10px] font-bold transition cursor-pointer">Parque</button>
+              <button type="button" onclick="centrarEditorEnPunto('panama2')" class="px-2 py-0.5 bg-white hover:bg-slate-100 text-[#004884] rounded border border-slate-200 text-[10px] font-bold transition cursor-pointer">Panamá II</button>
+              <button type="button" onclick="centrarEditorEnPunto('panama3')" class="px-2 py-0.5 bg-white hover:bg-slate-100 text-[#004884] rounded border border-slate-200 text-[10px] font-bold transition cursor-pointer">Panamá III</button>
+            </div>
+          </div>
+          <input type="hidden" id="editLat" value="10.4495">
+          <input type="hidden" id="editLng" value="-73.2325">
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1471,8 +1505,150 @@
     }
 
     // ==============================================================
-    // GESTIÓN DEL MODAL DE EDICIÓN DE REPORTES
+    // GESTIÓN DEL MODAL DE EDICIÓN DE REPORTES Y MAPA DE VERIFICACIÓN
     // ==============================================================
+    const POLIGONO_BARRIO_PANAMA = [
+      [10.44925, -73.23455], // 1. Calle 44 esquina occidental (Cra 5A 2)
+      [10.45030, -73.23390], // 2. Calle 44 con Cra 5A 1
+      [10.45130, -73.23270], // 3. Calle 44 con Cra 5A
+      [10.45255, -73.23110], // 4. Calle 44 con Cra 5 Bis (esquina nororiental Sejes)
+      [10.45070, -73.23000], // 5. Bajando por Cra 5 Bis pasando Calle 45
+      [10.44960, -73.22940], // 6. Cra 5 Bis frente a Karines
+      [10.44850, -73.23120], // 7. Cra 5 Bis esquina con Calle 45B
+      [10.44750, -73.23350], // 8. Borde sur Calle 45B
+      [10.44810, -73.23490]  // 9. Esquina suroccidental
+    ];
+
+    function estaDentroDelBarrio(lat, lng) {
+      let inside = false;
+      const vs = POLIGONO_BARRIO_PANAMA;
+      for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+        let xi = vs[i][0], yi = vs[i][1];
+        let xj = vs[j][0], yj = vs[j][1];
+        let intersect = ((yi > lng) !== (yj > lng)) && (lat < (xj - xi) * (lng - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
+    let mapaEditor = null;
+    let marcadorEditor = null;
+    let poligonoEditor = null;
+
+    function inicializarMapaEditor(lat, lng) {
+      const contenedor = document.getElementById("mapaEditorReporte");
+      if (!contenedor || typeof L === "undefined") return;
+
+      const centroLat = parseFloat(lat) || 10.4495;
+      const centroLng = parseFloat(lng) || -73.2325;
+
+      if (!mapaEditor) {
+        mapaEditor = L.map("mapaEditorReporte", {
+          center: [centroLat, centroLng],
+          zoom: 17,
+          minZoom: 15,
+          maxZoom: 19
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap'
+        }).addTo(mapaEditor);
+
+        poligonoEditor = L.polygon(POLIGONO_BARRIO_PANAMA, {
+          color: '#004884',
+          weight: 2.5,
+          opacity: 0.9,
+          fillColor: '#3366CC',
+          fillOpacity: 0.08
+        }).addTo(mapaEditor);
+
+        marcadorEditor = L.marker([centroLat, centroLng], {
+          draggable: true
+        }).addTo(mapaEditor);
+
+        marcadorEditor.on('dragend', function(e) {
+          const pos = e.target.getLatLng();
+          actualizarPuntoDesdeMapa(pos.lat, pos.lng, true);
+        });
+
+        mapaEditor.on('click', function(e) {
+          marcadorEditor.setLatLng(e.latlng);
+          actualizarPuntoDesdeMapa(e.latlng.lat, e.latlng.lng, true);
+        });
+      } else {
+        marcadorEditor.setLatLng([centroLat, centroLng]);
+        mapaEditor.setView([centroLat, centroLng], 17);
+      }
+
+      setTimeout(() => {
+        if (mapaEditor) {
+          mapaEditor.invalidateSize();
+          mapaEditor.setView([centroLat, centroLng], 17);
+        }
+      }, 250);
+
+      actualizarPuntoDesdeMapa(centroLat, centroLng, false);
+    }
+
+    function actualizarPuntoDesdeMapa(lat, lng, autoDireccion = false) {
+      const dentro = estaDentroDelBarrio(lat, lng);
+      const badge = document.getElementById("badgeEstadoPerimetroEdit");
+      const lblCoords = document.getElementById("lblEditCoords");
+      const inputLat = document.getElementById("editLat");
+      const inputLng = document.getElementById("editLng");
+
+      if (inputLat) inputLat.value = lat.toFixed(6);
+      if (inputLng) inputLng.value = lng.toFixed(6);
+      if (lblCoords) lblCoords.textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+      if (dentro) {
+        if (badge) {
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded border bg-emerald-100 text-emerald-800 border-emerald-300";
+          badge.textContent = "✓ Dentro del perímetro";
+        }
+      } else {
+        if (badge) {
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded border bg-amber-100 text-amber-900 border-amber-300";
+          badge.textContent = "⚠️ Fuera del perímetro oficial";
+        }
+      }
+
+      const sectorEstimado = lng < -73.2322 ? "Panamá II" : "Panamá III";
+      const selectSector = document.getElementById("editSector");
+      if (selectSector) selectSector.value = sectorEstimado;
+
+      if (autoDireccion) {
+        let carrera = lng <= -73.2333 ? "Carrera 5ª A 2" : (lng <= -73.2318 ? "Carrera 5ª A" : "Carrera 5ª Bis");
+        let calle = lat >= 10.4509 ? "Calle 44" : (lat >= 10.4497 ? "Calle 45" : "Calle 45B");
+        const dirInput = document.getElementById("editUbicacion");
+        if (dirInput && (!dirInput.value.trim() || confirm(`¿Deseas sincronizar la dirección con el punto seleccionado en el mapa?\n\nNueva dirección estimada: ${carrera} con ${calle}`))) {
+          dirInput.value = `${carrera} con ${calle}`;
+        }
+      }
+    }
+
+    window.centrarEditorEnPunto = function(lugar) {
+      if (!mapaEditor || !marcadorEditor) return;
+      let target = [10.4495, -73.2325];
+      if (lugar === 'parque') target = [10.44980, -73.23220];
+      if (lugar === 'panama2') target = [10.44780, -73.23320];
+      if (lugar === 'panama3') target = [10.45080, -73.23280];
+
+      marcadorEditor.setLatLng(target);
+      mapaEditor.setView(target, 18);
+      actualizarPuntoDesdeMapa(target[0], target[1], true);
+    };
+
+    window.actualizarSectorDesdeSelect = function() {
+      const sec = document.getElementById("editSector").value;
+      if (sec === "Panamá II") {
+        centrarEditorEnPunto("panama2");
+      } else {
+        centrarEditorEnPunto("panama3");
+      }
+    };
+
     window.abrirModalEditar = function(id) {
       const caso = todosLosReclamos.find(r => r.id === id);
       if (!caso) return;
@@ -1495,8 +1671,18 @@
       
       document.getElementById("editDescripcion").value = caso.descripcion || "";
 
+      // Coordenadas GPS y Mapa
+      const casoLat = caso.lat || 10.4495;
+      const casoLng = caso.lng || -73.2325;
+      document.getElementById("editLat").value = casoLat;
+      document.getElementById("editLng").value = casoLng;
+      document.getElementById("lblEditCoords").textContent = `${Number(casoLat).toFixed(5)}, ${Number(casoLng).toFixed(5)}`;
+
       document.getElementById("modalEditarReporte").classList.remove("hidden");
       lucide.createIcons();
+
+      // Inicializar mapa de verificación
+      inicializarMapaEditor(casoLat, casoLng);
     };
 
     window.cerrarModalEditar = function() {
@@ -1593,6 +1779,8 @@
       const tiempo = document.getElementById("editTiempo").value.trim();
       const afectados = document.getElementById("editAfectados").value.trim();
       const descripcion = document.getElementById("editDescripcion").value.trim();
+      const latVal = parseFloat(document.getElementById("editLat").value) || 10.4495;
+      const lngVal = parseFloat(document.getElementById("editLng").value) || -73.2325;
 
       const btn = document.getElementById("btnGuardarEdicion");
       const btnOriginal = btn.innerHTML;
@@ -1602,7 +1790,7 @@
 
       try {
         // 1. Guardar metadatos locales
-        guardarMetadatoExtra(id, { entidad_destino: entidad });
+        guardarMetadatoExtra(id, { entidad_destino: entidad, lat: latVal, lng: lngVal });
 
         // 2. Actualizar Supabase
         if (supabaseClient) {
@@ -1613,7 +1801,9 @@
             sector,
             tiempo,
             afectados,
-            descripcion
+            descripcion,
+            lat: latVal,
+            lng: lngVal
           };
 
           const { error } = await supabaseClient.from('reclamos').update(updateData).eq('id', id);
@@ -1634,7 +1824,9 @@
             sector,
             tiempo,
             afectados,
-            descripcion
+            descripcion,
+            lat: latVal,
+            lng: lngVal
           };
         }
 
