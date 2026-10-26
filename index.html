@@ -1261,76 +1261,7 @@
     </div>
   </div>
 
-  <!-- ================= 14. MODAL PANEL DE MODERACIÓN JAC ================= -->
-  <div id="modalModeracionJAC" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
-    <div class="bg-white rounded-2xl max-w-4xl w-full p-5 sm:p-7 shadow-2xl relative border border-slate-200 my-8">
-      <button onclick="cerrarModalesAuth()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1">
-        <i data-lucide="x" class="w-6 h-6"></i>
-      </button>
-
-      <!-- Cabecera del Panel -->
-      <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-xl bg-[#004884] text-white flex items-center justify-center shrink-0 shadow-md">
-            <i data-lucide="clipboard-check" class="w-6 h-6"></i>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] uppercase font-black tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">Sesión Activa</span>
-              <span class="text-xs text-slate-500 font-mono">Delegado Comunal JAC</span>
-            </div>
-            <h3 class="text-lg sm:text-xl font-black text-slate-900 leading-tight">Panel de Validación y Moderación (¿Procede?)</h3>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <button onclick="cerrarSesionJAC()" class="text-xs text-red-600 font-bold hover:underline px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 transition">
-            Cerrar Sesión
-          </button>
-        </div>
-      </div>
-
-      <!-- Métricas del Panel -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-5">
-        <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-center">
-          <div class="text-[10px] font-bold text-amber-800 uppercase">Por Validar (Pendientes)</div>
-          <div class="text-2xl font-black text-amber-900 mt-0.5" id="modCountPendientes">0</div>
-        </div>
-        <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl text-center">
-          <div class="text-[10px] font-bold text-[#004884] uppercase">Validados en el Muro</div>
-          <div class="text-2xl font-black text-[#004884] mt-0.5" id="modCountValidados">0</div>
-        </div>
-        <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-center">
-          <div class="text-[10px] font-bold text-emerald-800 uppercase">Solucionados</div>
-          <div class="text-2xl font-black text-emerald-900 mt-0.5" id="modCountSolucionados">0</div>
-        </div>
-        <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center">
-          <div class="text-[10px] font-bold text-slate-600 uppercase">Total Gestionados</div>
-          <div class="text-2xl font-black text-slate-800 mt-0.5" id="modCountTotal">0</div>
-        </div>
-      </div>
-
-      <!-- Lista de Casos en Moderación -->
-      <div class="mb-4">
-        <div class="flex items-center justify-between mb-2">
-          <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-            <i data-lucide="inbox" class="w-4 h-4 text-[#004884]"></i>
-            Bandeja de Entrada: Reportes que esperan evaluación
-          </h4>
-          <button onclick="recargarModeracion()" class="text-xs text-[#004884] hover:underline font-bold flex items-center gap-1">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-            Actualizar
-          </button>
-        </div>
-
-        <div id="listaCasosModeracion" class="space-y-4 max-h-[50vh] overflow-y-auto pr-1">
-          <!-- Se inyecta dinámicamente -->
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= 15. MODAL REGISTRO DE USUARIO / CENSO VECINAL ================= -->
+  <!-- ================= 14. MODAL REGISTRO DE USUARIO / CENSO VECINAL ================= -->
   <div id="modalRegistroVecino" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative border border-slate-200">
       <button onclick="cerrarModalesAuth()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1">

@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración y Moderación | JAC Barrio Panamá II y III</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Fuentes Oficiales -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800;900&family=Montserrat:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Work Sans', sans-serif; }
+    h1, h2, h3, h4, h5, .font-heading { font-family: 'Montserrat', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- ================= VISTA DE LOGIN FULL-SCREEN (Si no hay sesión) ================= -->
+  <div id="vistaLoginAdmin" class="min-h-screen bg-gradient-to-br from-[#001D38] via-[#00386B] to-[#004884] flex items-center justify-center p-4 relative overflow-hidden">
+    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-blue-500/10 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
+
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl shadow-slate-950/60 border border-white/20 overflow-hidden relative z-10">
+      
+      <div class="bg-[#002D54] p-7 text-white text-center relative border-b border-blue-900/50">
+        <a href="index.html" class="absolute top-4 left-4 text-xs text-blue-200 hover:text-white flex items-center gap-1 transition">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span>Portal Público</span>
+        </a>
+
+        <div class="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center p-2.5 mx-auto mb-3 shadow-inner">
+          <img 
+            src="https://valledupar-sedigov.s-integrations.co/attachment/files/download/A0E2AA57-0D9E-F011-BFB4-08BFB81D5CA8" 
+            alt="Escudo Valledupar" 
+            class="w-full h-full object-contain filter drop-shadow"
+          >
+        </div>
+
+        <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-black uppercase tracking-wider mb-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+          <span>Panel de Control JAC</span>
+        </div>
+
+        <h2 class="text-xl font-black tracking-tight">Acceso Directiva Comunal</h2>
+        <p class="text-xs text-blue-200 mt-1">Junta de Acción Comunal · Barrio Panamá II y III</p>
+      </div>
+
+      <div class="p-7 space-y-4">
+        <form id="formLoginAdminDirecto" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Usuario o Correo de la JAC</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <i data-lucide="user" class="w-4 h-4 text-[#004884]"></i>
+              </span>
+              <input 
+                type="text" 
+                id="loginAdminUsuario" 
+                value="directiva@barriopanama.org" 
+                class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:border-[#004884] focus:ring-4 focus:ring-[#004884]/10 transition-all outline-none" 
+                required
+              >
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Contraseña o Clave Comunal</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <i data-lucide="lock" class="w-4 h-4 text-[#004884]"></i>
+              </span>
+              <input 
+                type="password" 
+                id="loginAdminClave" 
+                placeholder="Ingresa la clave comunal" 
+                class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-mono text-slate-800 focus:bg-white focus:border-[#004884] focus:ring-4 focus:ring-[#004884]/10 transition-all outline-none" 
+                required
+              >
+              <button 
+                type="button" 
+                onclick="toggleClaveAdmin()" 
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1"
+              >
+                <i id="eyeClaveAdmin" data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <div class="flex items-center justify-between text-[11px] pt-1.5">
+              <span class="text-slate-400">Clave comunal:</span>
+              <button 
+                type="button" 
+                onclick="llenarClaveAdmin()" 
+                class="font-mono font-bold text-[#004884] bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded transition"
+              >
+                JACPanama2026
+              </button>
+            </div>
+          </div>
+
+          <div id="errorLoginAdmin" class="hidden p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+            <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-red-500"></i>
+            <span>Contraseña incorrecta. Verifica la clave comunal.</span>
+          </div>
+
+          <button 
+            type="submit" 
+            class="w-full bg-[#004884] hover:bg-[#002D54] text-white font-black text-xs sm:text-sm py-3 px-6 rounded-xl shadow-lg shadow-blue-900/20 hover:shadow-xl transition-all flex items-center justify-center gap-2"
+          >
+            <span>Iniciar Sesión en el Dashboard</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </form>
+
+        <div class="pt-3 border-t border-slate-100 text-center text-[10px] text-slate-400">
+          Veeduría Ciudadana · Ley 1757 de 2015 · Valledupar, Cesar
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ================= DASHBOARD ADMINISTRATIVO COMPLETO ================= -->
+  <div id="vistaDashboardAdmin" class="hidden flex-grow flex flex-col min-h-screen">
+    
+    <!-- Barra Superior Ejecutiva -->
+    <header class="bg-[#002D54] text-white sticky top-0 z-40 shadow-md border-b border-blue-900/60">
+      <div class="max-w-[1600px] mx-auto px-4 sm:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+        
+        <div class="flex items-center gap-3">
+          <img 
+            src="https://valledupar-sedigov.s-integrations.co/attachment/files/download/A0E2AA57-0D9E-F011-BFB4-08BFB81D5CA8" 
+            alt="Escudo" 
+            class="h-9 w-auto object-contain"
+          >
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded uppercase tracking-wider">
+                Directiva JAC
+              </span>
+              <span class="text-xs text-blue-200 font-mono hidden sm:inline">Panel de Control & Veeduría</span>
+            </div>
+            <h1 class="text-base sm:text-lg font-black text-white leading-tight">
+              JAC Barrio Panamá II y III · Valledupar
+            </h1>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <a 
+            href="index.html" 
+            target="_blank" 
+            class="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-3.5 py-2 rounded-lg border border-white/20 transition flex items-center gap-1.5"
+            title="Abrir la página pública de los vecinos"
+          >
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Ver Portal Ciudadano</span>
+          </a>
+
+          <button 
+            onclick="cerrarSesionAdmin()" 
+            class="bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-400/30 font-bold text-xs px-3.5 py-2 rounded-lg transition flex items-center gap-1.5"
+          >
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            <span>Cerrar Sesión</span>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+
+    <!-- Sub-Navbar de Pestañas Principales -->
+    <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-[61px] z-30">
+      <div class="max-w-[1600px] mx-auto px-4 sm:px-8 flex items-center overflow-x-auto gap-2 py-2">
+        <button 
+          onclick="cambiarPestana('pendientes')" 
+          id="tabPendientes" 
+          class="tab-btn px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 transition bg-[#004884] text-white shadow-sm"
+        >
+          <i data-lucide="inbox" class="w-4 h-4"></i>
+          <span>Bandeja de Entrada (¿Procede?)</span>
+          <span id="badgeTabPendientes" class="bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full text-[10px] font-black">0</span>
+        </button>
+
+        <button 
+          onclick="cambiarPestana('validados')" 
+          id="tabValidados" 
+          class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition"
+        >
+          <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600"></i>
+          <span>Casos Publicados en el Muro</span>
+          <span id="badgeTabValidados" class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span>
+        </button>
+
+        <button 
+          onclick="cambiarPestana('solucionados')" 
+          id="tabSolucionados" 
+          class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition"
+        >
+          <i data-lucide="smile" class="w-4 h-4 text-emerald-600"></i>
+          <span>Casos Solucionados</span>
+          <span id="badgeTabSolucionados" class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span>
+        </button>
+
+        <button 
+          onclick="cambiarPestana('censo')" 
+          id="tabCenso" 
+          class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition"
+        >
+          <i data-lucide="users" class="w-4 h-4 text-purple-600"></i>
+          <span>Censo Vecinal & Veedores</span>
+          <span id="badgeTabCenso" class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span>
+        </button>
+
+        <button 
+          onclick="cargarTodoElPanel()" 
+          class="ml-auto px-3 py-2 text-xs text-[#004884] hover:bg-blue-50 rounded-lg font-bold flex items-center gap-1.5 transition shrink-0"
+        >
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>Actualizar Datos</span>
+        </button>
+      </div>
+    </nav>
+
+
+    <!-- Contenedor Principal del Dashboard -->
+    <main class="max-w-[1600px] w-full mx-auto px-4 sm:px-8 py-8 flex-grow">
+      
+      <!-- Fila de Tarjetas KPI -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0">
+            <i data-lucide="clock" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Por Evaluar (¿Procede?)</div>
+            <div class="text-3xl font-black text-slate-900 leading-none mt-1" id="kpiPendientes">0</div>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-blue-50 text-[#004884] border border-blue-200 flex items-center justify-center shrink-0">
+            <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Activos en el Muro</div>
+            <div class="text-3xl font-black text-[#004884] leading-none mt-1" id="kpiValidados">0</div>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shrink-0">
+            <i data-lucide="check-circle" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Solucionados</div>
+            <div class="text-3xl font-black text-emerald-700 leading-none mt-1" id="kpiSolucionados">0</div>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 border border-purple-200 flex items-center justify-center shrink-0">
+            <i data-lucide="users" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Vecinos en Censo</div>
+            <div class="text-3xl font-black text-purple-700 leading-none mt-1" id="kpiCenso">0</div>
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- SECCIÓN 1: BANDEJA DE ENTRADA (PENDIENTES POR EVALUAR) -->
+      <section id="seccionPendientes" class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+              <i data-lucide="inbox" class="w-5 h-5 text-amber-500"></i>
+              <span>Bandeja de Entrada: Reportes Recibidos que Requieren Validación</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Verifica en terreno la veracidad del daño antes de autorizar su publicación pública en el muro y mapa del barrio.
+            </p>
+          </div>
+          <span class="text-xs font-mono font-bold bg-amber-50 text-amber-800 px-3 py-1 rounded-lg border border-amber-200">
+            Filtro Anti-Spam Activo
+          </span>
+        </div>
+
+        <div id="gridPendientes" class="space-y-4">
+          <!-- Render dinámico de casos pendientes -->
+        </div>
+      </section>
+
+
+      <!-- SECCIÓN 2: CASOS VALIDADOS Y EN SEGUIMIENTO -->
+      <section id="seccionValidados" class="space-y-4 hidden">
+        <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+              <i data-lucide="check-circle-2" class="w-5 h-5 text-blue-600"></i>
+              <span>Casos Validados: Visibles en el Muro Comunitario</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Reportes aprobados por la JAC que se encuentran en trámite ante la Alcaldía de Valledupar o las empresas de servicios.
+            </p>
+          </div>
+        </div>
+
+        <div id="gridValidados" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Render dinámico de casos validados -->
+        </div>
+      </section>
+
+
+      <!-- SECCIÓN 3: CASOS SOLUCIONADOS -->
+      <section id="seccionSolucionados" class="space-y-4 hidden">
+        <div class="bg-white p-4 rounded-xl border border-slate-200">
+          <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+            <i data-lucide="smile" class="w-5 h-5 text-emerald-600"></i>
+            <span>Historial de Problemas Solucionados por Gestión de la JAC</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">
+            Casos cerrados con éxito tras intervención de las cuadrillas municipales o empresas públicas.
+          </p>
+        </div>
+
+        <div id="gridSolucionados" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Render dinámico de solucionados -->
+        </div>
+      </section>
+
+
+      <!-- SECCIÓN 4: CENSO VECINAL -->
+      <section id="seccionCenso" class="space-y-4 hidden">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+              <i data-lucide="users" class="w-5 h-5 text-purple-600"></i>
+              <span>Censo Oficial de Vecinos y Red de Veedores</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Habitantes de Barrio Panamá II y III registrados en la base comunal para respaldo de peticiones colectivas.
+            </p>
+          </div>
+          <button onclick="exportarCensoCSV()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span>Exportar CSV / Excel</span>
+          </button>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-black uppercase text-slate-700">
+                <tr>
+                  <th class="p-3.5">Nombre Completo</th>
+                  <th class="p-3.5">Cédula</th>
+                  <th class="p-3.5">Sector</th>
+                  <th class="p-3.5">Dirección / Manzana</th>
+                  <th class="p-3.5">Teléfono / WhatsApp</th>
+                  <th class="p-3.5">Condición</th>
+                  <th class="p-3.5 text-center">Veedor</th>
+                </tr>
+              </thead>
+              <tbody id="tablaCensoBody" class="divide-y divide-slate-100">
+                <!-- Se llena dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+
+  <!-- ================= LÓGICA JAVASCRIPT DEL DASHBOARD ADMIN ================= -->
+  <script>
+    // Credenciales Supabase
+    const SUPABASE_URL = "https://qumwwqmfdszwrwtcznfq.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_eharY6YnMohsirphNAizng_db4PD0bV";
+    const CLAVE_OFICIAL_JAC = "JACPanama2026";
+
+    let supabase = null;
+    if (window.supabase) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    let todosLosReclamos = [];
+    let todosLosVecinos = [];
+
+    // Inicialización
+    document.addEventListener("DOMContentLoaded", () => {
+      verificarSesion();
+      lucide.createIcons();
+    });
+
+    function verificarSesion() {
+      const sesionActiva = localStorage.getItem("jac_sesion_activa") === "true";
+      const vistaLogin = document.getElementById("vistaLoginAdmin");
+      const vistaDash = document.getElementById("vistaDashboardAdmin");
+
+      if (sesionActiva) {
+        vistaLogin.classList.add("hidden");
+        vistaDash.classList.remove("hidden");
+        cargarTodoElPanel();
+      } else {
+        vistaLogin.classList.remove("hidden");
+        vistaDash.classList.add("hidden");
+      }
+      lucide.createIcons();
+    }
+
+    // Toggle Password en Login
+    window.toggleClaveAdmin = function() {
+      const input = document.getElementById("loginAdminClave");
+      const eye = document.getElementById("eyeClaveAdmin");
+      if (input.type === "password") {
+        input.type = "text";
+        eye.setAttribute("data-lucide", "eye-off");
+      } else {
+        input.type = "password";
+        eye.setAttribute("data-lucide", "eye");
+      }
+      lucide.createIcons();
+    };
+
+    window.llenarClaveAdmin = function() {
+      document.getElementById("loginAdminClave").value = CLAVE_OFICIAL_JAC;
+    };
+
+    // Formulario de Login Directo
+    document.getElementById("formLoginAdminDirecto").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const clave = document.getElementById("loginAdminClave").value.trim();
+      const err = document.getElementById("errorLoginAdmin");
+
+      if (clave === CLAVE_OFICIAL_JAC || clave === "2026") {
+        err.classList.add("hidden");
+        localStorage.setItem("jac_sesion_activa", "true");
+        verificarSesion();
+      } else {
+        err.classList.remove("hidden");
+      }
+    });
+
+    window.cerrarSesionAdmin = function() {
+      if (confirm("¿Deseas cerrar la sesión de administración?")) {
+        localStorage.removeItem("jac_sesion_activa");
+        verificarSesion();
+      }
+    };
+
+    // Cambio de Pestañas
+    window.cambiarPestana = function(pestana) {
+      const tabs = ["pendientes", "validados", "solucionados", "censo"];
+      tabs.forEach(t => {
+        const sec = document.getElementById(`seccion${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (t === pestana) {
+          sec.classList.remove("hidden");
+          btn.className = "tab-btn px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 transition bg-[#004884] text-white shadow-sm";
+        } else {
+          sec.classList.add("hidden");
+          btn.className = "tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition";
+        }
+      });
+      lucide.createIcons();
+    };
+
+    // Carga de Datos desde Supabase
+    async function cargarTodoElPanel() {
+      if (!supabase) return;
+
+      try {
+        // 1. Cargar Reclamos
+        const { data: reclamosData, error: errReclamos } = await supabase
+          .from('reclamos')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!errReclamos && reclamosData) {
+          todosLosReclamos = reclamosData;
+          renderizarMetricasYListas();
+        }
+
+        // 2. Cargar Censo
+        const { data: censoData, error: errCenso } = await supabase
+          .from('censo_vecinos')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!errCenso && censoData) {
+          todosLosVecinos = censoData;
+          renderizarCenso();
+        }
+      } catch (e) {
+        console.error("Error al cargar datos:", e);
+      }
+    }
+
+    function renderizarMetricasYListas() {
+      const pendientes = todosLosReclamos.filter(r => r.estado === "En revisión");
+      const validados = todosLosReclamos.filter(r => r.estado && r.estado !== "En revisión" && r.estado !== "Archivado" && r.estado !== "Rechazado");
+      const solucionados = todosLosReclamos.filter(r => r.estado === "Solucionado");
+
+      // Actualizar KPIs
+      document.getElementById("kpiPendientes").textContent = pendientes.length;
+      document.getElementById("kpiValidados").textContent = validados.length;
+      document.getElementById("kpiSolucionados").textContent = solucionados.length;
+      document.getElementById("kpiCenso").textContent = todosLosVecinos.length;
+
+      // Actualizar Badges en Tabs
+      document.getElementById("badgeTabPendientes").textContent = pendientes.length;
+      document.getElementById("badgeTabValidados").textContent = validados.length;
+      document.getElementById("badgeTabSolucionados").textContent = solucionados.length;
+      document.getElementById("badgeTabCenso").textContent = todosLosVecinos.length;
+
+      // 1. Render Bandeja Pendientes
+      renderizarPendientes(pendientes);
+
+      // 2. Render Validados
+      renderizarValidados(validados);
+
+      // 3. Render Solucionados
+      renderizarSolucionados(solucionados);
+
+      lucide.createIcons();
+    }
+
+    // Renderizar Bandeja de Entrada (Pendientes)
+    function renderizarPendientes(pendientes) {
+      const contenedor = document.getElementById("gridPendientes");
+      if (!contenedor) return;
+
+      if (pendientes.length === 0) {
+        contenedor.innerHTML = `
+          <div class="py-16 text-center bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3 border border-emerald-100">
+              <i data-lucide="check-check" class="w-8 h-8"></i>
+            </div>
+            <h4 class="text-base font-black text-slate-900">¡Bandeja de Entrada al Día!</h4>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">
+              No hay reportes ciudadanos pendientes de evaluación en este momento. Cualquier nuevo reclamo radicado por los vecinos aparecerá aquí.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      contenedor.innerHTML = "";
+      pendientes.forEach(caso => {
+        const item = document.createElement("div");
+        item.className = "bg-white rounded-2xl border border-amber-200/80 shadow-sm p-5 flex flex-col lg:flex-row gap-5 items-start hover:border-amber-300 transition";
+        item.innerHTML = `
+          <div class="w-full lg:w-48 h-44 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200 relative">
+            <img src="${caso.foto}" alt="Evidencia" class="w-full h-full object-cover">
+            <span class="absolute top-2 left-2 bg-black/75 backdrop-blur text-white text-[10px] font-mono px-2 py-0.5 rounded">
+              ${caso.id}
+            </span>
+          </div>
+
+          <div class="flex-grow space-y-2 w-full">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="bg-amber-100 text-amber-800 text-[10px] font-black uppercase px-2.5 py-0.5 rounded border border-amber-300">
+                  ¿Procede? Requiere Evaluación
+                </span>
+                <span class="text-xs font-bold text-[#004884]">${caso.categoria}</span>
+              </div>
+              <span class="text-[11px] text-slate-400 font-mono">Radicado el ${caso.fecha}</span>
+            </div>
+
+            <h4 class="text-base font-bold text-slate-900 leading-snug">${caso.titulo}</h4>
+            <p class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200/70">
+              ${caso.descripcion}
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600 pt-1">
+              <div>📍 <strong>Ubicación:</strong> ${caso.ubicacion} (${caso.sector || 'Panamá II'})</div>
+              <div>👤 <strong>Solicitante:</strong> ${caso.solicitante || 'Vecino'}</div>
+              <div>🕒 <strong>Tiempo sin arreglo:</strong> ${caso.tiempo}</div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-100 mt-2">
+              <button 
+                onclick="accionAprobar('${caso.id}')" 
+                class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-2.5 px-5 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <i data-lucide="check" class="w-4 h-4"></i>
+                <span>✓ Procede: Aprobar y Publicar en el Muro</span>
+              </button>
+
+              <button 
+                onclick="accionRechazar('${caso.id}')" 
+                class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs py-2.5 px-4 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <i data-lucide="x" class="w-4 h-4"></i>
+                <span>✕ No Procede (Rechazar)</span>
+              </button>
+            </div>
+          </div>
+        `;
+        contenedor.appendChild(item);
+      });
+    }
+
+    // Renderizar Validados
+    function renderizarValidados(validados) {
+      const contenedor = document.getElementById("gridValidados");
+      if (!contenedor) return;
+
+      if (validados.length === 0) {
+        contenedor.innerHTML = `
+          <div class="col-span-full py-12 text-center bg-white rounded-2xl border border-slate-200 p-6">
+            <i data-lucide="inbox" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
+            <h5 class="text-sm font-bold text-slate-800">No hay casos en trámite activo</h5>
+            <p class="text-xs text-slate-500">Los casos que apruebes en la bandeja de entrada se mostrarán aquí.</p>
+          </div>
+        `;
+        return;
+      }
+
+      contenedor.innerHTML = "";
+      validados.forEach(caso => {
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-3 flex flex-col justify-between";
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-start gap-2 mb-2">
+              <span class="font-mono text-xs font-bold text-[#004884]">${caso.id}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase ${caso.estado === 'Ignorado' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}">
+                ${caso.estado}
+              </span>
+            </div>
+            <h5 class="text-sm font-bold text-slate-900 leading-snug line-clamp-2">${caso.titulo}</h5>
+            <p class="text-xs text-slate-500 mt-1 line-clamp-2">${caso.descripcion}</p>
+            <div class="text-[11px] text-slate-600 mt-2 font-medium">📍 ${caso.ubicacion} · ${caso.sector}</div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+            <button onclick="accionMarcarSolucionado('${caso.id}')" class="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+              <span>Marcar Solucionado</span>
+            </button>
+            <a href="index.html#muro" target="_blank" class="text-xs text-blue-600 hover:underline font-bold">
+              Ver en Muro
+            </a>
+          </div>
+        `;
+        contenedor.appendChild(card);
+      });
+    }
+
+    // Renderizar Solucionados
+    function renderizarSolucionados(solucionados) {
+      const contenedor = document.getElementById("gridSolucionados");
+      if (!contenedor) return;
+
+      if (solucionados.length === 0) {
+        contenedor.innerHTML = `
+          <div class="col-span-full py-12 text-center bg-white rounded-2xl border border-slate-200 p-6">
+            <i data-lucide="smile" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
+            <h5 class="text-sm font-bold text-slate-800">Aún no hay casos marcados como solucionados</h5>
+          </div>
+        `;
+        return;
+      }
+
+      contenedor.innerHTML = "";
+      solucionados.forEach(caso => {
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-2xl border border-emerald-200/80 shadow-sm p-5 space-y-2";
+        card.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="font-mono text-xs font-bold text-[#004884]">${caso.id}</span>
+            <span class="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">Solucionado</span>
+          </div>
+          <h5 class="text-sm font-bold text-slate-900">${caso.titulo}</h5>
+          <p class="text-xs text-slate-500">${caso.ubicacion}</p>
+        `;
+        contenedor.appendChild(card);
+      });
+    }
+
+    // Renderizar Censo
+    function renderizarCenso() {
+      const tbody = document.getElementById("tablaCensoBody");
+      if (!tbody) return;
+
+      if (todosLosVecinos.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="p-8 text-center text-xs text-slate-400">
+              No hay vecinos registrados en el censo aún.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = "";
+      todosLosVecinos.forEach(v => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-50 transition";
+        tr.innerHTML = `
+          <td class="p-3.5 font-bold text-slate-900">${v.nombre}</td>
+          <td class="p-3.5 font-mono text-slate-600">${v.cedula}</td>
+          <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-blue-50 text-[#004884] font-bold text-[10px]">${v.sector}</span></td>
+          <td class="p-3.5">${v.direccion}</td>
+          <td class="p-3.5 font-mono">${v.telefono}</td>
+          <td class="p-3.5">${v.condicion || 'Propietario'}</td>
+          <td class="p-3.5 text-center">${v.es_veedor ? '✅' : '—'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Acciones de Moderación
+    window.accionAprobar = async function(id) {
+      if (!confirm(`¿Confirmas que el reporte ${id} PROCEDE legalmente y debe publicarse en el Muro Comunitario del Barrio Panamá?`)) return;
+
+      try {
+        await supabase.from('reclamos').update({ estado: 'En espera' }).eq('id', id);
+        alert(`✅ Caso ${id} aprobado y publicado en el portal vecinal.`);
+        cargarTodoElPanel();
+      } catch (e) {
+        alert("Error al actualizar estado en Supabase.");
+      }
+    };
+
+    window.accionRechazar = async function(id) {
+      const motivo = prompt("Motivo por el cual este reporte NO procede:\n(Ej: Fuera del perímetro del barrio, foto ilegible, reclamo duplicado):", "No corresponde al sector del Barrio Panamá");
+      if (!motivo) return;
+
+      try {
+        await supabase.from('reclamos').update({ estado: 'Rechazado' }).eq('id', id);
+        alert(`Reporte ${id} marcado como 'No Procede'.`);
+        cargarTodoElPanel();
+      } catch (e) {
+        alert("Error al rechazar en Supabase.");
+      }
+    };
+
+    window.accionMarcarSolucionado = async function(id) {
+      if (!confirm(`¿Confirmas que este problema ya fue solucionado y reparado por la entidad?`)) return;
+
+      try {
+        await supabase.from('reclamos').update({ estado: 'Solucionado' }).eq('id', id);
+        alert(`🎉 Caso ${id} marcado como solucionado.`);
+        cargarTodoElPanel();
+      } catch (e) {
+        alert("Error al actualizar en Supabase.");
+      }
+    };
+
+    window.exportarCensoCSV = function() {
+      if (todosLosVecinos.length === 0) {
+        alert("No hay registros en el censo para exportar.");
+        return;
+      }
+      let csv = "Nombre,Cedula,Sector,Direccion,Telefono,Condicion,EsVeedor\n";
+      todosLosVecinos.forEach(v => {
+        csv += `"${v.nombre}","${v.cedula}","${v.sector}","${v.direccion}","${v.telefono}","${v.condicion || ''}","${v.es_veedor ? 'SI' : 'NO'}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Censo_JAC_Barrio_Panama_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    };
+  </script>
+</body>
+</html>

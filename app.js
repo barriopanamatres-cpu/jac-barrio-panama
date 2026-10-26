@@ -1262,7 +1262,7 @@ window.autoLlenarClaveJAC = function() {
 window.abrirModalLoginJAC = function() {
   const sesion = localStorage.getItem("jac_sesion_activa");
   if (sesion === "true") {
-    abrirPanelModeracionJAC();
+    window.location.href = "admin.html";
     return;
   }
   const modal = document.getElementById("modalLoginJAC");
@@ -1302,10 +1302,10 @@ window.actualizarBarraNavJAC = function() {
   if (sesion) {
     authTopNav.innerHTML = `
       <span class="bg-yellow-400 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded shadow-sm">JAC ACTIVA</span>
-      <button onclick="abrirPanelModeracionJAC()" class="hover:underline font-bold text-white flex items-center gap-1 cursor-pointer">
-        <i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i>
-        <span>Panel Moderación</span>
-      </button>
+      <a href="admin.html" class="hover:underline font-bold text-white flex items-center gap-1 cursor-pointer">
+        <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i>
+        <span>Panel de Control</span>
+      </a>
       <span class="text-white/40">|</span>
       <button onclick="cerrarSesionJAC()" class="hover:underline text-white/80 cursor-pointer">Salir</button>
       <button id="btnDarkMode" class="text-white hover:text-yellow-300 transition ml-1" title="Cambiar tema">
@@ -1469,8 +1469,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (clave === CLAVE_JAC || clave === "2026") {
         if (errorMsg) errorMsg.classList.add("hidden");
         localStorage.setItem("jac_sesion_activa", "true");
-        actualizarBarraNavJAC();
-        abrirPanelModeracionJAC();
+        window.location.href = "admin.html";
       } else {
         if (errorMsg) errorMsg.classList.remove("hidden");
       }
