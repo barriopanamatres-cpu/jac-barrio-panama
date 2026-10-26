@@ -85,15 +85,17 @@
       </a>
 
       <!-- Inicio de sesión | Registro de usuario | Luna -->
-      <div class="flex items-center gap-4 text-[12px] font-medium">
-        <a href="#buscar" class="hover:underline flex items-center gap-1">
+      <div id="authTopNav" class="flex items-center gap-4 text-[12px] font-medium">
+        <a href="javascript:void(0)" onclick="abrirModalLoginJAC()" class="hover:underline flex items-center gap-1 cursor-pointer">
+          <i data-lucide="lock" class="w-3.5 h-3.5 opacity-80"></i>
           <span>Inicio de sesión</span>
         </a>
         <span class="text-white/40">|</span>
-        <a href="#radicar" class="hover:underline flex items-center gap-1">
+        <a href="javascript:void(0)" onclick="abrirModalRegistroVecino()" class="hover:underline flex items-center gap-1 cursor-pointer">
+          <i data-lucide="user-plus" class="w-3.5 h-3.5 opacity-80"></i>
           <span>Registro de usuario</span>
         </a>
-        <button class="text-white hover:text-yellow-300 transition ml-1" title="Cambiar tema">
+        <button id="btnDarkMode" class="text-white hover:text-yellow-300 transition ml-1" title="Cambiar tema">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
           </svg>
@@ -198,6 +200,12 @@
       <a href="#" class="bg-[#004884] text-white font-bold px-5 py-3 flex items-center gap-1.5 shrink-0">
         <i data-lucide="home" class="w-4 h-4"></i>
         <span>Inicio</span>
+      </a>
+
+      <!-- Botón Directo: Reportes del Barrio -->
+      <a href="#muro" class="px-4 py-3 hover:text-[#004884] hover:bg-slate-50 transition shrink-0 whitespace-nowrap flex items-center gap-1.5 font-bold text-slate-800 border-b-2 border-transparent hover:border-[#004884]">
+        <i data-lucide="clipboard-list" class="w-4 h-4 text-[#004884]"></i>
+        <span>Reportes del Barrio</span>
       </a>
 
       <!-- Enlaces con dropdowns idénticos -->
@@ -1109,6 +1117,259 @@
       <button onclick="cerrarModalesComunidad()" class="w-full bg-[#004884] text-white font-bold text-xs py-2.5 rounded-lg hover:bg-[#013057] transition">
         Entendido y Aceptar
       </button>
+    </div>
+  </div>
+
+  <!-- ================= 13. MODAL INICIO DE SESIÓN DIRECTIVA JAC ================= -->
+  <div id="modalLoginJAC" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative border border-slate-200">
+      <button onclick="cerrarModalesAuth()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-12 h-12 rounded-full bg-blue-50 text-[#004884] flex items-center justify-center shrink-0 border border-blue-100 shadow-sm">
+          <i data-lucide="shield-check" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <span class="text-[10px] uppercase font-black tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">Acceso Restringido</span>
+          <h3 class="text-base sm:text-lg font-black text-slate-900 leading-tight mt-0.5">Inicio de Sesión JAC</h3>
+          <p class="text-[11px] text-slate-500">Cuenta Encargada · Junta de Acción Comunal</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+        Acceso reservado para los delegados de la <strong>JAC Barrio Panamá II y III</strong> para evaluar qué reportes ciudadanos proceden antes de su publicación en el muro y redes sociales.
+      </p>
+
+      <form id="formLoginJAC" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Usuario / Correo de la JAC</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+              <i data-lucide="user" class="w-4 h-4"></i>
+            </span>
+            <input type="text" id="loginUsuario" value="directiva@barriopanama.org" class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium text-slate-800 focus:bg-white focus:border-[#004884] focus:ring-1 focus:ring-[#004884]" required>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Contraseña o Clave Comunal</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+              <i data-lucide="key-round" class="w-4 h-4"></i>
+            </span>
+            <input type="password" id="loginClave" placeholder="Ingresa la clave de la JAC" class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium text-slate-800 focus:bg-white focus:border-[#004884] focus:ring-1 focus:ring-[#004884]" required>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1">Clave comunal predeterminada: <code class="font-mono text-[#004884] font-bold">JACPanama2026</code></p>
+        </div>
+
+        <div id="loginErrorMsg" class="hidden p-2.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg flex items-center gap-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-red-500"></i>
+          <span>Contraseña incorrecta. Verifica la clave comunal.</span>
+        </div>
+
+        <button type="submit" class="w-full bg-[#004884] hover:bg-[#013057] text-white font-bold text-xs py-3 rounded-lg shadow-md transition flex items-center justify-center gap-2">
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+          <span>Ingresar al Panel de Moderación</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 14. MODAL PANEL DE MODERACIÓN JAC ================= -->
+  <div id="modalModeracionJAC" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-4xl w-full p-5 sm:p-7 shadow-2xl relative border border-slate-200 my-8">
+      <button onclick="cerrarModalesAuth()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+
+      <!-- Cabecera del Panel -->
+      <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-[#004884] text-white flex items-center justify-center shrink-0 shadow-md">
+            <i data-lucide="clipboard-check" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] uppercase font-black tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">Sesión Activa</span>
+              <span class="text-xs text-slate-500 font-mono">Delegado Comunal JAC</span>
+            </div>
+            <h3 class="text-lg sm:text-xl font-black text-slate-900 leading-tight">Panel de Validación y Moderación (¿Procede?)</h3>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="cerrarSesionJAC()" class="text-xs text-red-600 font-bold hover:underline px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 transition">
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
+
+      <!-- Métricas del Panel -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-5">
+        <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-center">
+          <div class="text-[10px] font-bold text-amber-800 uppercase">Por Validar (Pendientes)</div>
+          <div class="text-2xl font-black text-amber-900 mt-0.5" id="modCountPendientes">0</div>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl text-center">
+          <div class="text-[10px] font-bold text-[#004884] uppercase">Validados en el Muro</div>
+          <div class="text-2xl font-black text-[#004884] mt-0.5" id="modCountValidados">0</div>
+        </div>
+        <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-center">
+          <div class="text-[10px] font-bold text-emerald-800 uppercase">Solucionados</div>
+          <div class="text-2xl font-black text-emerald-900 mt-0.5" id="modCountSolucionados">0</div>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center">
+          <div class="text-[10px] font-bold text-slate-600 uppercase">Total Gestionados</div>
+          <div class="text-2xl font-black text-slate-800 mt-0.5" id="modCountTotal">0</div>
+        </div>
+      </div>
+
+      <!-- Lista de Casos en Moderación -->
+      <div class="mb-4">
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <i data-lucide="inbox" class="w-4 h-4 text-[#004884]"></i>
+            Bandeja de Entrada: Reportes que esperan evaluación
+          </h4>
+          <button onclick="recargarModeracion()" class="text-xs text-[#004884] hover:underline font-bold flex items-center gap-1">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            Actualizar
+          </button>
+        </div>
+
+        <div id="listaCasosModeracion" class="space-y-4 max-h-[50vh] overflow-y-auto pr-1">
+          <!-- Se inyecta dinámicamente -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 15. MODAL REGISTRO DE USUARIO / CENSO VECINAL ================= -->
+  <div id="modalRegistroVecino" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative border border-slate-200">
+      <button onclick="cerrarModalesAuth()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-full bg-blue-50 text-[#004884] flex items-center justify-center shrink-0 border border-blue-100">
+          <i data-lucide="user-plus" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-base sm:text-lg font-black text-slate-900 leading-tight">Registro Comunitario de Vecinos</h3>
+          <p class="text-xs text-slate-500">Censo Oficial y Red de Veedores · Barrio Panamá II y III</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+        Regístrate en la base oficial de la Junta de Acción Comunal para recibir circulares, actas de asamblea y apoyar los derechos de petición colectivos ante la Alcaldía de Valledupar.
+      </p>
+
+      <form id="formRegistroVecino" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Nombre y Apellidos Completos *</label>
+          <input type="text" id="regNombre" placeholder="Ej: Carmen Cecilia Romero" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-[#004884]" required>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Documento (C.C.) *</label>
+            <input type="number" id="regCedula" placeholder="Número de cédula" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-[#004884]" required>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Teléfono / WhatsApp *</label>
+            <input type="tel" id="regTelefono" placeholder="300 123 4567" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-[#004884]" required>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Sector *</label>
+            <select id="regSector" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-[#004884]">
+              <option value="Panamá II">Barrio Panamá II</option>
+              <option value="Panamá III">Barrio Panamá III</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Dirección / Manzana y Casa *</label>
+            <input type="text" id="regDireccion" placeholder="Ej: Manzana 14 Casa 8" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-[#004884]" required>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Condición Habitacional</label>
+          <select id="regCondicion" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-[#004884]">
+            <option value="Propietario">Propietario residente</option>
+            <option value="Arrendatario">Arrendatario</option>
+            <option value="Familiar">Familiar residente</option>
+          </select>
+        </div>
+
+        <label class="flex items-start gap-2 pt-1 cursor-pointer">
+          <input type="checkbox" id="regVeedor" checked class="mt-0.5 rounded text-[#004884] focus:ring-[#004884]">
+          <span class="text-[11px] text-slate-600 leading-tight">
+            Deseo formar parte de la Red de Veeduría Comunitaria y apoyar los reclamos colectivos de mi manzana.
+          </span>
+        </label>
+
+        <div id="regExitoMsg" class="hidden p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-lg font-medium">
+          ✅ ¡Registro completado con éxito! Has sido ingresado al Censo Comunitario de la JAC Barrio Panamá.
+        </div>
+
+        <button type="submit" class="w-full bg-[#004884] hover:bg-[#013057] text-white font-bold text-xs py-3 rounded-lg shadow transition flex items-center justify-center gap-2">
+          <i data-lucide="check-circle" class="w-4 h-4"></i>
+          <span>Registrarme en el Censo Comunal</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 16. MODAL CONFIRMACIÓN DE RADICADO (¿PROCEDE?) ================= -->
+  <div id="modalConfirmacionRadicado" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative border border-slate-200 text-center">
+      <button onclick="cerrarModalesAuth()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="w-16 h-16 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto mb-4 border-2 border-amber-300 shadow-inner">
+        <i data-lucide="clock" class="w-8 h-8"></i>
+      </div>
+
+      <span class="inline-block bg-amber-100 text-amber-800 text-[11px] font-black uppercase px-3 py-1 rounded-full border border-amber-300 mb-2">
+        Radicado en Revisión Previa
+      </span>
+
+      <h3 class="text-xl font-black text-slate-900 tracking-tight">¡Tu Reporte ha sido Recibido!</h3>
+      <p class="text-xs text-slate-500 mt-1">Junta de Acción Comunal · Barrio Panamá II y III</p>
+
+      <div class="my-4 p-4 bg-slate-50 rounded-xl border border-slate-200 text-left">
+        <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+          <span class="text-xs text-slate-500 font-bold">Código Oficial:</span>
+          <span class="font-mono text-sm font-black text-[#004884]" id="confRadicadoNum">RAD-PANAMA-2026-0000</span>
+        </div>
+        <div class="flex justify-between items-center py-2 border-b border-slate-200 text-xs">
+          <span class="text-slate-500 font-bold">Estado actual:</span>
+          <span class="font-bold text-amber-700 flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            En evaluación de procedencia
+          </span>
+        </div>
+        <div class="pt-2 text-[11px] text-slate-600 leading-relaxed">
+          ⚖️ <strong>¿Qué sucede ahora?</strong> Para proteger a la comunidad contra quejas falsas o spam, un delegado de la JAC verificará el daño en terreno en las próximas 24 horas. Una vez validado que <strong>SÍ PROCEDE</strong>, se publicará en el muro y mapa del barrio y se escalará a la Alcaldía de Valledupar.
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2.5">
+        <a id="btnAvisarWhatsapp" href="#" target="_blank" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-4 rounded-lg shadow transition flex items-center justify-center gap-2">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+          <span>Avisar a la JAC por WhatsApp</span>
+        </a>
+        <button onclick="cerrarModalesAuth()" class="px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-lg transition">
+          Entendido
+        </button>
+      </div>
     </div>
   </div>
 

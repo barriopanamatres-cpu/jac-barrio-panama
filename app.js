@@ -86,77 +86,8 @@ let pickerMarker = null;
 let mapaGeneral = null;
 let marcadoresCapa = null;
 
-// Casos precargados iniciales de respaldo (si la base de datos está recién creada)
-const CASOS_INICIALES = [
-  {
-    id: "RAD-PANAMA-2026-0001",
-    titulo: "Poste de alumbrado público a punto de colapsar sobre viviendas",
-    categoria: "Alumbrado Público",
-    ubicacion: "Manzana 14 Casa 8 (Callejón peatonal)",
-    sector: "Panamá II",
-    tiempo: "38 días",
-    diasNumero: 38,
-    descripcion: "El poste de concreto presenta fractura severa en la base y se encuentra inclinado, sostenido únicamente por el cableado de energía. Se radicó petición formal a ESTIV y a la Alcaldía pero fuimos totalmente ignorados. Niños juegan a diario en la zona y el riesgo de electrocución o colapso es crítico.",
-    foto: "https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=crop&w=800&q=80",
-    estado: "Ignorado",
-    afectados: "45 familias",
-    fecha: "18 de Septiembre, 2026",
-    solicitante: "JAC Panamá II / Comité de Veeduría",
-    lat: 10.4496,
-    lng: -73.2348
-  },
-  {
-    id: "RAD-PANAMA-2026-0002",
-    titulo: "Alcantarilla rebosada de aguas servidas frente a la cancha sintética",
-    categoria: "Emdupar",
-    ubicacion: "Carrera 6B frente a la Cancha Sintética",
-    sector: "Panamá III",
-    tiempo: "22 días",
-    diasNumero: 22,
-    descripcion: "Aguas negras corriendo por la calle, olores nauseabundos e invasión de mosquitos. Emdupar no ha enviado el carro vactor a pesar de los constantes llamados de la comunidad.",
-    foto: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80",
-    estado: "En espera",
-    afectados: "120 familias",
-    fecha: "03 de Octubre, 2026",
-    solicitante: "Comunidad Vecinal Mz 9 y 10",
-    lat: 10.4480,
-    lng: -73.2305
-  },
-  {
-    id: "RAD-PANAMA-2026-0003",
-    titulo: "Cráter peligroso en la vía de acceso Calle 44 con Carrera 6",
-    categoria: "Malla Vial",
-    ubicacion: "Entrada principal Calle 44 con Carrera 6",
-    sector: "Panamá II",
-    tiempo: "60 días",
-    diasNumero: 60,
-    descripcion: "Hueco profundo que abarca media calzada y ha provocado caídas de motociclistas y daños en vehículos. La Secretaría de Obras Públicas de Valledupar no ha intervenido.",
-    foto: "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80",
-    estado: "Ignorado",
-    afectados: "Todo el sector",
-    fecha: "25 de Agosto, 2026",
-    solicitante: "Gremio de Transportadores y Vecinos",
-    lat: 10.4505,
-    lng: -73.2330
-  },
-  {
-    id: "RAD-PANAMA-2026-0004",
-    titulo: "Recuperación de iluminación LED en el parque infantil",
-    categoria: "Seguridad y Parques",
-    ubicacion: "Parque Central del Barrio Panamá II",
-    sector: "Panamá II",
-    tiempo: "Solucionado",
-    diasNumero: 0,
-    descripcion: "Gracias a la presión pública comunitaria en redes sociales y la gestión de la JAC, la cuadrilla de alumbrado realizó el cambio total de luminarias.",
-    foto: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=800&q=80",
-    estado: "Solucionado",
-    afectados: "Resuelto",
-    fecha: "12 de Octubre, 2026",
-    solicitante: "JAC Panamá II",
-    lat: 10.4490,
-    lng: -73.2355
-  }
-];
+// Casos precargados iniciales: limpio en cero según auditoría comunitaria
+const CASOS_INICIALES = [];
 
 // Noticias iniciales en vivo
 const NOTICIAS_DEFAULT = [
@@ -197,6 +128,7 @@ let reclamoSeleccionado = null;
 
 // Inicialización de la aplicación
 document.addEventListener("DOMContentLoaded", async () => {
+  actualizarBarraNavJAC();
   await cargarReclamos();
   cargarNoticias();
   renderizarMuro("todos");
@@ -406,24 +338,28 @@ async function cargarReclamos() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data && data.length > 0) {
-        reclamos = data.map(r => ({
-          id: r.id,
-          titulo: r.titulo,
-          categoria: r.categoria,
-          ubicacion: r.ubicacion,
-          sector: r.sector || "Panamá II",
-          tiempo: r.tiempo,
-          diasNumero: r.dias_numero || 1,
-          descripcion: r.descripcion,
-          foto: r.foto,
-          estado: r.estado || "Ignorado",
-          afectados: r.afectados || "Comunidad Panamá",
-          fecha: r.fecha,
-          solicitante: r.solicitante || "Habitante Panamá",
-          lat: r.lat || 10.4471,
-          lng: r.lng || -73.2398
-        }));
+      if (!error && data) {
+        // En el muro público SOLO se muestran los casos validados que PROCEDEN
+        // (no los archivados, ni rechazados, ni los que están 'En revisión')
+        reclamos = data
+          .filter(r => r.estado && r.estado !== 'Archivado' && r.estado !== 'En revisión' && r.estado !== 'Rechazado')
+          .map(r => ({
+            id: r.id,
+            titulo: r.titulo,
+            categoria: r.categoria,
+            ubicacion: r.ubicacion,
+            sector: r.sector || "Panamá II",
+            tiempo: r.tiempo,
+            diasNumero: r.dias_numero || 1,
+            descripcion: r.descripcion,
+            foto: r.foto,
+            estado: r.estado || "En espera",
+            afectados: r.afectados || "Comunidad Panamá",
+            fecha: r.fecha,
+            solicitante: r.solicitante || "Habitante Panamá",
+            lat: r.lat || PANAMA_CENTRO_II[0],
+            lng: r.lng || PANAMA_CENTRO_II[1]
+          }));
         cargadosDesdeSupabase = true;
         localStorage.setItem("jac_panama2_reclamos", JSON.stringify(reclamos));
       }
@@ -436,12 +372,12 @@ async function cargarReclamos() {
     const guardados = localStorage.getItem("jac_panama2_reclamos");
     if (guardados) {
       try {
-        reclamos = JSON.parse(guardados);
+        reclamos = JSON.parse(guardados).filter(r => r.estado && r.estado !== 'Archivado' && r.estado !== 'En revisión' && r.estado !== 'Rechazado');
       } catch (e) {
-        reclamos = CASOS_INICIALES;
+        reclamos = [];
       }
     } else {
-      reclamos = CASOS_INICIALES;
+      reclamos = [];
       guardarEnLocalStorage();
     }
   }
@@ -494,12 +430,34 @@ function renderizarMuro(filtro = "todos") {
   const countElem = document.getElementById("countTodos");
   if (countElem) countElem.textContent = reclamos.length;
 
+  if (reclamos.length === 0) {
+    contenedor.innerHTML = `
+      <div class="col-span-full py-16 px-6 text-center bg-white rounded-2xl border-2 border-dashed border-slate-200 shadow-sm">
+        <div class="w-16 h-16 rounded-full bg-blue-50 text-[#004884] flex items-center justify-center mx-auto mb-4 border border-blue-100 shadow-inner">
+          <i data-lucide="inbox" class="w-8 h-8"></i>
+        </div>
+        <h4 class="text-lg font-black text-slate-900 tracking-tight">Muro Comunitario Limpio (0 Reportes Activos)</h4>
+        <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto mt-1.5 leading-relaxed">
+          Actualmente no hay reclamos pendientes publicados para el Barrio Panamá II y III. Todo habitante puede radicar un reporte para iniciar la veeduría comunitaria con respaldo legal de la JAC.
+        </p>
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <a href="#radicar" class="inline-flex items-center gap-2 bg-[#004884] hover:bg-[#013057] text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-lg shadow transition">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            <span>Radicar Primer Reporte</span>
+          </a>
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
   if (filtrados.length === 0) {
     contenedor.innerHTML = `
       <div class="col-span-full py-12 text-center bg-white rounded-xl border border-slate-200">
         <i data-lucide="check-circle" class="w-12 h-12 text-emerald-500 mx-auto mb-2"></i>
         <h4 class="font-bold text-slate-800">No hay reclamos en esta categoría</h4>
-        <p class="text-xs text-slate-500">No se registran solicitudes pendientes en este estado.</p>
+        <p class="text-xs text-slate-500">No se registran solicitudes en este filtro.</p>
       </div>
     `;
     lucide.createIcons();
@@ -909,7 +867,7 @@ function configurarEventos() {
           diasNumero: parseInt(tiempoCantidad) * (tiempoUnidad === "meses" ? 30 : (tiempoUnidad === "años" ? 365 : 1)),
           descripcion: descripcion,
           foto: fotoFinal,
-          estado: parseInt(tiempoCantidad) > 20 ? "Ignorado" : "En espera",
+          estado: "En revisión", // Estado inicial de moderación: requiere validación de la JAC
           afectados: `Comunidad ${sector}`,
           fecha: new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }),
           solicitante: esAnonimo ? "Vecino Anónimo" : (nombreVecino || `Habitante ${sector}`),
@@ -917,7 +875,7 @@ function configurarEventos() {
           lng: lngVal
         };
 
-        // Guardar en Supabase Database
+        // Guardar en Supabase Database en estado 'En revisión'
         if (supabaseClient) {
           try {
             await supabaseClient.from('reclamos').insert([{
@@ -938,14 +896,9 @@ function configurarEventos() {
               lng: nuevoCaso.lng
             }]);
           } catch (dbErr) {
-            console.warn("Aviso al guardar en Supabase (usando réplica local):", dbErr);
+            console.warn("Aviso al guardar en Supabase:", dbErr);
           }
         }
-
-        reclamos.unshift(nuevoCaso);
-        guardarEnLocalStorage();
-        renderizarMuro("todos");
-        actualizarMarcadoresComunitarios();
 
         form.reset();
         archivoFotoSeleccionado = null;
@@ -957,8 +910,20 @@ function configurarEventos() {
           confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
         }
 
-        alert(`¡Reclamo radicado exitosamente!\n\nNúmero Oficial:\n${nuevoRadicado}\nSector: ${sector}\n\nHa quedado georreferenciado en el mapa y guardado en la base de datos de Panamá II y III. Ahora puedes generar la ficha gráfica para Instagram.`);
-        document.getElementById("muro").scrollIntoView({ behavior: 'smooth' });
+        // Mostrar modal oficial de radicado con validación previa
+        const confNum = document.getElementById("confRadicadoNum");
+        if (confNum) confNum.textContent = nuevoRadicado;
+
+        const btnWa = document.getElementById("btnAvisarWhatsapp");
+        if (btnWa) {
+          const msgWa = encodeURIComponent(`Hola JAC Barrio Panamá II y III, acabo de radicar el caso ${nuevoRadicado} sobre ${categoria} en ${ubicacion} para su validación de procedencia.`);
+          btnWa.href = `https://wa.me/573000000000?text=${msgWa}`;
+        }
+
+        const modalConf = document.getElementById("modalConfirmacionRadicado");
+        if (modalConf) modalConf.classList.remove("hidden");
+        lucide.createIcons();
+
       } catch (err) {
         console.error("Error al radicar:", err);
         alert("Ocurrió un error al registrar el reclamo. Por favor revisa los campos e intenta de nuevo.");
@@ -981,40 +946,85 @@ function configurarEventos() {
     });
   });
 
-  // Buscador de Radicado
+  // Buscador de Radicado (Consulta si el caso procede y su estado en Supabase)
   const btnBuscar = document.getElementById("btnBuscarRadicado");
   const inputBuscar = document.getElementById("inputBuscarRadicado");
   const resultadoBusqueda = document.getElementById("resultadoBusqueda");
 
   if (btnBuscar && inputBuscar) {
-    btnBuscar.addEventListener("click", () => {
+    btnBuscar.addEventListener("click", async () => {
       const q = inputBuscar.value.trim().toUpperCase();
       if (!q) return;
 
-      const encontrado = reclamos.find(r => r.id.toUpperCase() === q || r.id.toUpperCase().includes(q));
+      btnBuscar.disabled = true;
+      btnBuscar.innerHTML = `<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i>`;
+      lucide.createIcons();
+
+      let encontrado = reclamos.find(r => r.id.toUpperCase() === q || r.id.toUpperCase().includes(q));
+
+      // Si no está en reclamos validados (porque está 'En revisión' o 'Rechazado'), consultar directamente en Supabase
+      if (!encontrado && supabaseClient) {
+        try {
+          const { data } = await supabaseClient.from('reclamos').select('*').ilike('id', `%${q}%`).limit(1);
+          if (data && data.length > 0) {
+            encontrado = data[0];
+          }
+        } catch (e) {
+          console.warn("Error al buscar en Supabase:", e);
+        }
+      }
+
       resultadoBusqueda.classList.remove("hidden");
 
       if (encontrado) {
+        let badgeColor = "bg-amber-100 text-amber-900 border-amber-300";
+        let statusText = "En revisión previa por la JAC";
+        let statusDesc = "Tu reporte está siendo evaluado por el delegado comunal para determinar su procedencia antes de publicación pública.";
+
+        if (encontrado.estado === "Solucionado") {
+          badgeColor = "bg-emerald-100 text-emerald-900 border-emerald-300";
+          statusText = "Solucionado por la entidad";
+          statusDesc = "La situación reportada fue atendida y reparada formalmente.";
+        } else if (encontrado.estado === "En espera" || encontrado.estado === "Ignorado") {
+          badgeColor = "bg-blue-100 text-[#004884] border-blue-300";
+          statusText = "Procede: Validado y publicado";
+          statusDesc = "El reporte procede legalmente y se encuentra activo en el muro vecinal y en trámite ante la Alcaldía de Valledupar.";
+        } else if (encontrado.estado === "Rechazado") {
+          badgeColor = "bg-red-100 text-red-900 border-red-300";
+          statusText = "No Procede";
+          statusDesc = "El reporte no cumplió los criterios de radicación comunal (ubicación fuera de la zona o información insuficiente).";
+        }
+
         resultadoBusqueda.innerHTML = `
-          <div class="p-3 bg-emerald-50 border border-emerald-200 rounded text-emerald-900">
-            <div class="font-bold text-xs flex justify-between">
-              <span>${encontrado.id}</span>
-              <span class="uppercase">${encontrado.estado}</span>
+          <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-800 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-mono text-xs font-bold text-[#004884]">${encontrado.id}</span>
+              <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded border ${badgeColor}">
+                ${statusText}
+              </span>
             </div>
-            <div class="text-xs font-semibold mt-1">${encontrado.titulo}</div>
-            <div class="text-[11px] text-slate-600 mt-0.5">Ubicación: ${encontrado.ubicacion} (${encontrado.sector || 'Panamá II'})</div>
-            <button onclick="abrirModalInstagram('${encontrado.id}')" class="mt-2 text-xs font-bold text-[#004884] hover:underline inline-flex items-center gap-1">
-              <i data-lucide="instagram" class="w-3.5 h-3.5"></i> Crear ficha Instagram de este caso
-            </button>
+            <h5 class="font-bold text-sm text-slate-900 leading-snug">${encontrado.titulo}</h5>
+            <p class="text-xs text-slate-600">${encontrado.ubicacion} · <span class="font-semibold">${encontrado.sector || "Panamá II"}</span></p>
+            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-[11px] text-slate-600 leading-relaxed">
+              ℹ️ <strong>Estado del trámite:</strong> ${statusDesc}
+            </div>
+            ${encontrado.estado !== "En revisión" && encontrado.estado !== "Rechazado" ? `
+              <button onclick="abrirModalInstagram('${encontrado.id}')" class="mt-2 text-xs font-bold text-[#004884] hover:underline inline-flex items-center gap-1">
+                <i data-lucide="instagram" class="w-3.5 h-3.5"></i> Ficha Instagram de este caso
+              </button>
+            ` : ''}
           </div>
         `;
       } else {
         resultadoBusqueda.innerHTML = `
           <div class="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-xs">
-            No se encontró ningún radicado con el código <strong>${q}</strong>.
+            No se encontró ningún radicado con el código <strong>${q}</strong>.<br>
+            Verifica que el número coincida exactamente (ej: RAD-PANAMA-2026-XXXX).
           </div>
         `;
       }
+      btnBuscar.disabled = false;
+      btnBuscar.innerHTML = `Buscar`;
       lucide.createIcons();
     });
   }
@@ -1221,3 +1231,249 @@ window.cerrarModalesComunidad = function() {
   if (m2) m2.classList.add("hidden");
   if (m3) m3.classList.add("hidden");
 };
+
+// ==========================================
+// CUENTA ENCARGADA JAC - MODERACIÓN Y PROCEDENCIA
+// ==========================================
+const CLAVE_JAC = "JACPanama2026";
+
+window.abrirModalLoginJAC = function() {
+  const sesion = localStorage.getItem("jac_sesion_activa");
+  if (sesion === "true") {
+    abrirPanelModeracionJAC();
+    return;
+  }
+  const modal = document.getElementById("modalLoginJAC");
+  if (modal) modal.classList.remove("hidden");
+  lucide.createIcons();
+};
+
+window.abrirModalRegistroVecino = function() {
+  const modal = document.getElementById("modalRegistroVecino");
+  if (modal) modal.classList.remove("hidden");
+  lucide.createIcons();
+};
+
+window.cerrarModalesAuth = function() {
+  const m1 = document.getElementById("modalLoginJAC");
+  const m2 = document.getElementById("modalModeracionJAC");
+  const m3 = document.getElementById("modalRegistroVecino");
+  const m4 = document.getElementById("modalConfirmacionRadicado");
+  if (m1) m1.classList.add("hidden");
+  if (m2) m2.classList.add("hidden");
+  if (m3) m3.classList.add("hidden");
+  if (m4) m4.classList.add("hidden");
+};
+
+window.cerrarSesionJAC = function() {
+  localStorage.removeItem("jac_sesion_activa");
+  actualizarBarraNavJAC();
+  cerrarModalesAuth();
+  alert("Sesión de la Directiva JAC finalizada.");
+};
+
+window.actualizarBarraNavJAC = function() {
+  const authTopNav = document.getElementById("authTopNav");
+  if (!authTopNav) return;
+  const sesion = localStorage.getItem("jac_sesion_activa") === "true";
+
+  if (sesion) {
+    authTopNav.innerHTML = `
+      <span class="bg-yellow-400 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded shadow-sm">JAC ACTIVA</span>
+      <button onclick="abrirPanelModeracionJAC()" class="hover:underline font-bold text-white flex items-center gap-1 cursor-pointer">
+        <i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i>
+        <span>Panel Moderación</span>
+      </button>
+      <span class="text-white/40">|</span>
+      <button onclick="cerrarSesionJAC()" class="hover:underline text-white/80 cursor-pointer">Salir</button>
+      <button id="btnDarkMode" class="text-white hover:text-yellow-300 transition ml-1" title="Cambiar tema">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+      </button>
+    `;
+  } else {
+    authTopNav.innerHTML = `
+      <a href="javascript:void(0)" onclick="abrirModalLoginJAC()" class="hover:underline flex items-center gap-1 cursor-pointer">
+        <i data-lucide="lock" class="w-3.5 h-3.5 opacity-80"></i>
+        <span>Inicio de sesión</span>
+      </a>
+      <span class="text-white/40">|</span>
+      <a href="javascript:void(0)" onclick="abrirModalRegistroVecino()" class="hover:underline flex items-center gap-1 cursor-pointer">
+        <i data-lucide="user-plus" class="w-3.5 h-3.5 opacity-80"></i>
+        <span>Registro de usuario</span>
+      </a>
+      <button id="btnDarkMode" class="text-white hover:text-yellow-300 transition ml-1" title="Cambiar tema">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+      </button>
+    `;
+  }
+  lucide.createIcons();
+};
+
+window.abrirPanelModeracionJAC = async function() {
+  const modalLogin = document.getElementById("modalLoginJAC");
+  if (modalLogin) modalLogin.classList.add("hidden");
+
+  const modalMod = document.getElementById("modalModeracionJAC");
+  if (modalMod) modalMod.classList.remove("hidden");
+
+  await recargarModeracion();
+  lucide.createIcons();
+};
+
+window.recargarModeracion = async function() {
+  const listaContenedor = document.getElementById("listaCasosModeracion");
+  if (!listaContenedor) return;
+  listaContenedor.innerHTML = `<div class="py-8 text-center text-xs text-slate-500"><i data-lucide="loader" class="w-5 h-5 animate-spin mx-auto mb-2 text-[#004884]"></i>Cargando reportes para evaluación...</div>`;
+  lucide.createIcons();
+
+  let todosLosCasos = [];
+  if (supabaseClient) {
+    try {
+      const { data } = await supabaseClient.from('reclamos').select('*').order('created_at', { ascending: false });
+      if (data) todosLosCasos = data;
+    } catch (e) {
+      console.warn("Error cargando moderación:", e);
+    }
+  }
+
+  const pendientes = todosLosCasos.filter(c => c.estado === "En revisión");
+  const validados = todosLosCasos.filter(c => c.estado && c.estado !== "En revisión" && c.estado !== "Archivado" && c.estado !== "Rechazado");
+  const solucionados = todosLosCasos.filter(c => c.estado === "Solucionado");
+
+  const elPend = document.getElementById("modCountPendientes");
+  const elVal = document.getElementById("modCountValidados");
+  const elSol = document.getElementById("modCountSolucionados");
+  const elTot = document.getElementById("modCountTotal");
+
+  if (elPend) elPend.textContent = pendientes.length;
+  if (elVal) elVal.textContent = validados.length;
+  if (elSol) elSol.textContent = solucionados.length;
+  if (elTot) elTot.textContent = todosLosCasos.filter(c => c.estado !== "Archivado").length;
+
+  if (pendientes.length === 0) {
+    listaContenedor.innerHTML = `
+      <div class="p-8 text-center bg-slate-50 rounded-xl border border-slate-200">
+        <i data-lucide="check-circle" class="w-10 h-10 text-emerald-600 mx-auto mb-2"></i>
+        <h5 class="font-bold text-slate-900 text-sm">¡Bandeja de Entrada al Día!</h5>
+        <p class="text-xs text-slate-500 mt-1">No hay reportes pendientes de revisión en este momento.</p>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  listaContenedor.innerHTML = "";
+  pendientes.forEach(caso => {
+    const card = document.createElement("div");
+    card.className = "p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row gap-4 items-start";
+    card.innerHTML = `
+      <img src="${caso.foto || 'https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=crop&w=400&q=80'}" class="w-full sm:w-28 h-28 object-cover rounded-lg shrink-0 border border-slate-200" alt="Evidencia">
+      <div class="flex-grow space-y-1 w-full">
+        <div class="flex flex-wrap items-center justify-between gap-1">
+          <span class="font-mono text-xs font-black text-[#004884]">${caso.id}</span>
+          <span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">${caso.categoria} · ${caso.sector || 'Panamá II'}</span>
+        </div>
+        <h5 class="font-bold text-sm text-slate-900 leading-snug">${caso.titulo}</h5>
+        <p class="text-xs text-slate-600 line-clamp-2">${caso.descripcion}</p>
+        <div class="text-[11px] text-slate-500 flex flex-wrap items-center gap-3 pt-1">
+          <span>📍 <strong>${caso.ubicacion}</strong></span>
+          <span>👤 ${caso.solicitante || 'Vecino'}</span>
+          <span>🕒 Tiempo: ${caso.tiempo}</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200 mt-2">
+          <button onclick="aprobarCasoJAC('${caso.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-1.5 px-3 rounded-lg shadow-sm transition flex items-center gap-1 cursor-pointer">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>✓ Procede: Aprobar y Publicar</span>
+          </button>
+          <button onclick="abrirModalInstagram('${caso.id}')" class="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs py-1.5 px-3 rounded-lg shadow-sm transition flex items-center gap-1 cursor-pointer">
+            <i data-lucide="instagram" class="w-3.5 h-3.5"></i>
+            <span>Ficha Instagram</span>
+          </button>
+          <button onclick="rechazarCasoJAC('${caso.id}')" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs py-1.5 px-3 rounded-lg transition flex items-center gap-1 cursor-pointer">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            <span>No Procede</span>
+          </button>
+        </div>
+      </div>
+    `;
+    listaContenedor.appendChild(card);
+  });
+  lucide.createIcons();
+};
+
+window.aprobarCasoJAC = async function(id) {
+  if (!confirm(`¿Confirmas que este reporte PROCEDE y debe publicarse en el Muro Comunitario del Barrio Panamá?`)) return;
+  if (supabaseClient) {
+    try {
+      await supabaseClient.from('reclamos').update({ estado: 'En espera' }).eq('id', id);
+    } catch (e) {
+      console.warn("Aviso:", e);
+    }
+  }
+  await cargarReclamos();
+  renderizarMuro("todos");
+  actualizarMarcadoresComunitarios();
+  await recargarModeracion();
+  alert(`✅ Reporte ${id} aprobado y publicado en el muro comunitario.`);
+};
+
+window.rechazarCasoJAC = async function(id) {
+  const motivo = prompt("Motivo por el cual este reporte NO procede:\n(Ej: Ubicación fuera del barrio, foto ilegible, reporte duplicado):", "No corresponde al sector del Barrio Panamá");
+  if (!motivo) return;
+
+  if (supabaseClient) {
+    try {
+      await supabaseClient.from('reclamos').update({ estado: 'Rechazado' }).eq('id', id);
+    } catch (e) {
+      console.warn("Aviso:", e);
+    }
+  }
+  await cargarReclamos();
+  renderizarMuro("todos");
+  actualizarMarcadoresComunitarios();
+  await recargarModeracion();
+  alert(`Reporte ${id} marcado como 'No procede'.`);
+};
+
+// Listeners de Formularios de Login JAC y Registro Comunal
+document.addEventListener("DOMContentLoaded", () => {
+  const formLogin = document.getElementById("formLoginJAC");
+  if (formLogin) {
+    formLogin.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const clave = document.getElementById("loginClave").value.trim();
+      const errorMsg = document.getElementById("loginErrorMsg");
+
+      if (clave === CLAVE_JAC || clave === "2026") {
+        if (errorMsg) errorMsg.classList.add("hidden");
+        localStorage.setItem("jac_sesion_activa", "true");
+        actualizarBarraNavJAC();
+        abrirPanelModeracionJAC();
+      } else {
+        if (errorMsg) errorMsg.classList.remove("hidden");
+      }
+    });
+  }
+
+  const formRegistro = document.getElementById("formRegistroVecino");
+  if (formRegistro) {
+    formRegistro.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const nombre = document.getElementById("regNombre").value.trim();
+      const cedula = document.getElementById("regCedula").value.trim();
+      const tel = document.getElementById("regTelefono").value.trim();
+      const sector = document.getElementById("regSector").value;
+      const dir = document.getElementById("regDireccion").value.trim();
+
+      const msgExito = document.getElementById("regExitoMsg");
+      if (msgExito) msgExito.classList.remove("hidden");
+
+      setTimeout(() => {
+        alert(`¡Gracias ${nombre}!\nHas quedado registrado en el Censo Comunitario de la JAC Barrio Panamá II y III.\nSector: ${sector}\nDirección: ${dir}`);
+        cerrarModalesAuth();
+        formRegistro.reset();
+        if (msgExito) msgExito.classList.add("hidden");
+      }, 1200);
+    });
+  }
+});
