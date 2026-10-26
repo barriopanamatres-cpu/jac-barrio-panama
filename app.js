@@ -24,36 +24,20 @@ const PANAMA_BOUNDS = [
   [10.4535, -73.2285]  // Nororiente (Carrera 5ª Bis / Calle 44)
 ];
 
+const PANAMA_CENTRO = [10.4495, -73.2335];
 const PANAMA_CENTRO_II = [10.4492, -73.2345]; // Centro Sector Panamá II (Cercano a Mz 14)
 const PANAMA_CENTRO_III = [10.4505, -73.2315]; // Centro Sector Panamá III
 
-// Perímetro General Negro (Trazado Oficial JAC en Google Maps)
-const PERIMETRO_OFICIAL_PANAMA = [
-  [10.44785, -73.23690], // Calle 44 suroccidente
-  [10.45030, -73.23540], // Calle 44 quiebre cerca a Calle 39
-  [10.45115, -73.23385], // Calle 44 con Carrera 5A
-  [10.45220, -73.23145], // Punta norte en Carrera 5ª Bis
-  [10.44990, -73.22995], // Esquina oriente Carrera 5ª Bis con Calle 45A
-  [10.44685, -73.23460]  // Esquina sur detrás de Calle 45A
-];
-
-// Polígono 1: BARRIO PANAMÁ II (Sector Izquierdo en Verde Azulado / Cian)
-const POLIGONO_PANAMA_II = [
-  [10.44785, -73.23690], // Calle 44 esquina suroccidente
-  [10.45030, -73.23540], // Calle 44 quiebre
-  [10.45115, -73.23385], // Calle 44 con Carrera 5A
-  [10.45015, -73.23210], // Carrera 5A bajando hacia Calle 45
-  [10.44730, -73.23440], // Límite sur Carrera 5A hacia Cra 5A 2
-  [10.44685, -73.23460]  // Esquina sur
-];
-
-// Polígono 2: BARRIO PANAMÁ III (Sector Derecho en Morado)
-const POLIGONO_PANAMA_III = [
-  [10.45115, -73.23385], // Carrera 5A con Calle 44A
-  [10.45220, -73.23145], // Punta norte Carrera 5ª Bis
-  [10.44990, -73.22995], // Esquina oriente Carrera 5ª Bis con Calle 45A
-  [10.44840, -73.23250], // Calle 45A cruzando hacia Carrera 5A
-  [10.45015, -73.23210]  // Carrera 5A con Calle 45
+// PERÍMETRO ÚNICO OFICIAL - BARRIO PANAMÁ II Y III (Trazado exacto del plano enviado)
+const POLIGONO_BARRIO_PANAMA = [
+  [10.44770, -73.23715], // 1. Esquina suroccidente en Calle 44
+  [10.45040, -73.23535], // 2. Subiendo por Calle 44 (quiebre frente a Calle 39)
+  [10.45115, -73.23385], // 3. Esquina norte de Panamá II (Calle 44 con Cra 5A)
+  [10.45015, -73.23210], // 4. Bajando por Carrera 5A hasta Calle 45
+  [10.45082, -73.23059], // 5. Cruzando por Calle 45 hasta Carrera 5ª Bis
+  [10.45225, -73.23140], // 6. Punta norte superior en Carrera 5ª Bis
+  [10.44990, -73.22995], // 7. Esquina oriental en Carrera 5ª Bis con Calle 45A
+  [10.44665, -73.23485]  // 8. Esquina sur detrás de Calle 45A
 ];
 
 // Variables de Mapas Leaflet
@@ -221,33 +205,17 @@ function inicializarMapaPicker() {
     "🛰️ Google Satélite": googleSatellite
   }, null, { position: 'topright' }).addTo(mapaPicker);
 
-  // 1. PERÍMETRO GENERAL NEGRO (Trazado oficial dibujado por la JAC)
-  L.polygon(PERIMETRO_OFICIAL_PANAMA, {
+  // PERÍMETRO ÚNICO EXACTO (Trazado oficial dibujado por la JAC)
+  const perimetroPanama = L.polygon(POLIGONO_BARRIO_PANAMA, {
     color: '#0f172a',
     weight: 4,
     opacity: 0.95,
-    fill: false,
+    fillColor: '#004884',
+    fillOpacity: 0.08,
     lineCap: 'round',
     lineJoin: 'round'
   }).addTo(mapaPicker);
-
-  // 2. SECTOR PANAMÁ II (Verde Azulado / Cian)
-  const poliII = L.polygon(POLIGONO_PANAMA_II, {
-    color: '#0d9488',
-    fillColor: '#14b8a6',
-    fillOpacity: 0.18,
-    weight: 2.5
-  }).addTo(mapaPicker);
-  poliII.bindTooltip("<span class='text-teal-800 font-extrabold'>🟢 PANAMÁ II</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
-
-  // 3. SECTOR PANAMÁ III (Morado)
-  const poliIII = L.polygon(POLIGONO_PANAMA_III, {
-    color: '#7e22ce',
-    fillColor: '#a855f7',
-    fillOpacity: 0.18,
-    weight: 2.5
-  }).addTo(mapaPicker);
-  poliIII.bindTooltip("<span class='text-purple-800 font-extrabold'>🟣 PANAMÁ III</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
+  perimetroPanama.bindTooltip("<span class='text-slate-900 font-extrabold'>📍 LÍMITE BARRIO PANAMÁ II Y III</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
 
   // Marcador seleccionable
   pickerMarker = L.marker(PANAMA_CENTRO_II, {
@@ -323,33 +291,17 @@ function inicializarMapaComunitario() {
     "🛰️ Google Satélite": gGoogleSatellite
   }, null, { position: 'topright' }).addTo(mapaGeneral);
 
-  // 1. PERÍMETRO GENERAL NEGRO
-  L.polygon(PERIMETRO_OFICIAL_PANAMA, {
+  // PERÍMETRO ÚNICO EXACTO (Trazado oficial dibujado por la JAC)
+  const gPerimetroPanama = L.polygon(POLIGONO_BARRIO_PANAMA, {
     color: '#0f172a',
     weight: 4,
     opacity: 0.95,
-    fill: false,
+    fillColor: '#004884',
+    fillOpacity: 0.08,
     lineCap: 'round',
     lineJoin: 'round'
   }).addTo(mapaGeneral);
-
-  // 2. Polígono 1: BARRIO PANAMÁ II (Cian)
-  const gPoliII = L.polygon(POLIGONO_PANAMA_II, {
-    color: '#0d9488',
-    fillColor: '#14b8a6',
-    fillOpacity: 0.18,
-    weight: 2.5
-  }).addTo(mapaGeneral);
-  gPoliII.bindTooltip("<span class='text-teal-800 font-extrabold'>🟢 PANAMÁ II</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
-
-  // 3. Polígono 2: BARRIO PANAMÁ III (Morado)
-  const gPoliIII = L.polygon(POLIGONO_PANAMA_III, {
-    color: '#7e22ce',
-    fillColor: '#a855f7',
-    fillOpacity: 0.18,
-    weight: 2.5
-  }).addTo(mapaGeneral);
-  gPoliIII.bindTooltip("<span class='text-purple-800 font-extrabold'>🟣 PANAMÁ III</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
+  gPerimetroPanama.bindTooltip("<span class='text-slate-900 font-extrabold'>📍 LÍMITE BARRIO PANAMÁ II Y III</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
 
   marcadoresCapa = L.layerGroup().addTo(mapaGeneral);
   actualizarMarcadoresComunitarios();
