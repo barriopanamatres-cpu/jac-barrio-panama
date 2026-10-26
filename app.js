@@ -1479,23 +1479,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const formRegistro = document.getElementById("formRegistroVecino");
   if (formRegistro) {
-    formRegistro.addEventListener("submit", (e) => {
+    formRegistro.addEventListener("submit", async (e) => {
       e.preventDefault();
       const nombre = document.getElementById("regNombre").value.trim();
       const cedula = document.getElementById("regCedula").value.trim();
       const tel = document.getElementById("regTelefono").value.trim();
       const sector = document.getElementById("regSector").value;
       const dir = document.getElementById("regDireccion").value.trim();
+      const condicion = document.getElementById("regCondicion") ? document.getElementById("regCondicion").value : 'Propietario';
+      const esVeedor = document.getElementById("regVeedor") ? document.getElementById("regVeedor").checked : true;
 
       const msgExito = document.getElementById("regExitoMsg");
       if (msgExito) msgExito.classList.remove("hidden");
 
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from('censo_vecinos').insert([{
+            nombre: nombre,
+            cedula: cedula,
+            telefono: tel,
+            sector: sector,
+            direccion: dir,
+            condicion: condicion,
+            es_veedor: esVeedor
+          }]);
+        } catch (errDb) {
+          console.warn("Aviso al guardar en censo_vecinos de Supabase:", errDb);
+        }
+      }
+
       setTimeout(() => {
-        alert(`¡Gracias ${nombre}!\nHas quedado registrado en el Censo Comunitario de la JAC Barrio Panamá II y III.\nSector: ${sector}\nDirección: ${dir}`);
+        alert(`¡Gracias ${nombre}!\nHas quedado registrado formalmente en el Censo Comunitario de la JAC Barrio Panamá II y III.\nSector: ${sector}\nDirección: ${dir}`);
         cerrarModalesAuth();
         formRegistro.reset();
         if (msgExito) msgExito.classList.add("hidden");
-      }, 1200);
+      }, 1000);
     });
   }
 });

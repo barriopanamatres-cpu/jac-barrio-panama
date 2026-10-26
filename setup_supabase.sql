@@ -1,31 +1,41 @@
 -- ==============================================================================
--- BASE DE DATOS SUPABASE - VEEDURÍA JAC BARRIO PANAMÁ II Y III (VALLEDUPAR)
+-- BASE DE DATOS SUPABASE OFICIAL - JAC BARRIO PANAMÁ II Y III (VALLEDUPAR)
+-- Proyecto: Veeduría Comunitaria y Auditoría Social (Ley 1757 de 2015)
 -- ==============================================================================
 
--- 1. CREAR TABLA DE RECLAMOS COMUNITARIOS
+-- 1. LIMPIAR DATOS DE PRUEBA PREVIOS (DEJAR EN CERO)
+DELETE FROM public.reclamos;
+
+-- 2. TABLA PRINCIPAL DE RECLAMOS Y REPORTES CIUDADANOS
 CREATE TABLE IF NOT EXISTS public.reclamos (
-    id TEXT PRIMARY KEY,
-    titulo TEXT NOT NULL,
-    categoria TEXT NOT NULL,
-    ubicacion TEXT NOT NULL,
-    sector TEXT DEFAULT 'Panamá II',
-    tiempo TEXT NOT NULL,
-    dias_numero INTEGER DEFAULT 1,
-    descripcion TEXT NOT NULL,
-    foto TEXT NOT NULL,
-    estado TEXT DEFAULT 'Ignorado',
-    afectados TEXT DEFAULT 'Comunidad Panamá',
-    fecha TEXT NOT NULL,
-    solicitante TEXT DEFAULT 'Habitante Panamá',
-    lat DOUBLE PRECISION DEFAULT 10.4468,
-    lng DOUBLE PRECISION DEFAULT -73.2402,
+    id TEXT PRIMARY KEY,                                      -- Código único: RAD-PANAMA-2026-XXXX
+    titulo TEXT NOT NULL,                                     -- Título del daño reportado
+    categoria TEXT NOT NULL,                                  -- Alumbrado, Vías, Emdupar, Parques, etc.
+    ubicacion TEXT NOT NULL,                                  -- Manzana, Casa, Calle, Carrera
+    sector TEXT DEFAULT 'Panamá II',                          -- Panamá II o Panamá III
+    tiempo TEXT NOT NULL,                                     -- Ej: "3 semanas", "2 meses"
+    dias_numero INTEGER DEFAULT 1,                            -- Días transcurridos sin solución
+    descripcion TEXT NOT NULL,                                -- Descripción detallada de los hechos
+    foto TEXT NOT NULL,                                       -- URL de la evidencia fotográfica
+    estado TEXT DEFAULT 'En revisión',                        -- 'En revisión' (inicial), 'En espera', 'Solucionado', 'Rechazado', 'Archivado'
+    afectados TEXT DEFAULT 'Comunidad Panamá',                 -- Número de familias o personas afectadas
+    fecha TEXT NOT NULL,                                      -- Fecha de radicación
+    solicitante TEXT DEFAULT 'Habitante Panamá',               -- Nombre del vecino o "Vecino Anónimo"
+    lat DOUBLE PRECISION DEFAULT 10.4495,                     -- Coordenada GPS Latitud
+    lng DOUBLE PRECISION DEFAULT -73.2325,                    -- Coordenada GPS Longitud
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 -- Habilitar seguridad de nivel de fila (Row Level Security)
 ALTER TABLE public.reclamos ENABLE ROW LEVEL SECURITY;
 
--- Políticas de acceso para que los vecinos puedan ver, registrar y actualizar reclamos
+-- Eliminar políticas previas para evitar duplicados
+DROP POLICY IF EXISTS "Lectura pública de reclamos" ON public.reclamos;
+DROP POLICY IF EXISTS "Inserción pública de reclamos" ON public.reclamos;
+DROP POLICY IF EXISTS "Actualización de estado comunitaria" ON public.reclamos;
+DROP POLICY IF EXISTS "Eliminación de reclamos" ON public.reclamos;
+
+-- Políticas de acceso para la tabla reclamos
 CREATE POLICY "Lectura pública de reclamos" 
 ON public.reclamos FOR SELECT 
 USING (true);
@@ -38,68 +48,48 @@ CREATE POLICY "Actualización de estado comunitaria"
 ON public.reclamos FOR UPDATE 
 USING (true);
 
--- 2. INSERTAR CASOS EMBLEMÁTICOS INICIALES (Poste de luz en Mz 14, alcantarilla, vía)
-INSERT INTO public.reclamos (id, titulo, categoria, ubicacion, sector, tiempo, dias_numero, descripcion, foto, estado, afectados, fecha, solicitante, lat, lng)
-VALUES 
-(
-  'RAD-PANAMA-2026-0001',
-  'Poste de alumbrado público a punto de colapsar sobre viviendas',
-  'Alumbrado Público',
-  'Manzana 14 Casa 8 (Callejón peatonal)',
-  'Panamá II',
-  '38 días',
-  38,
-  'El poste de concreto presenta fractura severa en la base y se encuentra inclinado, sostenido únicamente por el cableado de energía. Se radicó petición formal a ESTIV y a la Alcaldía pero fuimos totalmente ignorados. Niños juegan a diario en la zona y el riesgo de electrocución o colapso es crítico.',
-  'https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=crop&w=800&q=80',
-  'Ignorado',
-  '45 familias',
-  '18 de Septiembre, 2026',
-  'JAC Panamá II / Comité de Veeduría',
-  10.4496,
-  -73.2348
-),
-(
-  'RAD-PANAMA-2026-0002',
-  'Alcantarilla rebosada de aguas servidas frente a la cancha sintética',
-  'Emdupar',
-  'Carrera 6B frente a la Cancha Sintética',
-  'Panamá III',
-  '22 días',
-  22,
-  'Aguas negras corriendo por la calle, olores nauseabundos e invasión de mosquitos. Emdupar no ha enviado el carro vactor a pesar de los constantes llamados de la comunidad.',
-  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80',
-  'En espera',
-  '120 familias',
-  '03 de Octubre, 2026',
-  'Comunidad Vecinal Mz 9 y 10',
-  10.4480,
-  -73.2305
-),
-(
-  'RAD-PANAMA-2026-0003',
-  'Cráter peligroso en la vía de acceso Calle 44 con Carrera 6',
-  'Malla Vial',
-  'Entrada principal Calle 44 con Carrera 6',
-  'Panamá II',
-  '60 días',
-  60,
-  'Hueco profundo que abarca media calzada y ha provocado caídas de motociclistas y daños en vehículos. La Secretaría de Obras Públicas de Valledupar no ha intervenido.',
-  'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80',
-  'Ignorado',
-  'Todo el sector',
-  '25 de Agosto, 2026',
-  'Gremio de Transportadores y Vecinos',
-  10.4505,
-  -73.2330
-)
-ON CONFLICT (id) DO NOTHING;
+CREATE POLICY "Eliminación de reclamos" 
+ON public.reclamos FOR DELETE 
+USING (true);
 
--- 3. CREAR BUCKET DE ALMACENAMIENTO PARA SUBIR FOTOS (1GB GRATIS DE SUPABASE STORAGE)
+
+-- 3. TABLA DE CENSO COMUNITARIO Y RED DE VEEDORES (REGISTRO DE USUARIOS)
+CREATE TABLE IF NOT EXISTS public.censo_vecinos (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    cedula TEXT NOT NULL UNIQUE,
+    telefono TEXT NOT NULL,
+    sector TEXT NOT NULL,                                     -- Panamá II o Panamá III
+    direccion TEXT NOT NULL,                                  -- Manzana y Casa
+    condicion TEXT DEFAULT 'Propietario',                     -- Propietario / Arrendatario / Familiar
+    es_veedor BOOLEAN DEFAULT true,                           -- Pertenece a la red de veeduría
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.censo_vecinos ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Permitir registro de vecinos" ON public.censo_vecinos;
+DROP POLICY IF EXISTS "Lectura de censo para JAC" ON public.censo_vecinos;
+
+CREATE POLICY "Permitir registro de vecinos" 
+ON public.censo_vecinos FOR INSERT 
+WITH CHECK (true);
+
+CREATE POLICY "Lectura de censo para JAC" 
+ON public.censo_vecinos FOR SELECT 
+USING (true);
+
+
+-- 4. BUCKET DE ALMACENAMIENTO DE EVIDENCIAS FOTOGRÁFICAS (SUPABASE STORAGE)
 INSERT INTO storage.buckets (id, name, public) 
 VALUES ('evidencias', 'evidencias', true)
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET public = true;
 
--- Políticas de Storage para ver y subir fotos libremente
+-- Políticas para Supabase Storage
+DROP POLICY IF EXISTS "Fotos públicas lectura libre" ON storage.objects;
+DROP POLICY IF EXISTS "Permitir subir fotos de denuncias" ON storage.objects;
+DROP POLICY IF EXISTS "Permitir actualizar fotos" ON storage.objects;
+
 CREATE POLICY "Fotos públicas lectura libre" 
 ON storage.objects FOR SELECT 
 USING (bucket_id = 'evidencias');
@@ -107,3 +97,7 @@ USING (bucket_id = 'evidencias');
 CREATE POLICY "Permitir subir fotos de denuncias" 
 ON storage.objects FOR INSERT 
 WITH CHECK (bucket_id = 'evidencias');
+
+CREATE POLICY "Permitir actualizar fotos" 
+ON storage.objects FOR UPDATE 
+USING (bucket_id = 'evidencias');
