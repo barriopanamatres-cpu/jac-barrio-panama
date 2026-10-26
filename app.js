@@ -27,18 +27,58 @@ const PANAMA_CENTRO = [10.44980, -73.23250];
 const PANAMA_CENTRO_II = [10.44980, -73.23330]; // Entre Carrera 5ª A 2 y Carrera 5ª A
 const PANAMA_CENTRO_III = [10.45030, -73.23120]; // Entre Carrera 5ª A y Carrera 5ª Bis
 
-// PERÍMETRO ÚNICO EXACTO (Coordenadas exactas de las esquinas de las calles en el plano)
+// PERÍMETRO ÚNICO EXACTO (Tomando la vía completa de Carrera 5ª Bis de andén a andén y todas las manzanas)
 const POLIGONO_BARRIO_PANAMA = [
-  [10.44925, -73.23452], // 1. Calle 44 esquina izquierda (una cuadra antes de Cra 5ª A 2)
+  [10.44925, -73.23455], // 1. Calle 44 esquina izquierda (una cuadra antes de Cra 5ª A 2)
   [10.45021, -73.23399], // 2. Quiebre de Calle 44 frente a Calle 39 (inicio Cra 5ª A 2)
-  [10.45119, -73.23276], // 3. Esquina Calle 44 con Carrera 5ª A
+  [10.45120, -73.23275], // 3. Esquina Calle 44 con Carrera 5ª A
   [10.44994, -73.23197], // 4. Bajando por Carrera 5ª A hasta la esquina con Calle 45
-  [10.45083, -73.23059], // 5. Subiendo por Calle 45 hasta la esquina con Carrera 5ª Bis
-  [10.45199, -73.23132], // 6. Punta norte de Carrera 5ª Bis (costado occidental)
-  [10.45208, -73.23115], // 7. Punta norte de Carrera 5ª Bis (costado oriental)
-  [10.45004, -73.23008], // 8. Bajando por Carrera 5ª Bis hasta esquina con Calle 45B
-  [10.44813, -73.23316]  // 9. Bajando por Calle 45B hasta la esquina inferior sur
+  [10.45065, -73.23075], // 5. Calle 45 hasta el andén occidental de Carrera 5ª Bis
+  [10.45218, -73.23152], // 6. Subiendo por Carrera 5ª Bis hasta la esquina con Calle 44 (punto Sejes / andén occidental)
+  [10.45238, -73.23120], // 7. Cruzando la boca de Carrera 5ª Bis en Calle 44 (andén oriental)
+  [10.44985, -73.22980], // 8. Bajando por el andén oriental de Carrera 5ª Bis (pasando TransCar y Karines) hasta Calle 45B
+  [10.44805, -73.23325]  // 9. Bajando por Calle 45B (borde sur) hasta la esquina inferior suroccidental
 ];
+
+// Validación matemática: ¿El punto está estrictamente dentro del polígono del barrio?
+function estaDentroDelBarrio(lat, lng) {
+  let x = lat, y = lng;
+  let inside = false;
+  const vs = POLIGONO_BARRIO_PANAMA;
+  for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+    let xi = vs[i][0], yi = vs[i][1];
+    let xj = vs[j][0], yj = vs[j][1];
+    let intersect = ((yi > y) != (yj > y)) && (x < (xj - x) * (y - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+let ultimaPosicionValida = [10.44980, -73.23330];
+let timeoutAviso = null;
+
+function mostrarAvisoFueraPerimetro() {
+  if (pickerMarker) {
+    pickerMarker.bindPopup("<div style='font-size:11px; font-weight:700; color:#dc2626; padding:2px;'>⚠️ Solo puedes fijar puntos dentro del perímetro de Barrio Panamá II y III</div>").openPopup();
+    if (timeoutAviso) clearTimeout(timeoutAviso);
+    timeoutAviso = setTimeout(() => {
+      if (pickerMarker) pickerMarker.closePopup();
+    }, 2800);
+  }
+}
+
+function actualizarPosicionPin(lat, lng) {
+  if (estaDentroDelBarrio(lat, lng)) {
+    ultimaPosicionValida = [lat, lng];
+    pickerMarker.setLatLng([lat, lng]);
+    actualizarCoordenadasFormulario(lat, lng);
+  } else {
+    // Si intenta ubicar fuera del barrio, regresarlo de inmediato al último punto válido
+    pickerMarker.setLatLng(ultimaPosicionValida);
+    actualizarCoordenadasFormulario(ultimaPosicionValida[0], ultimaPosicionValida[1]);
+    mostrarAvisoFueraPerimetro();
+  }
+}
 
 // Variables de Mapas Leaflet
 let mapaPicker = null;
@@ -205,13 +245,13 @@ function inicializarMapaPicker() {
     "🛰️ Google Satélite": googleSatellite
   }, null, { position: 'topright' }).addTo(mapaPicker);
 
-  // PERÍMETRO ÚNICO EXACTO (Línea negra limpia tal cual la imagen)
+  // PERÍMETRO OFICIAL ELEGANTE (Línea fina Azul Institucional #004884 sin barrotas negras)
   const perimetroPanama = L.polygon(POLIGONO_BARRIO_PANAMA, {
-    color: '#000000',
-    weight: 3.5,
-    opacity: 1,
-    fillColor: '#004884',
-    fillOpacity: 0.04,
+    color: '#004884',
+    weight: 2.5,
+    opacity: 0.9,
+    fillColor: '#3366CC',
+    fillOpacity: 0.05,
     lineCap: 'round',
     lineJoin: 'round'
   }).addTo(mapaPicker);
@@ -225,16 +265,14 @@ function inicializarMapaPicker() {
     title: "Arrastra para fijar la manzana o casa afectada"
   }).addTo(mapaPicker);
 
-  // Actualizar coordenadas al arrastrar el pin
+  // Restricción: solo permitir fijar el pin dentro del perímetro
   pickerMarker.on("dragend", (e) => {
     const latLng = e.target.getLatLng();
-    actualizarCoordenadasFormulario(latLng.lat, latLng.lng);
+    actualizarPosicionPin(latLng.lat, latLng.lng);
   });
 
-  // Actualizar coordenadas al hacer clic en el mapa
   mapaPicker.on("click", (e) => {
-    pickerMarker.setLatLng(e.latlng);
-    actualizarCoordenadasFormulario(e.latlng.lat, e.latlng.lng);
+    actualizarPosicionPin(e.latlng.lat, e.latlng.lng);
   });
 }
 
@@ -291,13 +329,13 @@ function inicializarMapaComunitario() {
     "🛰️ Google Satélite": gGoogleSatellite
   }, null, { position: 'topright' }).addTo(mapaGeneral);
 
-  // PERÍMETRO ÚNICO EXACTO (Línea negra limpia tal cual la imagen)
+  // PERÍMETRO OFICIAL ELEGANTE (Línea fina Azul Institucional #004884)
   const gPerimetroPanama = L.polygon(POLIGONO_BARRIO_PANAMA, {
-    color: '#000000',
-    weight: 3.5,
-    opacity: 1,
-    fillColor: '#004884',
-    fillOpacity: 0.04,
+    color: '#004884',
+    weight: 2.5,
+    opacity: 0.9,
+    fillColor: '#3366CC',
+    fillOpacity: 0.05,
     lineCap: 'round',
     lineJoin: 'round'
   }).addTo(mapaGeneral);
@@ -828,6 +866,15 @@ function configurarEventos() {
         const nombreVecino = document.getElementById("nombreVecino") ? document.getElementById("nombreVecino").value.trim() : "";
         const latVal = parseFloat(document.getElementById("geoLat").value) || PANAMA_CENTRO_II[0];
         const lngVal = parseFloat(document.getElementById("geoLng").value) || PANAMA_CENTRO_II[1];
+
+        if (!estaDentroDelBarrio(latVal, lngVal)) {
+          alert("⚠️ El punto seleccionado en el mapa está fuera del perímetro oficial de Barrio Panamá II y III.\nPor favor haz clic dentro del perímetro delimitado en el mapa.");
+          document.getElementById("mapaPanamaPicker").scrollIntoView({ behavior: 'smooth' });
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = btnOriginalText;
+          lucide.createIcons();
+          return;
+        }
 
         const numRandom = Math.floor(1000 + Math.random() * 9000);
         const nuevoRadicado = `RAD-PANAMA-2026-${numRandom}`;
