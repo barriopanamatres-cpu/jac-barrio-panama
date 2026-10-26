@@ -18,6 +18,9 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+  <!-- html2canvas para generación de Afiches Ultra HD -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
   <!-- Fuentes Oficiales -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -700,6 +703,11 @@
           <span>Copiar Texto</span>
         </button>
 
+        <button onclick="abrirModalInstagramDesdeRadicado()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer" title="Generar afiche de alta presión para Instagram y WhatsApp con este radicado">
+          <i data-lucide="instagram" class="w-4 h-4 text-amber-300"></i>
+          <span>Afiche Redes</span>
+        </button>
+
         <button onclick="abrirModalRegistrarRadicadoDesdeVista()" class="bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 font-extrabold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer" title="Anotar el radicado asignado por la Alcaldía o empresa">
           <i data-lucide="bookmark-plus" class="w-4 h-4 text-purple-600"></i>
           <span>Registrar Radicado</span>
@@ -992,7 +1000,264 @@
   </div>
 
 
-  <!-- ================= LÓGICA JAVASCRIPT DEL DASHBOARD ADMIN ================= -->
+  <!-- ================= MODAL GENERADOR DE AFICHES PROFESIONALES PARA REDES (INSTAGRAM / WHATSAPP) ================= -->
+  <div id="modalInstagram" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl relative my-6 text-white max-h-[92vh] flex flex-col">
+      
+      <!-- Botón Cerrar -->
+      <button id="btnCerrarModal" onclick="cerrarModalInstagram()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition z-20 cursor-pointer">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <!-- Encabezado del Modal -->
+      <div class="flex items-center gap-3 pb-3 border-b border-slate-800 shrink-0">
+        <div class="p-2.5 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white rounded-2xl shadow-lg">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-base sm:text-lg font-black text-white leading-tight">Generador de Afiches Oficiales</h3>
+            <span class="bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Ultra HD</span>
+          </div>
+          <p class="text-xs text-slate-400">Pieza gráfica de alto impacto para Instagram Feed, Historias y WhatsApp</p>
+        </div>
+      </div>
+
+      <!-- Barra de Controles (Formato y Temas) -->
+      <div class="py-3 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 shrink-0">
+        <!-- Selector de Formato -->
+        <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <button type="button" id="btnFormato11" onclick="cambiarFormatoAfiche('1:1')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-[#004884] text-white shadow cursor-pointer">
+            <i data-lucide="square" class="w-3.5 h-3.5"></i>
+            <span>Feed (1:1)</span>
+          </button>
+          <button type="button" id="btnFormato916" onclick="cambiarFormatoAfiche('9:16')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+            <span>Historia (9:16)</span>
+          </button>
+        </div>
+
+        <!-- Selector de Estilos / Temas -->
+        <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <button type="button" id="btnTemaInstitucional" onclick="cambiarTemaAfiche('institucional')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-blue-900/60 text-blue-200 border border-blue-500/40 cursor-pointer" title="Azul Institucional JAC">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+            <span class="hidden sm:inline">Institucional</span>
+          </button>
+          <button type="button" id="btnTemaAlerta" onclick="cambiarTemaAfiche('alerta')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5 cursor-pointer" title="Alerta Roja / Urgencia">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+            <span class="hidden sm:inline">Alerta Roja</span>
+          </button>
+          <button type="button" id="btnTemaDark" onclick="cambiarTemaAfiche('dark')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5 cursor-pointer" title="Modo Oscuro Periodístico">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            <span class="hidden sm:inline">Editorial Dark</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor con Scroll para la Vista Previa y Edición -->
+      <div class="overflow-y-auto py-4 space-y-4 flex-grow pr-1">
+
+        <!-- ================= LIENZO DE RENDERIZADO ================= -->
+        <div class="flex justify-center items-center w-full">
+          <div id="tarjetaInstagramRender" class="w-full max-w-[460px] aspect-square rounded-2xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-all duration-300"
+               style="background: linear-gradient(145deg, #021226 0%, #0A254A 55%, #010B18 100%); border: 3px solid #1E4D8C; font-family: 'Montserrat', sans-serif;">
+            
+            <!-- Marca de agua decorativa sutil de fondo -->
+            <div class="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-blue-500/10 blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-16 -bottom-16 w-56 h-56 rounded-full bg-amber-500/10 blur-3xl pointer-events-none"></div>
+
+            <!-- 1. CABECERA INSTITUCIONAL OFICIAL -->
+            <div class="relative z-10 border-b border-white/15 pb-3">
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                  <!-- Logos locales: JAC y Valledupar -->
+                  <div class="flex items-center -space-x-1.5 shrink-0">
+                    <img src="assets/image1.jpeg" alt="Logo JAC Panamá" class="w-9 h-9 rounded-full object-cover border-2 border-amber-400 shadow-md bg-white">
+                    <img src="assets/image2.png" alt="Escudo Valledupar" class="w-9 h-9 rounded-full object-contain p-0.5 border-2 border-white/80 shadow-md bg-white">
+                  </div>
+                  <div>
+                    <div class="text-[8px] sm:text-[9px] font-black text-amber-400 uppercase tracking-widest leading-none">
+                      VEEDURÍA CIUDADANA OFICIAL · VALLEDUPAR
+                    </div>
+                    <div class="text-xs sm:text-sm font-black text-white leading-tight tracking-tight mt-0.5">
+                      JAC BARRIO PANAMÁ II Y III
+                    </div>
+                    <div class="text-[7.5px] sm:text-[8px] text-slate-300 font-medium leading-none">
+                      Personería No. 000015 de 2003 · NIT: 900218415-5
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Radicado y Fecha -->
+                <div class="text-right shrink-0">
+                  <div id="igRadicado" class="bg-amber-400 text-slate-950 font-mono font-black text-[9px] sm:text-[10px] px-2.5 py-1 rounded-md shadow-sm uppercase tracking-tight">
+                    RAD-PANAMA-2026-0001
+                  </div>
+                  <div id="igFecha" class="text-[8.5px] text-slate-300 mt-1 font-mono font-semibold">
+                    26/10/2026
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. FOTOGRAFÍA HERO DE LA EVIDENCIA CON OVERLAYS -->
+            <div id="igFotoContenedor" class="relative z-10 my-3 rounded-xl overflow-hidden shadow-xl border border-white/20 bg-slate-950 flex-grow min-h-[170px] flex items-center justify-center group">
+              <img id="igFoto" src="assets/image1.jpeg" crossOrigin="anonymous" alt="Evidencia de la denuncia" class="w-full h-full object-cover">
+              
+              <!-- Viñetas de gradiente para máxima legibilidad de texto sobre la foto -->
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/60 pointer-events-none"></div>
+
+              <!-- Badge Top-Left: Alerta / Denuncia -->
+              <div class="absolute top-2.5 left-2.5">
+                <span id="igBadgeTipo" class="bg-red-600 text-white font-black text-[9px] px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-lg border border-red-400/40">
+                  <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                  <span>DENUNCIA CIUDADANA</span>
+                </span>
+              </div>
+
+              <!-- Badge Top-Right: Días sin solución -->
+              <div class="absolute top-2.5 right-2.5">
+                <span id="igBadgeTiempo" class="bg-amber-400 text-slate-950 font-black text-[9px] px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-lg border border-amber-300">
+                  <i data-lucide="clock" class="w-3 h-3"></i>
+                  <span id="igTiempo">38 DÍAS SIN ATENCIÓN</span>
+                </span>
+              </div>
+
+              <!-- Overlay Inferior: Dirección exacta -->
+              <div class="absolute bottom-2.5 left-2.5 right-2.5 bg-slate-950/80 border border-white/15 px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-md">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-red-400 shrink-0"></i>
+                <span id="igUbicacion" class="text-[10px] sm:text-[11px] font-bold text-white truncate">
+                  Calle 44 con Cra 5A 2, Barrio Panamá II
+                </span>
+              </div>
+            </div>
+
+            <!-- 3. BLOQUE EDITORIAL DE LA PROBLEMÁTICA -->
+            <div class="relative z-10 space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <span id="igCategoriaBadge" class="bg-blue-600 text-white font-black text-[8.5px] uppercase px-2 py-0.5 rounded tracking-wide shadow-sm">
+                  💧 ALCANTARILLADO | EMDUPAR S.A.
+                </span>
+                <span id="igCategoria" class="hidden">ALCANTARILLADO</span>
+                <span class="text-[8px] font-mono text-slate-300 uppercase">
+                  Valledupar, Cesar
+                </span>
+              </div>
+
+              <h2 id="igTitulo" class="text-sm sm:text-base font-black text-white leading-tight line-clamp-2 tracking-tight">
+                Rebosamiento continuo de aguas servidas inunda vía principal
+              </h2>
+
+              <p id="igDescripcion" class="text-[10.5px] sm:text-[11px] text-slate-200 line-clamp-2 leading-relaxed">
+                Fuga constante y malos olores afectan a niños y adultos mayores de la manzana. Se solicita intervención inmediata.
+              </p>
+
+              <!-- Fundamento Legal -->
+              <div class="text-[8px] text-amber-300 font-semibold flex items-center gap-1 pt-0.5 border-t border-white/10">
+                <span>⚖️ Amparado en el Art. 23 C.P. y Ley 1757 de 2015 de Veedurías Ciudadanas</span>
+              </div>
+            </div>
+
+            <!-- Extra para Historia (9:16) -->
+            <div id="igStoryCta" class="hidden relative z-10 my-2 py-2 px-3 bg-white/10 border border-white/20 rounded-xl text-center">
+              <div class="text-[10px] font-black text-yellow-300 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+                <span>¡Comparte en tus historias y etiqueta a la Alcaldía!</span>
+              </div>
+            </div>
+
+            <!-- 4. PIE DE PÁGINA INSTITUCIONAL DE PRESIÓN -->
+            <div class="relative z-10 pt-2.5 mt-2 border-t border-white/15 flex items-center justify-between text-[9px]">
+              <div>
+                <div class="text-[7.5px] uppercase tracking-wider text-slate-300 font-bold">¿Quién debe responder?</div>
+                <div id="igEntidadTag" class="font-extrabold text-white text-[9.5px] sm:text-[10px]">
+                  @alcaldiavpar · @ernestoorozcodurango
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="font-black text-amber-400 text-[10px] leading-tight">#PanamaExigeSolucion</div>
+                <div class="text-[7.5px] text-slate-300 font-mono">veeduria-panama.valledupar</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ================= PANEL DE PERSONALIZACIÓN RÁPIDA ================= -->
+        <details class="bg-slate-950/80 rounded-2xl border border-slate-800 p-3.5 group">
+          <summary class="flex items-center justify-between cursor-pointer list-none text-xs font-bold text-slate-300 hover:text-white">
+            <span class="flex items-center gap-2">
+              <i data-lucide="edit-3" class="w-4 h-4 text-amber-400"></i>
+              <span>Personalizar texto del afiche antes de descargar</span>
+            </span>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 group-open:rotate-180 transition-transform"></i>
+          </summary>
+          <div class="mt-3 space-y-2.5 pt-2 border-t border-slate-800/80">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">Titular de Impacto</label>
+              <input type="text" id="customIgTitulo" oninput="actualizarTextoAficheEnVivo()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:border-[#004884] outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">Días sin respuesta</label>
+                <input type="text" id="customIgTiempo" oninput="actualizarTextoAficheEnVivo()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:border-[#004884] outline-none">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">Etiqueta de Entidad</label>
+                <input type="text" id="customIgEntidad" oninput="actualizarTextoAficheEnVivo()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:border-[#004884] outline-none">
+              </div>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">Resumen del problema</label>
+              <textarea id="customIgDesc" rows="2" oninput="actualizarTextoAficheEnVivo()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:border-[#004884] outline-none resize-none"></textarea>
+            </div>
+          </div>
+        </details>
+
+        <!-- ================= BOTONES DE ACCIÓN ================= -->
+        <div class="space-y-2.5 pt-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <!-- Descargar Imagen -->
+            <button type="button" id="btnDescargarImagen" onclick="descargarImagenInstagram()" class="w-full bg-gradient-to-r from-blue-700 to-[#004884] hover:from-blue-600 hover:to-[#00386b] text-white font-black text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-900/30 transition cursor-pointer">
+              <i data-lucide="download" class="w-4 h-4 text-amber-300"></i>
+              <span>Descargar Afiche (PNG Ultra HD)</span>
+            </button>
+
+            <!-- Copiar Imagen al Portapapeles -->
+            <button type="button" id="btnCopiarImagenClipboard" onclick="copiarImagenInstagramAlClipboard()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs py-3 px-4 rounded-xl border border-slate-700 flex items-center justify-center gap-2 transition cursor-pointer">
+              <i data-lucide="copy" class="w-4 h-4 text-emerald-400"></i>
+              <span id="btnCopiarImgTexto">Copiar Imagen</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <!-- Copiar Texto Instagram -->
+            <button type="button" id="btnCopiarCaption" onclick="copiarCaptionInstagram()" class="w-full bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 font-bold text-xs py-2.5 px-3 rounded-xl border border-slate-700/60 flex items-center justify-center gap-2 transition cursor-pointer">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Copiar Texto & Hashtags</span>
+            </button>
+
+            <!-- Compartir por WhatsApp -->
+            <button type="button" id="btnCompartirWhatsApp" onclick="compartirAficheWhatsApp()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 shadow-sm transition cursor-pointer">
+              <i data-lucide="message-circle" class="w-3.5 h-3.5 text-white"></i>
+              <span>Enviar por WhatsApp</span>
+            </button>
+          </div>
+
+          <!-- Caja de Texto del Caption -->
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono">
+            <div class="flex justify-between items-center text-[10px] text-slate-400 font-sans mb-1 font-bold">
+              <span>TEXTO OFICIAL PARA INSTAGRAM:</span>
+              <span id="copiedToast" class="text-emerald-400 hidden font-bold">✓ ¡Copiado con éxito!</span>
+            </div>
+            <p id="captionText" class="text-[11px] leading-relaxed text-slate-300 max-h-24 overflow-y-auto whitespace-pre-line"></p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
   <script>
     // Credenciales Supabase
     const SUPABASE_URL = "https://qumwwqmfdszwrwtcznfq.supabase.co";
@@ -1492,6 +1757,15 @@
               </button>
 
               <button 
+                onclick="abrirModalInstagram('${caso.id}')" 
+                class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold text-xs py-2 px-3.5 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+                title="Generar afiche oficial de alta presión para Instagram y redes"
+              >
+                <i data-lucide="instagram" class="w-4 h-4 text-amber-300"></i>
+                <span>📱 Afiche Redes</span>
+              </button>
+
+              <button 
                 onclick="accionRechazar('${caso.id}')" 
                 class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs py-2 px-3 rounded-xl transition flex items-center gap-1 cursor-pointer ml-auto"
                 title="Rechazar si no procede"
@@ -1591,6 +1865,15 @@
               >
                 <i data-lucide="edit-2" class="w-3 h-3"></i>
                 <span>Editar</span>
+              </button>
+
+              <button 
+                onclick="abrirModalInstagram('${caso.id}')" 
+                class="text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 px-2.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1 cursor-pointer"
+                title="Generar afiche oficial para Instagram y WhatsApp"
+              >
+                <i data-lucide="instagram" class="w-3.5 h-3.5 text-amber-300"></i>
+                <span>Afiche</span>
               </button>
             </div>
 
@@ -2566,6 +2849,329 @@ Se adjunta al presente correo el Oficio de Petición Oficial en PDF y evidencia 
       a.href = url;
       a.download = `Censo_JAC_Barrio_Panama_${new Date().toISOString().slice(0,10)}.csv`;
       a.click();
+    };
+
+    // ==========================================
+    // GENERADOR DE AFICHES PROFESIONALES (INSTAGRAM / WHATSAPP)
+    // ==========================================
+    let reclamoSeleccionado = null;
+    let formatoAficheActual = '1:1';
+    let temaAficheActual = 'institucional';
+
+    function sugerirTagInstagram(categoria) {
+      const cat = (categoria || "").toLowerCase();
+      if (cat.includes("alumbrado") || cat.includes("luz")) return "@estivsasesp";
+      if (cat.includes("agua") || cat.includes("alcantarillado") || cat.includes("acueducto")) return "@emdupar";
+      if (cat.includes("aseo") || cat.includes("basura")) return "@interaseo";
+      if (cat.includes("energia") || cat.includes("electr")) return "@afinia_grupoepm";
+      if (cat.includes("seguridad") || cat.includes("parque") || cat.includes("via") || cat.includes("hueco")) return "@gobcesar · @personeriavalledupar";
+      return "@personeriavalledupar";
+    }
+
+    window.cambiarFormatoAfiche = function(formato) {
+      formatoAficheActual = formato;
+      const render = document.getElementById("tarjetaInstagramRender");
+      const btn11 = document.getElementById("btnFormato11");
+      const btn916 = document.getElementById("btnFormato916");
+      const storyCta = document.getElementById("igStoryCta");
+      const fotoContenedor = document.getElementById("igFotoContenedor");
+
+      if (!render) return;
+
+      if (formato === '9:16') {
+        render.classList.remove("aspect-square", "max-w-[460px]");
+        render.classList.add("aspect-[9/16]", "max-w-[360px]");
+        if (btn11) {
+          btn11.classList.remove("bg-[#004884]", "text-white", "shadow");
+          btn11.classList.add("text-slate-400");
+        }
+        if (btn916) {
+          btn916.classList.remove("text-slate-400");
+          btn916.classList.add("bg-[#004884]", "text-white", "shadow");
+        }
+        if (storyCta) storyCta.classList.remove("hidden");
+        if (fotoContenedor) {
+          fotoContenedor.classList.remove("min-h-[170px]");
+          fotoContenedor.classList.add("min-h-[250px]");
+        }
+      } else {
+        render.classList.remove("aspect-[9/16]", "max-w-[360px]");
+        render.classList.add("aspect-square", "max-w-[460px]");
+        if (btn916) {
+          btn916.classList.remove("bg-[#004884]", "text-white", "shadow");
+          btn916.classList.add("text-slate-400");
+        }
+        if (btn11) {
+          btn11.classList.remove("text-slate-400");
+          btn11.classList.add("bg-[#004884]", "text-white", "shadow");
+        }
+        if (storyCta) storyCta.classList.add("hidden");
+        if (fotoContenedor) {
+          fotoContenedor.classList.remove("min-h-[250px]");
+          fotoContenedor.classList.add("min-h-[170px]");
+        }
+      }
+      lucide.createIcons();
+    };
+
+    window.cambiarTemaAfiche = function(tema) {
+      temaAficheActual = tema;
+      const render = document.getElementById("tarjetaInstagramRender");
+      const btnInst = document.getElementById("btnTemaInstitucional");
+      const btnAlerta = document.getElementById("btnTemaAlerta");
+      const btnDark = document.getElementById("btnTemaDark");
+      if (!render) return;
+
+      [btnInst, btnAlerta, btnDark].forEach(btn => {
+        if (btn) {
+          btn.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5 cursor-pointer";
+        }
+      });
+
+      if (tema === 'alerta') {
+        render.style.background = "linear-gradient(145deg, #1C0508 0%, #380C12 55%, #100204 100%)";
+        render.style.border = "3px solid #991B1B";
+        if (btnAlerta) btnAlerta.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-red-950/80 text-red-200 border border-red-500/50 cursor-pointer";
+      } else if (tema === 'dark') {
+        render.style.background = "linear-gradient(145deg, #070A0F 0%, #111827 55%, #030712 100%)";
+        render.style.border = "3px solid #334155";
+        if (btnDark) btnDark.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-slate-800 text-emerald-300 border border-emerald-500/40 cursor-pointer";
+      } else {
+        render.style.background = "linear-gradient(145deg, #021226 0%, #0A254A 55%, #010B18 100%)";
+        render.style.border = "3px solid #1E4D8C";
+        if (btnInst) btnInst.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-blue-900/60 text-blue-200 border border-blue-500/40 cursor-pointer";
+      }
+    };
+
+    window.abrirModalInstagram = function(id) {
+      const caso = (typeof todosLosReclamos !== 'undefined' ? todosLosReclamos.find(r => r.id === id) : null) ||
+                   (typeof reclamos !== 'undefined' ? reclamos.find(r => r.id === id) : null);
+      if (!caso) return;
+      reclamoSeleccionado = caso;
+
+      const elRadicado = document.getElementById("igRadicado");
+      if (elRadicado) elRadicado.textContent = caso.id;
+
+      const elFecha = document.getElementById("igFecha");
+      if (elFecha) elFecha.textContent = caso.fecha || new Date().toLocaleDateString('es-CO');
+
+      const elCatBadge = document.getElementById("igCategoriaBadge");
+      const elCatLegacy = document.getElementById("igCategoria");
+      const entidadCorta = caso.entidadDestino || (caso.entidad_destino ? caso.entidad_destino.split(' ')[0] : 'ALCALDÍA');
+      const catTexto = `${(caso.categoria || 'DENUNCIA').toUpperCase()} | ${entidadCorta.toUpperCase()}`;
+      if (elCatBadge) elCatBadge.textContent = catTexto;
+      if (elCatLegacy) elCatLegacy.textContent = caso.categoria || 'DENUNCIA';
+
+      const elTitulo = document.getElementById("igTitulo");
+      if (elTitulo) elTitulo.textContent = caso.titulo;
+
+      const elDesc = document.getElementById("igDescripcion");
+      if (elDesc) elDesc.textContent = caso.descripcion;
+
+      const elUbicacion = document.getElementById("igUbicacion");
+      if (elUbicacion) elUbicacion.textContent = `${caso.ubicacion} (${caso.sector || 'Panamá II'})`;
+
+      const elFoto = document.getElementById("igFoto");
+      if (elFoto) {
+        elFoto.crossOrigin = "anonymous";
+        elFoto.src = caso.foto || 'assets/image1.jpeg';
+        elFoto.onerror = () => { elFoto.src = 'assets/image1.jpeg'; };
+      }
+
+      const elTiempo = document.getElementById("igTiempo");
+      const tiempoTexto = caso.tiempo ? `${caso.tiempo.toUpperCase()} SIN ATENCIÓN` : 'URGENTE SIN ATENCIÓN';
+      if (elTiempo) elTiempo.textContent = tiempoTexto;
+
+      const elEntidadTag = document.getElementById("igEntidadTag");
+      const tagEntidad = sugerirTagInstagram(caso.categoria);
+      if (elEntidadTag) elEntidadTag.textContent = `@alcaldiavpar · @ernestoorozcodurango · ${tagEntidad}`;
+
+      const inputTitulo = document.getElementById("customIgTitulo");
+      if (inputTitulo) inputTitulo.value = caso.titulo;
+
+      const inputTiempo = document.getElementById("customIgTiempo");
+      if (inputTiempo) inputTiempo.value = caso.tiempo || '30 días';
+
+      const inputEntidad = document.getElementById("customIgEntidad");
+      if (inputEntidad) inputEntidad.value = `@alcaldiavpar · @ernestoorozcodurango · ${tagEntidad}`;
+
+      const inputDesc = document.getElementById("customIgDesc");
+      if (inputDesc) inputDesc.value = caso.descripcion;
+
+      actualizarCaptionInstagram();
+
+      cambiarFormatoAfiche('1:1');
+      cambiarTemaAfiche('institucional');
+
+      const modal = document.getElementById("modalInstagram");
+      if (modal) modal.classList.remove("hidden");
+      lucide.createIcons();
+    };
+
+    window.abrirModalInstagramDesdeRadicado = function() {
+      if (!casoActivoRadicado) return;
+      abrirModalInstagram(casoActivoRadicado.id);
+    };
+
+    window.actualizarTextoAficheEnVivo = function() {
+      const customTitulo = document.getElementById("customIgTitulo")?.value;
+      const customTiempo = document.getElementById("customIgTiempo")?.value;
+      const customEntidad = document.getElementById("customIgEntidad")?.value;
+      const customDesc = document.getElementById("customIgDesc")?.value;
+
+      if (customTitulo) document.getElementById("igTitulo").textContent = customTitulo;
+      if (customTiempo) document.getElementById("igTiempo").textContent = `${customTiempo.toUpperCase()} SIN ATENCIÓN`;
+      if (customEntidad) document.getElementById("igEntidadTag").textContent = customEntidad;
+      if (customDesc) document.getElementById("igDescripcion").textContent = customDesc;
+
+      actualizarCaptionInstagram();
+    };
+
+    function actualizarCaptionInstagram() {
+      if (!reclamoSeleccionado) return;
+      const caso = reclamoSeleccionado;
+      const titulo = document.getElementById("igTitulo")?.textContent || caso.titulo;
+      const tiempo = document.getElementById("igTiempo")?.textContent || caso.tiempo;
+      const desc = document.getElementById("igDescripcion")?.textContent || caso.descripcion;
+      const tags = document.getElementById("igEntidadTag")?.textContent || "@alcaldiavpar @ernestoorozcodurango";
+
+      const caption = `🚨 DENUNCIA CIUDADANA OFICIAL · BARRIO ${caso.sector ? caso.sector.toUpperCase() : 'PANAMÁ II Y III'} (VALLEDUPAR)
+📋 Radicado Oficial: ${caso.id}
+📍 Ubicación: ${caso.ubicacion} (${caso.sector || 'Panamá II'})
+⏱️ Estado de abandono: ${tiempo}
+
+⚠️ ${titulo}
+
+${desc}
+
+⚖️ Fundamento Legal:
+La Junta de Acción Comunal ampara este requerimiento bajo el Artículo 23 de la Constitución Política de Colombia, la Ley 1755 de 2015 y la Ley 1757 de 2015 de Veedurías Ciudadanas.
+
+¿Quién debe responder?
+${tags} · @personeriavalledupar
+
+Vecino: ¡Comparte esta publicación en tus historias y estados de WhatsApp para que la administración cumpla con su deber! 📢
+
+Portal de seguimiento:
+🌐 https://barriopanamatres-cpu.github.io/jac-barrio-panama/
+
+#PanamaExigeSolucion #Valledupar #BarrioPanama #VeeduriaCiudadana #ErnestoOrozco #ValleduparEnAlerta #AlcaldiaValledupar`;
+
+      const captionEl = document.getElementById("captionText");
+      if (captionEl) captionEl.textContent = caption;
+    }
+
+    window.cerrarModalInstagram = function() {
+      const modal = document.getElementById("modalInstagram");
+      if (modal) modal.classList.add("hidden");
+      reclamoSeleccionado = null;
+    };
+
+    window.descargarImagenInstagram = function() {
+      const elemento = document.getElementById("tarjetaInstagramRender");
+      if (!elemento) return;
+
+      const btn = document.getElementById("btnDescargarImagen");
+      const textoOriginal = btn ? btn.innerHTML : "";
+      if (btn) btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> <span>Generando PNG Ultra HD...</span>`;
+      lucide.createIcons();
+
+      html2canvas(elemento, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        logging: false
+      }).then(canvas => {
+        const enlace = document.createElement("a");
+        const rad = reclamoSeleccionado ? reclamoSeleccionado.id : 'PANAMA';
+        const fmt = formatoAficheActual === '9:16' ? 'HISTORIA_9x16' : 'FEED_1x1';
+        enlace.download = `AFICHE_OFICIAL_${rad}_${fmt}.png`;
+        enlace.href = canvas.toDataURL("image/png");
+        enlace.click();
+        if (btn) btn.innerHTML = textoOriginal;
+        lucide.createIcons();
+      }).catch(err => {
+        console.error(err);
+        alert("Hubo un error al generar la imagen. Puedes tomar una captura de pantalla directa.");
+        if (btn) btn.innerHTML = textoOriginal;
+        lucide.createIcons();
+      });
+    };
+
+    window.copiarImagenInstagramAlClipboard = function() {
+      const elemento = document.getElementById("tarjetaInstagramRender");
+      if (!elemento) return;
+
+      const btnTexto = document.getElementById("btnCopiarImgTexto");
+      const textoOriginal = btnTexto ? btnTexto.textContent : "Copiar Imagen";
+      if (btnTexto) btnTexto.textContent = "Procesando...";
+
+      html2canvas(elemento, {
+        scale: 2.5,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        logging: false
+      }).then(canvas => {
+        canvas.toBlob(blob => {
+          if (!blob) {
+            alert("No se pudo generar el archivo de imagen para copiar.");
+            if (btnTexto) btnTexto.textContent = textoOriginal;
+            return;
+          }
+          try {
+            navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]).then(() => {
+              if (btnTexto) btnTexto.textContent = "✓ ¡Imagen Copiada!";
+              setTimeout(() => { if (btnTexto) btnTexto.textContent = textoOriginal; }, 2500);
+            }).catch(err => {
+              console.warn("Clipboard API no soportó imagen directamente:", err);
+              descargarImagenInstagram();
+              if (btnTexto) btnTexto.textContent = textoOriginal;
+            });
+          } catch (err) {
+            console.warn("Excepción al copiar imagen:", err);
+            descargarImagenInstagram();
+            if (btnTexto) btnTexto.textContent = textoOriginal;
+          }
+        }, 'image/png');
+      }).catch(err => {
+        console.error(err);
+        if (btnTexto) btnTexto.textContent = textoOriginal;
+      });
+    };
+
+    window.copiarCaptionInstagram = function() {
+      const texto = document.getElementById("captionText")?.textContent || "";
+      navigator.clipboard.writeText(texto).then(() => {
+        const toast = document.getElementById("copiedToast");
+        if (toast) {
+          toast.classList.remove("hidden");
+          setTimeout(() => toast.classList.add("hidden"), 3000);
+        }
+      });
+    };
+
+    window.compartirAficheWhatsApp = function() {
+      if (!reclamoSeleccionado) return;
+      const caso = reclamoSeleccionado;
+      const titulo = document.getElementById("igTitulo")?.textContent || caso.titulo;
+      const tiempo = document.getElementById("igTiempo")?.textContent || caso.tiempo;
+
+      const texto = `🚨 *DENUNCIA COMUNITARIA - BARRIO PANAMÁ II Y III (VALLEDUPAR)*\n\n` +
+        `📋 *Radicado Oficial:* ${caso.id}\n` +
+        `📍 *Ubicación:* ${caso.ubicacion}\n` +
+        `⏱️ *Tiempo sin atención:* ${tiempo}\n\n` +
+        `⚠️ *Problema:* ${titulo}\n` +
+        `${caso.descripcion}\n\n` +
+        `⚖️ Exigimos cumplimiento del Art. 23 C.P. y Ley 1757 de 2015 a @alcaldiavpar y autoridades competentes.\n\n` +
+        `🔗 Consulta el caso y súmate a la veeduría:\n` +
+        `https://barriopanamatres-cpu.github.io/jac-barrio-panama/`;
+
+      const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+      window.open(url, '_blank');
     };
   </script>
 </body>

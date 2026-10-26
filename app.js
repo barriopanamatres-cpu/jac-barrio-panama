@@ -1468,74 +1468,327 @@ function configurarEventos() {
 }
 
 // ==========================================
-// MODAL DE INSTAGRAM Y DESCARGA ULTRA HD
+// GENERADOR DE AFICHES PROFESIONALES (INSTAGRAM / WHATSAPP)
+// Formatos 1:1 Feed y 9:16 Historia con renderizado Ultra HD
 // ==========================================
-window.abrirModalInstagram = function(id) {
-  const caso = reclamos.find(r => r.id === id);
-  if (!caso) return;
-  reclamoSeleccionado = caso;
+let formatoAficheActual = '1:1';
+let temaAficheActual = 'institucional';
 
-  document.getElementById("igRadicado").textContent = caso.id;
-  document.getElementById("igFecha").textContent = caso.fecha;
-  document.getElementById("igCategoria").textContent = `${caso.categoria.toUpperCase()} • ${caso.sector ? caso.sector.toUpperCase() : 'PANAMÁ II'}`;
-  document.getElementById("igTitulo").textContent = caso.titulo;
-  document.getElementById("igUbicacion").textContent = `${caso.ubicacion} (${caso.sector || 'Panamá II'})`;
-  document.getElementById("igFoto").src = caso.foto;
-  document.getElementById("igTiempo").textContent = `${caso.tiempo.toUpperCase()} SIN RESPUESTA`;
+function sugerirTagInstagram(categoria) {
+  const cat = (categoria || "").toLowerCase();
+  if (cat.includes("alumbrado") || cat.includes("luz")) return "@estivsasesp";
+  if (cat.includes("agua") || cat.includes("alcantarillado") || cat.includes("acueducto")) return "@emdupar";
+  if (cat.includes("aseo") || cat.includes("basura")) return "@interaseo";
+  if (cat.includes("energia") || cat.includes("electr")) return "@afinia_grupoepm";
+  if (cat.includes("seguridad") || cat.includes("parque") || cat.includes("via") || cat.includes("hueco")) return "@gobcesar · @personeriavalledupar";
+  return "@personeriavalledupar";
+}
 
-  const caption = `🚨 DENUNCIA CIUDADANA - BARRIO ${caso.sector ? caso.sector.toUpperCase() : 'PANAMÁ II'} (VALLEDUPAR)
-📍 Ubicación: ${caso.ubicacion}
-📋 Radicado Oficial: ${caso.id}
-⏱️ Tiempo ignorado por la administración: ${caso.tiempo} sin solución.
+window.cambiarFormatoAfiche = function(formato) {
+  formatoAficheActual = formato;
+  const render = document.getElementById("tarjetaInstagramRender");
+  const btn11 = document.getElementById("btnFormato11");
+  const btn916 = document.getElementById("btnFormato916");
+  const storyCta = document.getElementById("igStoryCta");
+  const fotoContenedor = document.getElementById("igFotoContenedor");
 
-${caso.descripcion}
+  if (!render) return;
 
-Los habitantes del Barrio Panamá exigimos que la @alcaldiavpar y las entidades competentes cumplan con sus obligaciones conforme a la Ley 1757 de 2015. ¡No esperemos que ocurra una tragedia o colapso para actuar!
-
-Señor Alcalde @ernestoorozcodurango, @personeriavalledupar, @gobcesar: ¿quién responde por nuestra comunidad?
-
-Por favor comparte esta publicación en tus historias para que no lo sigan ignorando. 📢
-.
-#Valledupar #PanamaII #PanamaIII #PanamaPideRespuesta #ValleduparSinLuz #AlcaldiaValledupar #ErnestoOrozco #Emdupar #Cesar`;
-
-  document.getElementById("captionText").textContent = caption;
-  document.getElementById("modalInstagram").classList.remove("hidden");
+  if (formato === '9:16') {
+    render.classList.remove("aspect-square", "max-w-[460px]");
+    render.classList.add("aspect-[9/16]", "max-w-[360px]");
+    if (btn11) {
+      btn11.classList.remove("bg-[#004884]", "text-white", "shadow");
+      btn11.classList.add("text-slate-400");
+    }
+    if (btn916) {
+      btn916.classList.remove("text-slate-400");
+      btn916.classList.add("bg-[#004884]", "text-white", "shadow");
+    }
+    if (storyCta) storyCta.classList.remove("hidden");
+    if (fotoContenedor) {
+      fotoContenedor.classList.remove("min-h-[170px]");
+      fotoContenedor.classList.add("min-h-[250px]");
+    }
+  } else {
+    render.classList.remove("aspect-[9/16]", "max-w-[360px]");
+    render.classList.add("aspect-square", "max-w-[460px]");
+    if (btn916) {
+      btn916.classList.remove("bg-[#004884]", "text-white", "shadow");
+      btn916.classList.add("text-slate-400");
+    }
+    if (btn11) {
+      btn11.classList.remove("text-slate-400");
+      btn11.classList.add("bg-[#004884]", "text-white", "shadow");
+    }
+    if (storyCta) storyCta.classList.add("hidden");
+    if (fotoContenedor) {
+      fotoContenedor.classList.remove("min-h-[250px]");
+      fotoContenedor.classList.add("min-h-[170px]");
+    }
+  }
   lucide.createIcons();
 };
 
-function cerrarModalInstagram() {
-  document.getElementById("modalInstagram").classList.add("hidden");
-  reclamoSeleccionado = null;
+window.cambiarTemaAfiche = function(tema) {
+  temaAficheActual = tema;
+  const render = document.getElementById("tarjetaInstagramRender");
+  const btnInst = document.getElementById("btnTemaInstitucional");
+  const btnAlerta = document.getElementById("btnTemaAlerta");
+  const btnDark = document.getElementById("btnTemaDark");
+  if (!render) return;
+
+  [btnInst, btnAlerta, btnDark].forEach(btn => {
+    if (btn) {
+      btn.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5 cursor-pointer";
+    }
+  });
+
+  if (tema === 'alerta') {
+    render.style.background = "linear-gradient(145deg, #1C0508 0%, #380C12 55%, #100204 100%)";
+    render.style.border = "3px solid #991B1B";
+    if (btnAlerta) btnAlerta.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-red-950/80 text-red-200 border border-red-500/50 cursor-pointer";
+  } else if (tema === 'dark') {
+    render.style.background = "linear-gradient(145deg, #070A0F 0%, #111827 55%, #030712 100%)";
+    render.style.border = "3px solid #334155";
+    if (btnDark) btnDark.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-slate-800 text-emerald-300 border border-emerald-500/40 cursor-pointer";
+  } else {
+    // Institucional
+    render.style.background = "linear-gradient(145deg, #021226 0%, #0A254A 55%, #010B18 100%)";
+    render.style.border = "3px solid #1E4D8C";
+    if (btnInst) btnInst.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-blue-900/60 text-blue-200 border border-blue-500/40 cursor-pointer";
+  }
+};
+
+window.abrirModalInstagram = function(id) {
+  const caso = (typeof reclamos !== 'undefined' ? reclamos.find(r => r.id === id) : null) || 
+               (typeof todosLosReclamos !== 'undefined' ? todosLosReclamos.find(r => r.id === id) : null);
+  if (!caso) return;
+  reclamoSeleccionado = caso;
+
+  // Llenar campos del afiche
+  const elRadicado = document.getElementById("igRadicado");
+  if (elRadicado) elRadicado.textContent = caso.id;
+
+  const elFecha = document.getElementById("igFecha");
+  if (elFecha) elFecha.textContent = caso.fecha || new Date().toLocaleDateString('es-CO');
+
+  const elCatBadge = document.getElementById("igCategoriaBadge");
+  const elCatLegacy = document.getElementById("igCategoria");
+  const entidadCorta = caso.entidadDestino || (caso.entidad_destino ? caso.entidad_destino.split(' ')[0] : 'ALCALDÍA');
+  const catTexto = `${(caso.categoria || 'DENUNCIA').toUpperCase()} | ${entidadCorta.toUpperCase()}`;
+  if (elCatBadge) elCatBadge.textContent = catTexto;
+  if (elCatLegacy) elCatLegacy.textContent = caso.categoria || 'DENUNCIA';
+
+  const elTitulo = document.getElementById("igTitulo");
+  if (elTitulo) elTitulo.textContent = caso.titulo;
+
+  const elDesc = document.getElementById("igDescripcion");
+  if (elDesc) elDesc.textContent = caso.descripcion;
+
+  const elUbicacion = document.getElementById("igUbicacion");
+  if (elUbicacion) elUbicacion.textContent = `${caso.ubicacion} (${caso.sector || 'Panamá II'})`;
+
+  const elFoto = document.getElementById("igFoto");
+  if (elFoto) {
+    elFoto.crossOrigin = "anonymous";
+    elFoto.src = caso.foto || 'assets/image1.jpeg';
+    elFoto.onerror = () => { elFoto.src = 'assets/image1.jpeg'; };
+  }
+
+  const elTiempo = document.getElementById("igTiempo");
+  const tiempoTexto = caso.tiempo ? `${caso.tiempo.toUpperCase()} SIN ATENCIÓN` : 'URGENTE SIN ATENCIÓN';
+  if (elTiempo) elTiempo.textContent = tiempoTexto;
+
+  const elEntidadTag = document.getElementById("igEntidadTag");
+  const tagEntidad = sugerirTagInstagram(caso.categoria);
+  if (elEntidadTag) elEntidadTag.textContent = `@alcaldiavpar · @ernestoorozcodurango · ${tagEntidad}`;
+
+  // Poblar personalizador rápido
+  const inputTitulo = document.getElementById("customIgTitulo");
+  if (inputTitulo) inputTitulo.value = caso.titulo;
+
+  const inputTiempo = document.getElementById("customIgTiempo");
+  if (inputTiempo) inputTiempo.value = caso.tiempo || '30 días';
+
+  const inputEntidad = document.getElementById("customIgEntidad");
+  if (inputEntidad) inputEntidad.value = `@alcaldiavpar · @ernestoorozcodurango · ${tagEntidad}`;
+
+  const inputDesc = document.getElementById("customIgDesc");
+  if (inputDesc) inputDesc.value = caso.descripcion;
+
+  // Caption para copiar
+  actualizarCaptionInstagram();
+
+  // Reset a formato 1:1 e Institucional
+  cambiarFormatoAfiche('1:1');
+  cambiarTemaAfiche('institucional');
+
+  const modal = document.getElementById("modalInstagram");
+  if (modal) modal.classList.remove("hidden");
+  lucide.createIcons();
+};
+
+window.actualizarTextoAficheEnVivo = function() {
+  const customTitulo = document.getElementById("customIgTitulo")?.value;
+  const customTiempo = document.getElementById("customIgTiempo")?.value;
+  const customEntidad = document.getElementById("customIgEntidad")?.value;
+  const customDesc = document.getElementById("customIgDesc")?.value;
+
+  if (customTitulo) document.getElementById("igTitulo").textContent = customTitulo;
+  if (customTiempo) document.getElementById("igTiempo").textContent = `${customTiempo.toUpperCase()} SIN ATENCIÓN`;
+  if (customEntidad) document.getElementById("igEntidadTag").textContent = customEntidad;
+  if (customDesc) document.getElementById("igDescripcion").textContent = customDesc;
+
+  actualizarCaptionInstagram();
+};
+
+function actualizarCaptionInstagram() {
+  if (!reclamoSeleccionado) return;
+  const caso = reclamoSeleccionado;
+  const titulo = document.getElementById("igTitulo")?.textContent || caso.titulo;
+  const tiempo = document.getElementById("igTiempo")?.textContent || caso.tiempo;
+  const desc = document.getElementById("igDescripcion")?.textContent || caso.descripcion;
+  const tags = document.getElementById("igEntidadTag")?.textContent || "@alcaldiavpar @ernestoorozcodurango";
+
+  const caption = `🚨 DENUNCIA CIUDADANA OFICIAL · BARRIO ${caso.sector ? caso.sector.toUpperCase() : 'PANAMÁ II Y III'} (VALLEDUPAR)
+📋 Radicado Oficial: ${caso.id}
+📍 Ubicación: ${caso.ubicacion} (${caso.sector || 'Panamá II'})
+⏱️ Estado de abandono: ${tiempo}
+
+⚠️ ${titulo}
+
+${desc}
+
+⚖️ Fundamento Legal:
+La Junta de Acción Comunal ampara este requerimiento bajo el Artículo 23 de la Constitución Política de Colombia, la Ley 1755 de 2015 y la Ley 1757 de 2015 de Veedurías Ciudadanas.
+
+¿Quién debe responder?
+${tags} · @personeriavalledupar
+
+Vecino: ¡Comparte esta publicación en tus historias y estados de WhatsApp para que la administración cumpla con su deber! 📢
+
+Portal de seguimiento:
+🌐 https://barriopanamatres-cpu.github.io/jac-barrio-panama/
+
+#PanamaExigeSolucion #Valledupar #BarrioPanama #VeeduriaCiudadana #ErnestoOrozco #ValleduparEnAlerta #AlcaldiaValledupar`;
+
+  const captionEl = document.getElementById("captionText");
+  if (captionEl) captionEl.textContent = caption;
 }
 
-function descargarImagenInstagram() {
+window.cerrarModalInstagram = function() {
+  const modal = document.getElementById("modalInstagram");
+  if (modal) modal.classList.add("hidden");
+  reclamoSeleccionado = null;
+};
+
+window.descargarImagenInstagram = function() {
   const elemento = document.getElementById("tarjetaInstagramRender");
   if (!elemento) return;
 
   const btn = document.getElementById("btnDescargarImagen");
-  const textoOriginal = btn.innerHTML;
-  btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Generando PNG Ultra HD...`;
+  const textoOriginal = btn ? btn.innerHTML : "";
+  if (btn) btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> <span>Generando PNG Ultra HD...</span>`;
+  lucide.createIcons();
 
   html2canvas(elemento, {
     scale: 3,
     useCORS: true,
     allowTaint: true,
-    backgroundColor: '#001D3D'
+    backgroundColor: null,
+    logging: false
   }).then(canvas => {
     const enlace = document.createElement("a");
-    const nombreArchivo = `DENUNCIA_VALLEDUPAR_${reclamoSeleccionado ? reclamoSeleccionado.id : 'PANAMA'}.png`;
-    enlace.download = nombreArchivo;
+    const rad = reclamoSeleccionado ? reclamoSeleccionado.id : 'PANAMA';
+    const fmt = formatoAficheActual === '9:16' ? 'HISTORIA_9x16' : 'FEED_1x1';
+    enlace.download = `AFICHE_OFICIAL_${rad}_${fmt}.png`;
     enlace.href = canvas.toDataURL("image/png");
     enlace.click();
-    btn.innerHTML = textoOriginal;
+    if (btn) btn.innerHTML = textoOriginal;
     lucide.createIcons();
   }).catch(err => {
     console.error(err);
-    alert("Hubo un error al procesar el renderizado. Puedes tomar una captura de pantalla directa a la tarjeta.");
-    btn.innerHTML = textoOriginal;
+    alert("Hubo un error al generar la imagen. Puedes tomar una captura de pantalla directa.");
+    if (btn) btn.innerHTML = textoOriginal;
     lucide.createIcons();
   });
-}
+};
+
+window.copiarImagenInstagramAlClipboard = function() {
+  const elemento = document.getElementById("tarjetaInstagramRender");
+  if (!elemento) return;
+
+  const btnTexto = document.getElementById("btnCopiarImgTexto");
+  const textoOriginal = btnTexto ? btnTexto.textContent : "Copiar Imagen";
+  if (btnTexto) btnTexto.textContent = "Procesando...";
+
+  html2canvas(elemento, {
+    scale: 2.5,
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: null,
+    logging: false
+  }).then(canvas => {
+    canvas.toBlob(blob => {
+      if (!blob) {
+        alert("No se pudo generar el archivo de imagen para copiar.");
+        if (btnTexto) btnTexto.textContent = textoOriginal;
+        return;
+      }
+      try {
+        navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]).then(() => {
+          if (btnTexto) btnTexto.textContent = "✓ ¡Imagen Copiada!";
+          setTimeout(() => { if (btnTexto) btnTexto.textContent = textoOriginal; }, 2500);
+        }).catch(err => {
+          console.warn("Clipboard API no soportó imagen directamente:", err);
+          descargarImagenInstagram();
+          if (btnTexto) btnTexto.textContent = textoOriginal;
+        });
+      } catch (err) {
+        console.warn("Excepción al copiar imagen:", err);
+        descargarImagenInstagram();
+        if (btnTexto) btnTexto.textContent = textoOriginal;
+      }
+    }, 'image/png');
+  }).catch(err => {
+    console.error(err);
+    if (btnTexto) btnTexto.textContent = textoOriginal;
+  });
+};
+
+window.copiarCaptionInstagram = function() {
+  const texto = document.getElementById("captionText")?.textContent || "";
+  navigator.clipboard.writeText(texto).then(() => {
+    const toast = document.getElementById("copiedToast");
+    if (toast) {
+      toast.classList.remove("hidden");
+      setTimeout(() => toast.classList.add("hidden"), 3000);
+    }
+  });
+};
+
+window.compartirAficheWhatsApp = function() {
+  if (!reclamoSeleccionado) return;
+  const caso = reclamoSeleccionado;
+  const titulo = document.getElementById("igTitulo")?.textContent || caso.titulo;
+  const tiempo = document.getElementById("igTiempo")?.textContent || caso.tiempo;
+
+  const texto = `🚨 *DENUNCIA COMUNITARIA - BARRIO PANAMÁ II Y III (VALLEDUPAR)*\n\n` +
+    `📋 *Radicado Oficial:* ${caso.id}\n` +
+    `📍 *Ubicación:* ${caso.ubicacion}\n` +
+    `⏱️ *Tiempo sin atención:* ${tiempo}\n\n` +
+    `⚠️ *Problema:* ${titulo}\n` +
+    `${caso.descripcion}\n\n` +
+    `⚖️ Exigimos cumplimiento del Art. 23 C.P. y Ley 1757 de 2015 a @alcaldiavpar y autoridades competentes.\n\n` +
+    `🔗 Consulta el caso y súmate a la veeduría:\n` +
+    `https://barriopanamatres-cpu.github.io/jac-barrio-panama/`;
+
+  const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+  window.open(url, '_blank');
+};
 
 // Alternar estado y sincronizar con Supabase
 window.cambiarEstado = async function(id) {
