@@ -18,13 +18,31 @@ if (window.supabase) {
 }
 
 // Delimitación Geográfica Estricta de Barrio Panamá II y III (Comuna 2 Sur de Valledupar)
-// Bordeado por Calle 44 al norte, Calle 50 al sur, Carrera 5A al oriente, Carrera 7 al occidente
+// Coordenadas calibradas con precisión según el plano comunal oficial
 const PANAMA_BOUNDS = [
-  [10.4410, -73.2465], // Suroccidente
-  [10.4530, -73.2335]  // Nororiente
+  [10.4430, -73.2385], // Suroccidente (Transversal 4 / Calle 46)
+  [10.4530, -73.2260]  // Nororiente (Calle 44 con Carrera 5)
 ];
-const PANAMA_CENTRO_II = [10.4471, -73.2398]; // Cerca a Manzana 14 Casa 8
-const PANAMA_CENTRO_III = [10.4452, -73.2415]; // Sector Panamá III
+const PANAMA_CENTRO_GLOBAL = [10.4485, -73.2325];
+const PANAMA_CENTRO_II = [10.4496, -73.2345]; // Sector Panamá II (Zona Verde Azulada / Cian)
+const PANAMA_CENTRO_III = [10.4480, -73.2305]; // Sector Panamá III (Zona Morada)
+
+// Polígono 1: BARRIO PANAMÁ II (Verde Azulado / Cian #14b8a6)
+const POLIGONO_PANAMA_II = [
+  [10.4516, -73.2346], // Calle 44 límite norte
+  [10.4498, -73.2324], // Calle 44 con Carrera 5A
+  [10.4475, -73.2344], // Carrera 5A bajando hacia Carrera 5A 2
+  [10.4479, -73.2366], // Transversal 3 / Transversal 3b
+  [10.4503, -73.2360]  // Retorno hacia Calle 44
+];
+
+// Polígono 2: BARRIO PANAMÁ III (Morado #a855f7)
+const POLIGONO_PANAMA_III = [
+  [10.4509, -73.2322], // Carrera 5A con Calle 44B
+  [10.4492, -73.2278], // Calle 45A / Calle 45B hacia Carrera 5
+  [10.4460, -73.2306], // Calle 46 hacia Carrera 5
+  [10.4473, -73.2350]  // Carrera 5A Bis / Carrera 5A 2
+];
 
 // Variables de Mapas Leaflet
 let mapaPicker = null;
@@ -48,8 +66,8 @@ const CASOS_INICIALES = [
     afectados: "45 familias",
     fecha: "18 de Septiembre, 2026",
     solicitante: "JAC Panamá II / Comité de Veeduría",
-    lat: 10.4471,
-    lng: -73.2398
+    lat: 10.4496,
+    lng: -73.2348
   },
   {
     id: "RAD-PANAMA-2026-0002",
@@ -65,8 +83,8 @@ const CASOS_INICIALES = [
     afectados: "120 familias",
     fecha: "03 de Octubre, 2026",
     solicitante: "Comunidad Vecinal Mz 9 y 10",
-    lat: 10.4455,
-    lng: -73.2410
+    lat: 10.4480,
+    lng: -73.2305
   },
   {
     id: "RAD-PANAMA-2026-0003",
@@ -82,8 +100,8 @@ const CASOS_INICIALES = [
     afectados: "Todo el sector",
     fecha: "25 de Agosto, 2026",
     solicitante: "Gremio de Transportadores y Vecinos",
-    lat: 10.4490,
-    lng: -73.2385
+    lat: 10.4505,
+    lng: -73.2330
   },
   {
     id: "RAD-PANAMA-2026-0004",
@@ -99,8 +117,8 @@ const CASOS_INICIALES = [
     afectados: "Resuelto",
     fecha: "12 de Octubre, 2026",
     solicitante: "JAC Panamá II",
-    lat: 10.4465,
-    lng: -73.2405
+    lat: 10.4490,
+    lng: -73.2355
   }
 ];
 
@@ -177,19 +195,36 @@ function inicializarMapaPicker() {
     maxZoom: 19
   }).addTo(mapaPicker);
 
-  // Polígono visual representativo de Panamá II y III
-  const poligonoPanama = [
-    [10.4510, -73.2440],
-    [10.4505, -73.2360],
-    [10.4430, -73.2365],
-    [10.4425, -73.2445]
-  ];
-  L.polygon(poligonoPanama, {
-    color: '#004884',
-    fillColor: '#3366CC',
-    fillOpacity: 0.1,
+  // Polígono 1: BARRIO PANAMÁ II (Verde Azulado / Cian #14b8a6)
+  const poliII = L.polygon(POLIGONO_PANAMA_II, {
+    color: '#0d9488',
+    fillColor: '#14b8a6',
+    fillOpacity: 0.22,
+    weight: 3.5,
+    dashArray: '5, 5'
+  }).addTo(mapaPicker);
+  poliII.bindTooltip("<span class='text-teal-800 font-extrabold'>🟢 PANAMÁ II</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
+
+  // Polígono 2: BARRIO PANAMÁ III (Morado #a855f7)
+  const poliIII = L.polygon(POLIGONO_PANAMA_III, {
+    color: '#7e22ce',
+    fillColor: '#a855f7',
+    fillOpacity: 0.22,
+    weight: 3.5,
+    dashArray: '5, 5'
+  }).addTo(mapaPicker);
+  poliIII.bindTooltip("<span class='text-purple-800 font-extrabold'>🟣 PANAMÁ III</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
+
+  // Línea diagonal límite Calle 44
+  L.polyline([
+    [10.4525, -73.2355],
+    [10.4498, -73.2324],
+    [10.4475, -73.2270]
+  ], {
+    color: '#475569',
     weight: 2,
-    dashArray: '4, 4'
+    dashArray: '4, 4',
+    opacity: 0.8
   }).addTo(mapaPicker);
 
   // Marcador seleccionable
@@ -251,17 +286,36 @@ function inicializarMapaComunitario() {
     maxZoom: 19
   }).addTo(mapaGeneral);
 
-  // Marco perimetral
-  L.polygon([
-    [10.4510, -73.2440],
-    [10.4505, -73.2360],
-    [10.4430, -73.2365],
-    [10.4425, -73.2445]
+  // Polígono 1: BARRIO PANAMÁ II (Cian)
+  const gPoliII = L.polygon(POLIGONO_PANAMA_II, {
+    color: '#0d9488',
+    fillColor: '#14b8a6',
+    fillOpacity: 0.18,
+    weight: 3.5,
+    dashArray: '5, 5'
+  }).addTo(mapaGeneral);
+  gPoliII.bindTooltip("<span class='text-teal-800 font-extrabold'>🟢 PANAMÁ II</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
+
+  // Polígono 2: BARRIO PANAMÁ III (Morado)
+  const gPoliIII = L.polygon(POLIGONO_PANAMA_III, {
+    color: '#7e22ce',
+    fillColor: '#a855f7',
+    fillOpacity: 0.18,
+    weight: 3.5,
+    dashArray: '5, 5'
+  }).addTo(mapaGeneral);
+  gPoliIII.bindTooltip("<span class='text-purple-800 font-extrabold'>🟣 PANAMÁ III</span>", { permanent: true, direction: "center", className: "badge-mapa-panama" });
+
+  // Línea diagonal límite Calle 44
+  L.polyline([
+    [10.4525, -73.2355],
+    [10.4498, -73.2324],
+    [10.4475, -73.2270]
   ], {
-    color: '#D83744',
-    fillColor: '#004884',
-    fillOpacity: 0.08,
-    weight: 2
+    color: '#475569',
+    weight: 2,
+    dashArray: '4, 4',
+    opacity: 0.8
   }).addTo(mapaGeneral);
 
   marcadoresCapa = L.layerGroup().addTo(mapaGeneral);
@@ -678,8 +732,9 @@ function configurarEventos() {
       const sec = e.target.value;
       const targetCoords = sec === "Panamá III" ? PANAMA_CENTRO_III : PANAMA_CENTRO_II;
       if (mapaPicker && pickerMarker) {
-        mapaPicker.panTo(targetCoords);
+        mapaPicker.flyTo(targetCoords, 17, { duration: 0.8 });
         pickerMarker.setLatLng(targetCoords);
+        pickerMarker.bindPopup(`<b>${sec}</b><br>Arrastra o haz clic para marcar la casa/daño`).openPopup();
         actualizarCoordenadasFormulario(targetCoords[0], targetCoords[1]);
       }
     });

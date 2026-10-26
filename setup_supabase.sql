@@ -55,8 +55,8 @@ VALUES
   '45 familias',
   '18 de Septiembre, 2026',
   'JAC Panamá II / Comité de Veeduría',
-  10.4471,
-  -73.2398
+  10.4496,
+  -73.2348
 ),
 (
   'RAD-PANAMA-2026-0002',
@@ -72,8 +72,8 @@ VALUES
   '120 familias',
   '03 de Octubre, 2026',
   'Comunidad Vecinal Mz 9 y 10',
-  10.4455,
-  -73.2410
+  10.4480,
+  -73.2305
 ),
 (
   'RAD-PANAMA-2026-0003',
@@ -89,8 +89,8 @@ VALUES
   'Todo el sector',
   '25 de Agosto, 2026',
   'Gremio de Transportadores y Vecinos',
-  10.4490,
-  -73.2385
+  10.4505,
+  -73.2330
 )
 ON CONFLICT (id) DO NOTHING;
 
