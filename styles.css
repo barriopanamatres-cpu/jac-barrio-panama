@@ -33,9 +33,21 @@ body {
 }
 
 .badge-espera {
-  background-color: #FEF3C7;
-  color: #92400E;
-  border: 1px solid #FCD34D;
+  background-color: #DBEAFE;
+  color: #1E40AF;
+  border: 1px solid #93C5FD;
+}
+
+.badge-enviado {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+  border: 1px solid #93C5FD;
+}
+
+.badge-radicado {
+  background-color: #F3E8FF;
+  color: #6B21A8;
+  border: 1px solid #D8B4FE;
 }
 
 .badge-solucionado {

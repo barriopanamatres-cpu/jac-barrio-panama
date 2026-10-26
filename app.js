@@ -361,8 +361,9 @@ function actualizarMarcadoresComunitarios() {
     const lng = caso.lng || -73.2398;
 
     let markerColor = "#DC2626"; // Ignorado
-    if (caso.estado === "En espera") markerColor = "#D97706";
-    if (caso.estado === "Solucionado") markerColor = "#059669";
+    if (caso.estado === "Enviado a Entidad" || caso.estado === "En espera") markerColor = "#0284C7"; // Azul institucional
+    if (caso.radicadoEntidad) markerColor = "#7C3AED"; // Morado radicado
+    if (caso.estado === "Solucionado") markerColor = "#059669"; // Verde
 
     const circleMarker = L.circleMarker([lat, lng], {
       radius: 9,
@@ -386,7 +387,7 @@ function actualizarMarcadoresComunitarios() {
         </div>
         <img src="${caso.foto}" style="width: 100%; height: 95px; object-fit: cover; border-radius: 6px; margin-bottom: 6px;">
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-weight: 700;">
-          <span style="color: ${markerColor};">${caso.estado.toUpperCase()}</span>
+          <span style="color: ${markerColor};">${caso.radicadoEntidad ? 'RADICADO: ' + caso.radicadoEntidad : (caso.estado === 'En espera' ? 'ENVIADO A ENTIDAD' : caso.estado.toUpperCase())}</span>
           <button onclick="abrirModalInstagram('${caso.id}')" style="background: #004884; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
             Ficha Instagram
           </button>
@@ -448,7 +449,7 @@ async function cargarReclamos() {
               diasNumero: r.dias_numero || 1,
               descripcion: r.descripcion,
               foto: r.foto,
-              estado: r.estado || "En espera",
+              estado: (r.estado === "En espera" ? "Enviado a Entidad" : (r.estado || "Enviado a Entidad")),
               afectados: afectadosLimpio,
               fecha: r.fecha,
               solicitante: r.solicitante || "Habitante Panamá",
@@ -471,7 +472,10 @@ async function cargarReclamos() {
     const guardados = localStorage.getItem("jac_panama2_reclamos");
     if (guardados) {
       try {
-        reclamos = JSON.parse(guardados).filter(r => r.estado && r.estado !== 'Archivado' && r.estado !== 'En revisión' && r.estado !== 'Rechazado');
+        reclamos = JSON.parse(guardados).map(r => ({
+          ...r,
+          estado: r.estado === 'En espera' ? 'Enviado a Entidad' : r.estado
+        })).filter(r => r.estado && r.estado !== 'Archivado' && r.estado !== 'En revisión' && r.estado !== 'Rechazado');
       } catch (e) {
         reclamos = [];
       }
@@ -524,7 +528,14 @@ function renderizarMuro(filtro = "todos") {
 
   const filtrados = filtro === "todos" 
     ? reclamos 
-    : reclamos.filter(r => r.estado.toLowerCase() === filtro.toLowerCase());
+    : reclamos.filter(r => {
+        const est = (r.estado || "").toLowerCase();
+        const f = filtro.toLowerCase();
+        if (f === "enviado a entidad" || f === "en espera" || f === "enviados") {
+          return est.includes("enviado") || est.includes("espera") || est.includes("radicado");
+        }
+        return est === f;
+      });
 
   const countElem = document.getElementById("countTodos");
   if (countElem) countElem.textContent = reclamos.length;
@@ -564,14 +575,27 @@ function renderizarMuro(filtro = "todos") {
   }
 
   filtrados.forEach(caso => {
-    let badgeClass = "badge-espera";
-    let badgeIcon = "clock";
-    if (caso.estado === "Ignorado") {
+    let badgeClass = "badge-enviado";
+    let badgeIcon = "send";
+    let textoBadge = "ENVIADO A ENTIDAD";
+
+    if (caso.radicadoEntidad) {
+      badgeClass = "badge-radicado";
+      badgeIcon = "file-check-2";
+      textoBadge = `RADICADO: ${caso.radicadoEntidad}`;
+    } else if (caso.estado === "Ignorado") {
       badgeClass = "badge-ignorado";
       badgeIcon = "alert-triangle";
+      textoBadge = "IGNORADO POR ALCALDÍA";
     } else if (caso.estado === "Solucionado") {
       badgeClass = "badge-solucionado";
       badgeIcon = "check-circle";
+      textoBadge = "SOLUCIONADO";
+    } else {
+      badgeClass = "badge-enviado";
+      badgeIcon = "send";
+      const entidadCorta = caso.entidadDestino ? caso.entidadDestino.split(' ')[0] : 'ENTIDAD';
+      textoBadge = `ENVIADO A ${entidadCorta.toUpperCase()}`;
     }
 
     const card = document.createElement("div");
@@ -583,7 +607,7 @@ function renderizarMuro(filtro = "todos") {
           <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
             <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full ${badgeClass}">
               <i data-lucide="${badgeIcon}" class="w-3 h-3"></i>
-              ${caso.estado === "Ignorado" ? "IGNORADO POR ALCALDÍA" : caso.estado.toUpperCase()}
+              ${textoBadge}
             </span>
           </div>
           <div class="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded border border-white/20">
@@ -1316,22 +1340,30 @@ function configurarEventos() {
         let statusText = "En revisión previa por la JAC";
         let statusDesc = "Tu reporte está siendo evaluado por el delegado comunal para determinar su procedencia antes de publicación pública.";
 
+        const radNum = encontrado.radicadoEntidad || encontrado.radicado_entidad;
+        const entNom = encontrado.entidadDestino || encontrado.entidad_destino;
+
         if (encontrado.estado === "Solucionado") {
           badgeColor = "bg-emerald-100 text-emerald-900 border-emerald-300";
           statusText = "Solucionado por la entidad";
-          statusDesc = "La situación reportada fue atendida y reparada formalmente.";
-        } else if (encontrado.estado === "En espera" || encontrado.estado === "Ignorado") {
+          statusDesc = "La situación reportada fue atendida y reparada formalmente en terreno.";
+        } else if (radNum) {
+          badgeColor = "bg-purple-100 text-purple-900 border-purple-300";
+          statusText = "Radicado Oficial en Entidad";
+          statusDesc = `El reporte cuenta con radicado oficial ${radNum} expedido por ${entNom || 'la entidad'}. La JAC realiza seguimiento de veeduría comunitaria.`;
+        } else if (encontrado.estado === "Enviado a Entidad" || encontrado.estado === "En espera") {
           badgeColor = "bg-blue-100 text-[#004884] border-blue-300";
-          statusText = "Procede: Validado y publicado";
-          statusDesc = "El reporte procede legalmente y se encuentra activo en el muro vecinal y en trámite ante la Alcaldía de Valledupar o entidad competente.";
+          statusText = "Confirmado por JAC - Enviado a Entidad";
+          statusDesc = `La JAC confirmó la legitimidad de tu reporte y remitió el oficio formal ante ${entNom || 'la entidad competente'} para su atención prioritaria.`;
+        } else if (encontrado.estado === "Ignorado") {
+          badgeColor = "bg-red-100 text-red-900 border-red-300";
+          statusText = "Sin respuesta de la entidad";
+          statusDesc = "El término legal de respuesta expiró sin pronunciamiento de la entidad; el caso escala ante la Personería Municipal.";
         } else if (encontrado.estado === "Rechazado") {
           badgeColor = "bg-red-100 text-red-900 border-red-300";
           statusText = "No Procede";
           statusDesc = "El reporte no cumplió los criterios de radicación comunal (ubicación fuera de la zona o información insuficiente).";
         }
-
-        const radNum = encontrado.radicadoEntidad || encontrado.radicado_entidad;
-        const entNom = encontrado.entidadDestino || encontrado.entidad_destino;
 
         resultadoBusqueda.innerHTML = `
           <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-800 space-y-2">
@@ -1510,9 +1542,10 @@ window.cambiarEstado = async function(id) {
   const index = reclamos.findIndex(r => r.id === id);
   if (index === -1) return;
 
-  const estados = ["Ignorado", "En espera", "Solucionado"];
-  const estadoActual = reclamos[index].estado;
-  const nuevoEstado = estados[(estados.indexOf(estadoActual) + 1) % estados.length];
+  const estados = ["Ignorado", "Enviado a Entidad", "Solucionado"];
+  const estadoActual = (reclamos[index].estado === "En espera") ? "Enviado a Entidad" : reclamos[index].estado;
+  const idx = estados.indexOf(estadoActual);
+  const nuevoEstado = estados[(idx === -1 ? 0 : idx + 1) % estados.length];
 
   reclamos[index].estado = nuevoEstado;
   guardarEnLocalStorage();
@@ -1547,7 +1580,7 @@ window.abrirModalRendicion = function() {
 
   const total = reclamos.length;
   const ignorados = reclamos.filter(r => r.estado === "Ignorado").length;
-  const enEspera = reclamos.filter(r => r.estado === "En espera").length;
+  const enEspera = reclamos.filter(r => r.estado === "Enviado a Entidad" || r.estado === "En espera" || r.estado === "Radicado en Entidad").length;
   const resueltos = reclamos.filter(r => r.estado === "Solucionado").length;
 
   if (mTotal) mTotal.textContent = total;
@@ -1763,10 +1796,10 @@ window.recargarModeracion = async function() {
 };
 
 window.aprobarCasoJAC = async function(id) {
-  if (!confirm(`¿Confirmas que este reporte PROCEDE y debe publicarse en el Muro Comunitario del Barrio Panamá?`)) return;
+  if (!confirm(`¿Confirmas que este reporte PROCEDE y debe remitirse a la entidad competente?`)) return;
   if (supabaseClient) {
     try {
-      await supabaseClient.from('reclamos').update({ estado: 'En espera' }).eq('id', id);
+      await supabaseClient.from('reclamos').update({ estado: 'Enviado a Entidad' }).eq('id', id);
     } catch (e) {
       console.warn("Aviso:", e);
     }
@@ -1775,7 +1808,7 @@ window.aprobarCasoJAC = async function(id) {
   renderizarMuro("todos");
   actualizarMarcadoresComunitarios();
   await recargarModeracion();
-  alert(`✅ Reporte ${id} aprobado y publicado en el muro comunitario.`);
+  alert(`✅ Reporte ${id} confirmado y actualizado a 'Enviado a Entidad'.`);
 };
 
 window.rechazarCasoJAC = async function(id) {

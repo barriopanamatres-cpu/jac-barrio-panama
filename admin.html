@@ -248,8 +248,8 @@
           id="tabValidados" 
           class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition"
         >
-          <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600"></i>
-          <span>Casos Publicados en el Muro</span>
+          <i data-lucide="send" class="w-4 h-4 text-blue-600"></i>
+          <span>Casos Enviados a Entidad</span>
           <span id="badgeTabValidados" class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span>
         </button>
 
@@ -271,6 +271,17 @@
           <i data-lucide="users" class="w-4 h-4 text-purple-600"></i>
           <span>Censo Vecinal & Veedores</span>
           <span id="badgeTabCenso" class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span>
+        </button>
+
+        <button 
+          onclick="cambiarPestana('directorio')" 
+          id="tabDirectorio" 
+          class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition"
+          title="Directorio de correos y enlaces de radicación oficial de las entidades de Valledupar"
+        >
+          <i data-lucide="building-2" class="w-4 h-4 text-amber-600"></i>
+          <span>Directorio Entidades & Correos PQRS</span>
+          <span class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full text-[10px] font-bold">Oficial</span>
         </button>
 
         <button 
@@ -302,10 +313,10 @@
 
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl bg-blue-50 text-[#004884] border border-blue-200 flex items-center justify-center shrink-0">
-            <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+            <i data-lucide="send" class="w-6 h-6"></i>
           </div>
           <div>
-            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Activos en el Muro</div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Enviados / En Trámite</div>
             <div class="text-3xl font-black text-[#004884] leading-none mt-1" id="kpiValidados">0</div>
           </div>
         </div>
@@ -356,16 +367,16 @@
       </section>
 
 
-      <!-- SECCIÓN 2: CASOS VALIDADOS Y EN SEGUIMIENTO -->
+      <!-- SECCIÓN 2: CASOS ENVIADOS Y EN SEGUIMIENTO -->
       <section id="seccionValidados" class="space-y-4 hidden">
         <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
           <div>
             <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-              <i data-lucide="check-circle-2" class="w-5 h-5 text-blue-600"></i>
-              <span>Casos Validados: Visibles en el Muro Comunitario</span>
+              <i data-lucide="send" class="w-5 h-5 text-blue-600"></i>
+              <span>Casos Confirmados y Enviados a Entidad (En Seguimiento)</span>
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">
-              Reportes aprobados por la JAC que se encuentran en trámite ante la Alcaldía de Valledupar o las empresas de servicios.
+              Reportes aprobados por la JAC que han sido remitidos formalmente a la Alcaldía o empresas públicas para su intervención.
             </p>
           </div>
         </div>
@@ -431,6 +442,49 @@
               </tbody>
             </table>
           </div>
+        </div>
+      </section>
+
+
+      <!-- SECCIÓN 5: DIRECTORIO OFICIAL DE ENTIDADES & CORREOS DE RADICACIÓN PQRS -->
+      <section id="seccionDirectorio" class="space-y-6 hidden">
+        <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-[#004884] text-white p-6 rounded-2xl shadow-md border border-blue-300/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="space-y-1.5">
+            <div class="inline-flex items-center gap-2 bg-amber-400 text-slate-950 font-black text-[10px] uppercase px-2.5 py-0.5 rounded-full tracking-wider">
+              <i data-lucide="shield-check" class="w-3 h-3"></i>
+              <span>Ventanillas Únicas & PQRS Valledupar</span>
+            </div>
+            <h3 class="text-xl font-black">Directorio de Entidades & Correos de Radicación</h3>
+            <p class="text-xs text-blue-100 max-w-2xl leading-relaxed">
+              Correos oficiales para remitir los oficios membretados de la Junta de Acción Comunal. Al descargar el PDF y enviarlo por Gmail o tu app de correo, la solicitud adquiere plena validez jurídica bajo el Artículo 23 de la Constitución Política y la Ley 1755 de 2015.
+            </p>
+          </div>
+          <div class="shrink-0 bg-white/10 backdrop-blur-sm px-4 py-2.5 rounded-xl border border-white/20 text-xs text-center md:text-right">
+            <span class="text-amber-300 font-bold block text-[11px]">Término Legal de Respuesta:</span>
+            <span class="font-extrabold text-white text-sm">15 Días Hábiles</span>
+          </div>
+        </div>
+
+        <!-- Buscador de Entidad -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="relative w-full sm:w-96">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input 
+              type="text" 
+              id="inputBuscarDirectorio" 
+              oninput="filtrarDirectorioEntidades()" 
+              placeholder="Buscar entidad o servicio (ej: EMDUPAR, luz, agua, basuras, vías)..." 
+              class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:border-[#004884] outline-none transition"
+            >
+          </div>
+          <div class="text-xs text-slate-500 font-semibold shrink-0">
+            Mostrando <span id="contadorDirectorio" class="font-black text-slate-900">8</span> entidades oficiales de Valledupar
+          </div>
+        </div>
+
+        <!-- Rejilla de Tarjetas de Entidades -->
+        <div id="gridDirectorioEntidades" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Se llena dinámicamente con las entidades oficiales -->
         </div>
       </section>
 
@@ -629,14 +683,16 @@
             <option value="AFINIA - Grupo EPM (Energía Eléctrica)">AFINIA (Grupo EPM)</option>
             <option value="ESTIV S.A.S. E.S.P. (Alumbrado Público)">ESTIV S.A.S. E.S.P.</option>
             <option value="Aseo del Norte S.A. E.S.P. (Aseo y Basuras)">Aseo del Norte S.A. E.S.P.</option>
+            <option value="CORPOCESAR (Ambiental / Arbolado y Aguas)">CORPOCESAR (Ambiental / Arbolado)</option>
             <option value="Policía Nacional / Secretaría de Gobierno">Policía / Gobierno</option>
             <option value="Secretaría de Salud Municipal de Valledupar">Secretaría de Salud</option>
+            <option value="Personería Municipal de Valledupar (Control Preventivo)">Personería de Valledupar</option>
           </select>
         </div>
 
-        <button onclick="imprimirRadicadoOficial()" class="bg-[#004884] hover:bg-[#002D54] text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer" title="Imprimir o Guardar en PDF">
-          <i data-lucide="printer" class="w-4 h-4"></i>
-          <span>Imprimir / PDF</span>
+        <button onclick="imprimirRadicadoOficial()" class="bg-[#004884] hover:bg-[#002D54] text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer" title="Descargar en PDF o imprimir hoja limpia">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Descargar PDF</span>
         </button>
 
         <button onclick="copiarTextoRadicado()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer" title="Copiar texto formal para PQRS digital">
@@ -651,6 +707,54 @@
 
         <button onclick="cerrarModalRadicado()" class="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer">
           <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+
+
+    <!-- ================= BANNER DESTACADO: ENVÍO RÁPIDO A LA ENTIDAD ================= -->
+    <div class="max-w-4xl w-full bg-gradient-to-r from-[#002D54] via-blue-900 to-indigo-900 text-white rounded-2xl shadow-xl p-4 sm:p-5 mb-4 no-print border border-blue-400/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="space-y-1.5">
+        <div class="flex items-center gap-2">
+          <span class="bg-amber-400 text-slate-950 text-[10px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">Flujo de Radicación JAC</span>
+          <span class="text-xs text-blue-200">1. Descarga el PDF → 2. Envíalo al correo de la entidad</span>
+        </div>
+        <div class="text-sm font-black flex flex-wrap items-center gap-2">
+          <span>Remitir a:</span>
+          <span id="bannerEntidadNombre" class="text-amber-300 font-extrabold">EMDUPAR S.A. E.S.P.</span>
+        </div>
+        <div class="text-xs text-blue-100 flex flex-wrap items-center gap-2">
+          <span>Correo oficial:</span>
+          <span id="bannerEntidadCorreo" class="font-mono font-black text-white bg-blue-950/80 px-2.5 py-0.5 rounded border border-blue-400/40 select-all">pqr@emdupar.gov.co</span>
+          <button onclick="copiarCorreoEntidadActiva()" class="bg-white/15 hover:bg-white/25 text-white text-[11px] font-bold px-2 py-0.5 rounded transition inline-flex items-center gap-1 cursor-pointer" title="Copiar correo de la entidad">
+            <i data-lucide="copy" class="w-3 h-3"></i> Copiar Correo
+          </button>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 shrink-0">
+        <!-- 1. Descargar Oficio PDF -->
+        <button onclick="imprimirRadicadoOficial()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-3.5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-1.5 cursor-pointer">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>1. Descargar PDF</span>
+        </button>
+
+        <!-- 2. Enviar por Gmail Web -->
+        <button onclick="enviarPorGmailWeb()" class="bg-red-600 hover:bg-red-500 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-1.5 cursor-pointer" title="Abrir redactar en Gmail con datos listos para adjuntar el PDF">
+          <i data-lucide="mail" class="w-4 h-4"></i>
+          <span>2. Enviar por Gmail</span>
+        </button>
+
+        <!-- 2. Alternativa App de Correo / Mailto -->
+        <button onclick="enviarPorMailto()" class="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-2.5 py-2.5 rounded-xl transition flex items-center gap-1 cursor-pointer" title="Abrir en Outlook o app local de correo">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span>Outlook / App</span>
+        </button>
+
+        <!-- 3. Marcar como Enviado a la Entidad -->
+        <button onclick="marcarComoEnviadoAEntidad()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-3.5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-1.5 cursor-pointer" title="Marcar en el portal que ya se remitió a la entidad">
+          <i data-lucide="check-check" class="w-4 h-4"></i>
+          <span>3. Marcar Enviado</span>
         </button>
       </div>
     </div>
@@ -1051,7 +1155,7 @@
 
     // Cambio de Pestañas
     window.cambiarPestana = function(pestana) {
-      const tabs = ["pendientes", "validados", "solucionados", "censo"];
+      const tabs = ["pendientes", "validados", "solucionados", "censo", "directorio"];
       tabs.forEach(t => {
         const sec = document.getElementById(`seccion${t.charAt(0).toUpperCase() + t.slice(1)}`);
         const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
@@ -1063,6 +1167,9 @@
           if (btn) btn.className = "tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition";
         }
       });
+      if (pestana === "directorio") {
+        renderizarDirectorio();
+      }
       lucide.createIcons();
     };
 
@@ -1074,7 +1181,10 @@
         direccion: "Calle 16 # 8-36, Edificio de la Alcaldía de Valledupar",
         ciudad: "Valledupar - Cesar",
         email: "contactenos@valledupar-cesar.gov.co",
-        pqrsUrl: "https://www.valledupar-cesar.gov.co/PeticionesQuejasReclamos"
+        emailSecundario: "ventanillaunica@valledupar-cesar.gov.co",
+        telefono: "(605) 5842400",
+        pqrsUrl: "https://www.valledupar-cesar.gov.co/PeticionesQuejasReclamos",
+        responsabilidad: "Pavimentación y mantenimiento de vías, baches, infraestructura de parques y espacio público."
       },
       "EMDUPAR S.A. E.S.P. (Acueducto y Alcantarillado)": {
         nombre: "EMPRESA DE SERVICIOS PÚBLICOS DE VALLEDUPAR (EMDUPAR S.A. E.S.P.)",
@@ -1082,7 +1192,10 @@
         direccion: "Carrera 14 # 16A-40",
         ciudad: "Valledupar - Cesar",
         email: "pqr@emdupar.gov.co",
-        pqrsUrl: "https://emdupar.gov.co"
+        emailSecundario: "radicacion@emdupar.gov.co",
+        telefono: "Línea 116 / (605) 5748888",
+        pqrsUrl: "https://emdupar.gov.co",
+        responsabilidad: "Acueducto, fugas de agua potable, alcantarillado colapsado, aguas residuales y tapas de manjoles."
       },
       "AFINIA - Grupo EPM (Energía Eléctrica)": {
         nombre: "AFINIA (GRUPO EPM) - MERCADO DE ENERGÍA ZONA CESAR",
@@ -1090,7 +1203,10 @@
         direccion: "Carrera 9 # 9-41",
         ciudad: "Valledupar - Cesar",
         email: "atencionusuarios@afinia.com.co",
-        pqrsUrl: "https://www.afinia.com.co"
+        emailSecundario: "contacto@afinia.com.co",
+        telefono: "Línea 115 / (605) 6003000",
+        pqrsUrl: "https://www.afinia.com.co",
+        responsabilidad: "Redes eléctricas de distribución, transformadores, fluctuaciones de voltaje, postes caídos o en riesgo."
       },
       "ESTIV S.A.S. E.S.P. (Alumbrado Público)": {
         nombre: "ESTIV S.A.S. E.S.P. - CONCESIÓN DE ALUMBRADO PÚBLICO DE VALLEDUPAR",
@@ -1098,7 +1214,10 @@
         direccion: "Calle 16B # 12-42",
         ciudad: "Valledupar - Cesar",
         email: "peticiones@estivalumbrado.com",
-        pqrsUrl: "https://estivalumbrado.com"
+        emailSecundario: "atencionalusuario@estiv.com.co",
+        telefono: "(605) 5800088",
+        pqrsUrl: "https://estivalumbrado.com",
+        responsabilidad: "Concesión de Alumbrado Público: reparación de luminarias quemadas y postes de alumbrado en calles y parques."
       },
       "Aseo del Norte S.A. E.S.P. (Aseo y Basuras)": {
         nombre: "ASEO DEL NORTE S.A. E.S.P. - SERVICIO PÚBLICO DE ASEO",
@@ -1106,7 +1225,20 @@
         direccion: "Carrera 12 # 13B-40",
         ciudad: "Valledupar - Cesar",
         email: "atencionalcliente@aseodelnorte.com.co",
-        pqrsUrl: "https://aseodelnorte.com.co"
+        emailSecundario: "pqr@aseodelnorte.com.co",
+        telefono: "(605) 5712211",
+        pqrsUrl: "https://aseodelnorte.com.co",
+        responsabilidad: "Recolección domiciliaria de residuos, limpieza de basureros satélites, escombros en espacio público y poda."
+      },
+      "CORPOCESAR (Ambiental / Arbolado y Aguas)": {
+        nombre: "CORPORACIÓN AUTÓNOMA REGIONAL DEL CESAR (CORPOCESAR)",
+        atencion: "Dirección General / Subdirección de Gestión Ambiental",
+        direccion: "Calle 16 # 38-100",
+        ciudad: "Valledupar - Cesar",
+        email: "corpocesar@corpocesar.gov.co",
+        telefono: "(605) 5748960",
+        pqrsUrl: "https://www.corpocesar.gov.co",
+        responsabilidad: "Evaluación técnica para poda de árboles de gran tamaño, tala preventiva por riesgo sobre viviendas y protección ambiental."
       },
       "Policía Nacional / Secretaría de Gobierno": {
         nombre: "POLICÍA NACIONAL DE COLOMBIA / SECRETARÍA DE GOBIERNO MUNICIPAL",
@@ -1114,7 +1246,9 @@
         direccion: "Calle 16 # 8-36 / Carrera 13 # 14-45",
         ciudad: "Valledupar - Cesar",
         email: "gobierno@valledupar-cesar.gov.co",
-        pqrsUrl: "https://www.valledupar-cesar.gov.co"
+        telefono: "Línea 123",
+        pqrsUrl: "https://www.valledupar-cesar.gov.co",
+        responsabilidad: "Seguridad comunitaria, convivencia ciudadana, recuperación del espacio público y control en parques."
       },
       "Secretaría de Salud Municipal de Valledupar": {
         nombre: "ALCALDÍA DE VALLEDUPAR - SECRETARÍA LOCAL DE SALUD",
@@ -1122,7 +1256,19 @@
         direccion: "Carrera 15 # 14-23",
         ciudad: "Valledupar - Cesar",
         email: "salud@valledupar-cesar.gov.co",
-        pqrsUrl: "https://www.valledupar-cesar.gov.co"
+        telefono: "(605) 5842400",
+        pqrsUrl: "https://www.valledupar-cesar.gov.co",
+        responsabilidad: "Salud pública comunitaria: control de focos de dengue, zika, aguas estancadas e inspección sanitaria."
+      },
+      "Personería Municipal de Valledupar (Control Preventivo)": {
+        nombre: "PERSONERÍA MUNICIPAL DE VALLEDUPAR",
+        atencion: "Despacho del Personero Municipal / Área de Derechos Humanos y Vigilancia",
+        direccion: "Calle 15 # 5-11",
+        ciudad: "Valledupar - Cesar",
+        email: "personeria@personeriavalledupar.gov.co",
+        telefono: "(605) 5743450",
+        pqrsUrl: "https://www.personeriavalledupar.gov.co",
+        responsabilidad: "Ministerio Público: garante de los Derechos de Petición cuando una entidad no responde en 15 días hábiles."
       }
     };
 
@@ -1137,6 +1283,9 @@
       }
       if (cat.includes("energ") || cat.includes("eléctr") || cat.includes("transformador") || cat.includes("afinia") || cat.includes("poste") || cat.includes("cable")) {
         return "AFINIA - Grupo EPM (Energía Eléctrica)";
+      }
+      if (cat.includes("arbol") || cat.includes("ambiental") || cat.includes("tala") || cat.includes("rama")) {
+        return "CORPOCESAR (Ambiental / Arbolado y Aguas)";
       }
       if (cat.includes("aseo") || cat.includes("basura") || cat.includes("escombro") || cat.includes("poda")) {
         return "Aseo del Norte S.A. E.S.P. (Aseo y Basuras)";
@@ -1220,6 +1369,11 @@
         if (!errCenso && censoData) {
           todosLosVecinos = censoData;
           renderizarCenso();
+        }
+
+        // 3. Renderizar Directorio Institucional
+        if (typeof renderizarDirectorio === "function") {
+          renderizarDirectorio();
         }
       } catch (e) {
         console.error("Error al cargar datos:", e);
@@ -1313,10 +1467,10 @@
               <button 
                 onclick="accionAprobar('${caso.id}')" 
                 class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-2 px-3.5 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
-                title="Aprobar para publicar en el muro vecinal"
+                title="Confirmar reporte y abrir oficio formal para remitirlo a la entidad"
               >
                 <i data-lucide="check" class="w-4 h-4"></i>
-                <span>✓ Aprobar y Publicar</span>
+                <span>✓ Confirmar y Radicar</span>
               </button>
 
               <button 
@@ -1370,22 +1524,46 @@
 
       contenedor.innerHTML = "";
       validados.forEach(caso => {
+        const entDest = caso.entidad_destino || sugerirEntidadPorCategoria(caso.categoria);
+        const infoEnt = ENTIDADES_INFO[entDest] || ENTIDADES_INFO["Alcaldía de Valledupar - Secretaría de Obras Públicas"];
+
+        let badgeEstadoHtml = '';
+        if (caso.radicado_entidad) {
+          badgeEstadoHtml = `<span class="text-[10px] font-black px-2 py-0.5 rounded uppercase bg-purple-100 text-purple-900 border border-purple-200 flex items-center gap-1">
+            <i data-lucide="file-check-2" class="w-3 h-3"></i> Radicado Oficial
+          </span>`;
+        } else {
+          badgeEstadoHtml = `<span class="text-[10px] font-black px-2 py-0.5 rounded uppercase bg-blue-100 text-[#004884] border border-blue-200 flex items-center gap-1">
+            <i data-lucide="send" class="w-3 h-3"></i> Enviado a Entidad
+          </span>`;
+        }
+
         const card = document.createElement("div");
-        card.className = "bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-3 flex flex-col justify-between";
+        card.className = "bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-3 flex flex-col justify-between hover:border-blue-300 transition";
         card.innerHTML = `
           <div>
             <div class="flex justify-between items-start gap-2 mb-2">
               <span class="font-mono text-xs font-bold text-[#004884]">${caso.id}</span>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase ${caso.estado === 'Ignorado' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}">
-                ${caso.estado}
-              </span>
+              ${badgeEstadoHtml}
             </div>
             <h5 class="text-sm font-bold text-slate-900 leading-snug line-clamp-2">${caso.titulo}</h5>
             <p class="text-xs text-slate-500 mt-1 line-clamp-2">${caso.descripcion}</p>
             <div class="text-[11px] text-slate-600 mt-2 font-medium">📍 ${caso.ubicacion} · ${caso.sector}</div>
             
+            <!-- Entidad y Correo de Radicación -->
+            <div class="mt-2.5 p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="font-bold text-slate-800">🏢 ${infoEnt.nombre.split(' - ')[0]}</span>
+                <span class="text-[10px] bg-blue-50 text-[#004884] font-bold px-1.5 py-0.5 rounded border border-blue-200">${caso.categoria}</span>
+              </div>
+              <div class="flex items-center justify-between text-[11px] text-slate-600 pt-0.5 border-t border-slate-200/60">
+                <span class="font-mono text-slate-800 truncate max-w-[200px]" title="${infoEnt.email}">✉️ ${infoEnt.email}</span>
+                <button onclick="copiarTextoPortapapeles('${infoEnt.email}', 'Correo de la entidad')" class="text-[10px] font-bold text-[#004884] hover:underline cursor-pointer">Copiar</button>
+              </div>
+            </div>
+
             ${caso.radicado_entidad ? `
-              <div class="mt-2.5 p-2 bg-purple-50 border border-purple-200 rounded-lg text-xs flex items-center justify-between text-purple-900">
+              <div class="mt-2 p-2 bg-purple-50 border border-purple-200 rounded-lg text-xs flex items-center justify-between text-purple-900">
                 <span class="font-bold flex items-center gap-1">
                   <i data-lucide="file-check-2" class="w-3.5 h-3.5 text-purple-700"></i>
                   Radicado Oficial:
@@ -1399,16 +1577,16 @@
             <div class="flex items-center gap-1.5">
               <button 
                 onclick="abrirModalRadicado('${caso.id}')" 
-                class="text-xs font-bold text-[#004884] bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
-                title="Ver u obtener oficio formal en hoja membretada"
+                class="text-xs font-bold text-white bg-[#004884] hover:bg-[#002D54] px-2.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1 cursor-pointer"
+                title="Abrir oficio formal, descargar PDF o remitir por correo"
               >
-                <i data-lucide="file-text" class="w-3.5 h-3.5 text-[#004884]"></i>
-                <span>📄 Radicado JAC</span>
+                <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                <span>📄 Oficio / Enviar</span>
               </button>
               
               <button 
                 onclick="abrirModalEditar('${caso.id}')" 
-                class="text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
+                class="text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 px-2 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
                 title="Editar reporte"
               >
                 <i data-lucide="edit-2" class="w-3 h-3"></i>
@@ -1420,7 +1598,7 @@
               <button 
                 onclick="abrirModalRegistrarRadicado('${caso.id}')" 
                 class="text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
-                title="Registrar número de radicado asignado por la Alcaldía o entidad"
+                title="Registrar número de radicado asignado por la Alcaldía o empresa"
               >
                 <i data-lucide="bookmark-plus" class="w-3.5 h-3.5"></i>
                 <span>${caso.radicado_entidad ? '✏️ ' + caso.radicado_entidad : '+ Radicado'}</span>
@@ -1931,6 +2109,12 @@
       document.getElementById("docEntidadAtencion").innerText = info.atencion;
       document.getElementById("docEntidadDireccion").textContent = info.direccion;
       document.getElementById("docEntidadCiudad").textContent = info.ciudad;
+
+      // Actualizar también el Banner de Envío Rápido a la Entidad
+      const bNom = document.getElementById("bannerEntidadNombre");
+      const bCor = document.getElementById("bannerEntidadCorreo");
+      if (bNom) bNom.textContent = info.nombre.split(' - ')[0];
+      if (bCor) bCor.textContent = info.email;
     }
 
     // Imprimir o Guardar PDF
@@ -1994,6 +2178,223 @@ Con copia a: Personería Municipal de Valledupar (Control Preventivo)`;
 
 
     // ==============================================================
+    // HERRAMIENTAS DE ENVÍO DIRECTO Y DIRECTORIO INSTITUCIONAL
+    // ==============================================================
+
+    // Copiar texto genérico al portapapeles
+    window.copiarTextoPortapapeles = function(texto, label = "Dato") {
+      navigator.clipboard.writeText(texto).then(() => {
+        alert(`📋 ${label} copiado al portapapeles:\n${texto}`);
+      }).catch(() => {
+        prompt(`Copia el ${label}:`, texto);
+      });
+    };
+
+    // Copiar correo de la entidad activa en el modal de radicado
+    window.copiarCorreoEntidadActiva = function() {
+      if (!casoActivoRadicado) return;
+      const info = ENTIDADES_INFO[casoActivoRadicado.entidad_destino] || ENTIDADES_INFO["Alcaldía de Valledupar - Secretaría de Obras Públicas"];
+      copiarTextoPortapapeles(info.email, "Correo de radicación oficial");
+    };
+
+    // Generar cuerpo formal de correo para remitir oficio
+    function generarCuerpoCorreoEntidad(caso, numOficio, info) {
+      const afectadosLimpio = (caso.afectados || "la comunidad del Barrio Panamá").replace(/\[RAD:[^\]]+\]/g, "").trim();
+      return `Señores:
+${info.nombre}
+Valledupar, Cesar
+Atn: ${info.atencion.replace(/\n/g, ' ')}
+
+ASUNTO: Derecho de Petición en Interés General - Oficio JAC No. ${numOficio}
+Problemática: ${caso.titulo}
+Ubicación: ${caso.ubicacion} (Barrio Panamá II y III, Comuna 2)
+
+Cordial saludo.
+
+Por medio del presente correo, la JUNTA DE ACCIÓN COMUNAL DEL BARRIO PANAMÁ 3. ETAPA de Valledupar (NIT: 900218415-5, Personería Jurídica No. 000015 de 2003 de la Secretaría de Gobierno Departamental del Cesar), facultada por la Ley 2166 de 2021 y la Ley 1757 de 2015 para el ejercicio del control social y veeduría ciudadana, se dirige respetuosamente a su despacho para remitir de manera formal el OFICIO DE PETICIÓN ADJUNTO EN PDF referente a la problemática comunitaria ubicada en ${caso.ubicacion}.
+
+RESUMEN FÁCTICO:
+- Problemática: ${caso.titulo} (${caso.categoria})
+- Ubicación exacta: ${caso.ubicacion}, Sector ${caso.sector || 'Panamá II'}
+- Tiempo de persistencia sin solución: ${caso.tiempo}
+- Población perjudicada: ${afectadosLimpio}
+
+PETICIONES CONCRETAS:
+1. Disponer de forma prioritaria una visita técnica de inspección en terreno a la dirección señalada.
+2. Programar la cuadrilla operativa para la intervención y solución integral del daño reportado.
+3. Notificar a vuelta de correo el NÚMERO DE RADICADO OFICIAL DE TRÁMITE asignado a esta solicitud y la fecha programada para la intervención.
+
+NOTIFICACIONES INSTITUCIONALES:
+Junta de Acción Comunal Barrio Panamá 3. Etapa
+Dirección de sede: Calle 44 A # 5 A-89, Barrio Panamá – Valledupar, Cesar
+Correo institucional: barriopanamatres@gmail.com
+Teléfono / WhatsApp: 301-2732955
+
+Se adjunta al presente correo el Oficio de Petición Oficial en PDF y evidencia fotográfica georreferenciada.`;
+    }
+
+    // Enviar por Gmail Web (Abre ventana de redacción en Gmail lista)
+    window.enviarPorGmailWeb = function() {
+      if (!casoActivoRadicado) return;
+      const caso = casoActivoRadicado;
+      const info = ENTIDADES_INFO[caso.entidad_destino] || ENTIDADES_INFO["Alcaldía de Valledupar - Secretaría de Obras Públicas"];
+      const numOficio = document.getElementById("docNumeroOficio").textContent;
+      const asunto = `Radicado Oficial JAC Barrio Panamá No. ${numOficio} - ${caso.titulo}`;
+      const cuerpo = generarCuerpoCorreoEntidad(caso, numOficio, info);
+
+      const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(info.email)}&cc=barriopanamatres@gmail.com&su=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+      window.open(url, '_blank');
+    };
+
+    // Enviar por Mailto (Abre Outlook o app de correo predeterminada)
+    window.enviarPorMailto = function() {
+      if (!casoActivoRadicado) return;
+      const caso = casoActivoRadicado;
+      const info = ENTIDADES_INFO[caso.entidad_destino] || ENTIDADES_INFO["Alcaldía de Valledupar - Secretaría de Obras Públicas"];
+      const numOficio = document.getElementById("docNumeroOficio").textContent;
+      const asunto = `Radicado Oficial JAC Barrio Panamá No. ${numOficio} - ${caso.titulo}`;
+      const cuerpo = generarCuerpoCorreoEntidad(caso, numOficio, info);
+
+      const mailto = `mailto:${encodeURIComponent(info.email)}?cc=barriopanamatres@gmail.com&subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+      window.location.href = mailto;
+    };
+
+    // Marcar como Enviado a Entidad
+    window.marcarComoEnviadoAEntidad = async function() {
+      if (!casoActivoRadicado) return;
+      const caso = casoActivoRadicado;
+      const entidad = caso.entidad_destino || document.getElementById("radicadoSelectorEntidad").value;
+
+      try {
+        if (supabaseClient) {
+          await supabaseClient.from('reclamos').update({
+            estado: 'Enviado a Entidad',
+            entidad_destino: entidad
+          }).eq('id', caso.id);
+        }
+        caso.estado = 'Enviado a Entidad';
+        caso.entidad_destino = entidad;
+        renderizarMetricasYListas();
+        alert(`✅ Caso ${caso.id} confirmado y actualizado a "Enviado a Entidad" (${entidad.split(' ')[0]}).\n\nEl reporte ya se muestra con este estado en el Muro Comunitario.`);
+      } catch (e) {
+        console.error("Error al actualizar:", e);
+        alert("Error al actualizar estado en Supabase.");
+      }
+    };
+
+    // Renderizar Directorio de Entidades
+    window.renderizarDirectorio = function(filtro = "") {
+      const contenedor = document.getElementById("gridDirectorioEntidades");
+      if (!contenedor) return;
+
+      const keys = Object.keys(ENTIDADES_INFO);
+      const filtradas = keys.filter(k => {
+        if (!filtro) return true;
+        const info = ENTIDADES_INFO[k];
+        const searchStr = `${k} ${info.nombre} ${info.email} ${info.responsabilidad || ''} ${info.direccion}`.toLowerCase();
+        return searchStr.includes(filtro.toLowerCase().trim());
+      });
+
+      const countElem = document.getElementById("contadorDirectorio");
+      if (countElem) countElem.textContent = filtradas.length;
+
+      contenedor.innerHTML = "";
+      if (filtradas.length === 0) {
+        contenedor.innerHTML = `
+          <div class="col-span-full py-12 text-center bg-white rounded-2xl border border-slate-200 p-6">
+            <i data-lucide="search-x" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
+            <h5 class="text-sm font-bold text-slate-800">No se encontraron entidades para "${filtro}"</h5>
+            <p class="text-xs text-slate-500">Busca por términos como agua, luz, aseo, vías o alcaldía.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      filtradas.forEach(key => {
+        const info = ENTIDADES_INFO[key];
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col justify-between hover:border-blue-300 transition space-y-4";
+        card.innerHTML = `
+          <div class="space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded bg-blue-50 text-[#004884] border border-blue-200">
+                ${key.split(' - ')[0]}
+              </span>
+              <span class="text-[10px] font-bold text-slate-400 font-mono">Valledupar</span>
+            </div>
+
+            <h4 class="text-sm font-black text-slate-900 leading-snug">${info.nombre}</h4>
+            <p class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
+              ${info.responsabilidad || 'Atención de peticiones y requerimientos de servicios públicos e infraestructura.'}
+            </p>
+
+            <div class="text-[11px] text-slate-600 space-y-1 pt-1">
+              <div class="flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i> <span>${info.direccion}</span></div>
+              ${info.telefono ? `<div class="flex items-center gap-1.5"><i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i> <span>${info.telefono}</span></div>` : ''}
+            </div>
+
+            <!-- Caja de Correo Oficial -->
+            <div class="p-3 bg-blue-50/70 border border-blue-200 rounded-xl space-y-1.5">
+              <div class="text-[10px] font-black uppercase text-[#004884] tracking-wider">Correo Oficial de Radicación / PQRS:</div>
+              <div class="font-mono text-xs font-black text-slate-900 break-all select-all">${info.email}</div>
+              ${info.emailSecundario ? `<div class="text-[10px] text-slate-500 font-mono truncate">Alterno: ${info.emailSecundario}</div>` : ''}
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-1.5">
+            <button 
+              onclick="copiarTextoPortapapeles('${info.email}', 'Correo de ${key.split(' ')[0]}')" 
+              class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
+              title="Copiar correo electrónico al portapapeles"
+            >
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span>Copiar</span>
+            </button>
+
+            <a 
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(info.email)}&cc=barriopanamatres@gmail.com" 
+              target="_blank" 
+              class="bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold px-2.5 py-1.5 rounded-lg border border-red-200 transition flex items-center gap-1 cursor-pointer"
+              title="Redactar correo en Gmail con copia a la JAC"
+            >
+              <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+              <span>Gmail</span>
+            </a>
+
+            <a 
+              href="mailto:${info.email}?cc=barriopanamatres@gmail.com" 
+              class="bg-blue-50 hover:bg-blue-100 text-[#004884] text-xs font-bold px-2.5 py-1.5 rounded-lg border border-blue-200 transition flex items-center gap-1 cursor-pointer"
+              title="Abrir en Outlook o app local de correo"
+            >
+              <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              <span>Outlook</span>
+            </a>
+
+            ${info.pqrsUrl ? `
+              <a 
+                href="${info.pqrsUrl}" 
+                target="_blank" 
+                class="ml-auto text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+                title="Abrir Sede Electrónica / PQRS Web"
+              >
+                <i data-lucide="external-link" class="w-4 h-4"></i>
+              </a>
+            ` : ''}
+          </div>
+        `;
+        contenedor.appendChild(card);
+      });
+      lucide.createIcons();
+    };
+
+    window.filtrarDirectorioEntidades = function() {
+      const q = document.getElementById("inputBuscarDirectorio").value;
+      renderizarDirectorio(q);
+    };
+
+
+    // ==============================================================
     // REGISTRO DEL RADICADO OTORGADO POR LA ENTIDAD GUBERNAMENTAL
     // ==============================================================
     window.abrirModalRegistrarRadicado = function(id) {
@@ -2041,12 +2442,11 @@ Con copia a: Personería Municipal de Valledupar (Control Preventivo)`;
 
         // 2. Actualizar Supabase de forma resiliente
         if (supabaseClient) {
-          // Intentar actualizar directamente
           const { error } = await supabaseClient.from('reclamos').update({
             radicado_entidad: numero,
             entidad_destino: entidad,
             fecha_radicado_entidad: fecha,
-            estado: 'En espera'
+            estado: 'Enviado a Entidad'
           }).eq('id', id);
 
           // Si las columnas no existen aún en la base de datos de Supabase, almacenar marca en 'afectados'
@@ -2056,7 +2456,7 @@ Con copia a: Personería Municipal de Valledupar (Control Preventivo)`;
             const afectadoLimpio = (caso.afectados || "").replace(/\[RAD:[^\]]+\]/g, "").trim();
             await supabaseClient.from('reclamos').update({
               afectados: `${afectadoLimpio} ${marca}`.trim(),
-              estado: 'En espera'
+              estado: 'Enviado a Entidad'
             }).eq('id', id);
           }
         }
@@ -2067,7 +2467,7 @@ Con copia a: Personería Municipal de Valledupar (Control Preventivo)`;
           caso.radicado_entidad = numero;
           caso.entidad_destino = entidad;
           caso.fecha_radicado_entidad = fecha;
-          caso.estado = 'En espera';
+          caso.estado = 'Enviado a Entidad';
         }
 
         renderizarMetricasYListas();
@@ -2081,79 +2481,47 @@ Con copia a: Personería Municipal de Valledupar (Control Preventivo)`;
 
 
     // ==============================================================
-    // ACCIONES DE MODERACIÓN (APROBAR / RECHAZAR / SOLUCIONAR)
+    // ACCIONES DE MODERACIÓN (CONFIRMAR Y RADICAR / RECHAZAR / SOLUCIONAR)
     // ==============================================================
     window.accionAprobar = async function(id) {
-      if (!confirm(`¿Confirmas que el reporte ${id} PROCEDE legalmente y debe publicarse en el Muro Comunitario del Barrio Panamá?`)) return;
+      const caso = todosLosReclamos.find(r => r.id === id);
+      if (!caso) return;
+
+      const entidadSugerida = caso.entidad_destino || sugerirEntidadPorCategoria(caso.categoria);
+      const infoEntidad = ENTIDADES_INFO[entidadSugerida] || ENTIDADES_INFO["Alcaldía de Valledupar - Secretaría de Obras Públicas"];
+
+      const confirmar = confirm(
+        `🏛️ CONFIRMAR REPORTE Y ENVIAR A ENTIDAD (${id})\n\n` +
+        `• Problemática: ${caso.titulo}\n` +
+        `• Ubicación: ${caso.ubicacion} (${caso.sector || 'Panamá II'})\n` +
+        `• Entidad competente: ${infoEntidad.nombre.split(' - ')[0]}\n` +
+        `• Correo de radicación: ${infoEntidad.email}\n\n` +
+        `¿Confirmas que este reporte es correcto y procede legalmente?\n\n` +
+        `Al confirmar, su estado se actualizará a 'Enviado a Entidad' y se abrirá el Oficio Oficial para que descargues el PDF y lo remitas por correo electrónico.`
+      );
+
+      if (!confirmar) return;
 
       try {
-        await supabaseClient.from('reclamos').update({ estado: 'En espera' }).eq('id', id);
-        
+        const nuevoEstado = 'Enviado a Entidad';
+
+        if (supabaseClient) {
+          await supabaseClient.from('reclamos').update({
+            estado: nuevoEstado,
+            entidad_destino: entidadSugerida
+          }).eq('id', id);
+        }
+
         // Actualizar en memoria local
-        const caso = todosLosReclamos.find(r => r.id === id);
-        if (caso) caso.estado = 'En espera';
+        caso.estado = nuevoEstado;
+        if (!caso.entidad_destino) caso.entidad_destino = entidadSugerida;
+
         renderizarMetricasYListas();
 
-        // Preguntar si desea generar el oficio formal inmediatamente
-        if (confirm(`✅ Caso ${id} aprobado y publicado en el Muro Comunitario.\n\n¿Deseas abrir el Generador de Oficio Formal (Hoja Membretada) para radicarlo ante la entidad competente en este momento?`)) {
-          abrirModalRadicado(id);
-        }
+        // Abrir automáticamente el generador de oficio formal
+        abrirModalRadicado(id);
       } catch (e) {
-        alert("Error al actualizar estado en Supabase.");
-      }
-    };
-
-    window.accionRechazar = async function(id) {
-      const motivo = prompt("Motivo por el cual este reporte NO procede:\n(Ej: Fuera del perímetro del barrio, foto ilegible, reclamo duplicado):", "No corresponde al sector del Barrio Panamá");
-      if (!motivo) return;
-
-      try {
-        await supabaseClient.from('reclamos').update({ estado: 'Rechazado' }).eq('id', id);
-        alert(`Reporte ${id} marcado como 'No Procede'.`);
-        cargarTodoElPanel();
-      } catch (e) {
-        alert("Error al rechazar en Supabase.");
-      }
-    };
-
-    window.accionMarcarSolucionado = async function(id) {
-      if (!confirm(`¿Confirmas que este problema ya fue solucionado y reparado por la entidad?`)) return;
-
-      try {
-        await supabaseClient.from('reclamos').update({ estado: 'Solucionado' }).eq('id', id);
-        alert(`🎉 Caso ${id} marcado como solucionado.`);
-        cargarTodoElPanel();
-      } catch (e) {
-        alert("Error al actualizar en Supabase.");
-      }
-    };
-
-    window.exportarCensoCSV = function() {
-      if (todosLosVecinos.length === 0) {
-        alert("No hay registros en el censo para exportar.");
-        return;
-      }
-      let csv = "Nombre,Cedula,Sector,Direccion,Telefono,Condicion,EsVeedor\n";
-      todosLosVecinos.forEach(v => {
-        csv += `"${v.nombre}","${v.cedula}","${v.sector}","${v.direccion}","${v.telefono}","${v.condicion || ''}","${v.es_veedor ? 'SI' : 'NO'}"\n`;
-      });
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Censo_JAC_Barrio_Panama_${new Date().toISOString().slice(0,10)}.csv`;
-      a.click();
-    };
-
-    // Acciones de Moderación
-    window.accionAprobar = async function(id) {
-      if (!confirm(`¿Confirmas que el reporte ${id} PROCEDE legalmente y debe publicarse en el Muro Comunitario del Barrio Panamá?`)) return;
-
-      try {
-        await supabaseClient.from('reclamos').update({ estado: 'En espera' }).eq('id', id);
-        alert(`✅ Caso ${id} aprobado y publicado en el portal vecinal.`);
-        cargarTodoElPanel();
-      } catch (e) {
+        console.error("Error al actualizar estado en Supabase:", e);
         alert("Error al actualizar estado en Supabase.");
       }
     };
