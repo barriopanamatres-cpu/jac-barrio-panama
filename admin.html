@@ -843,6 +843,163 @@
     let todosLosVecinos = [];
     let casoActivoRadicado = null;
 
+    // Inicialización al cargar la página
+    document.addEventListener("DOMContentLoaded", () => {
+      verificarSesion();
+      lucide.createIcons();
+    });
+
+    function verificarSesion() {
+      const sesionActiva = localStorage.getItem("jac_sesion_activa") === "true";
+      const vistaLogin = document.getElementById("vistaLoginAdmin");
+      const vistaDash = document.getElementById("vistaDashboardAdmin");
+
+      if (sesionActiva) {
+        if (vistaLogin) {
+          vistaLogin.style.display = "none";
+          vistaLogin.classList.add("hidden");
+        }
+        if (vistaDash) {
+          vistaDash.style.display = "flex";
+          vistaDash.classList.remove("hidden");
+        }
+        cargarTodoElPanel();
+      } else {
+        if (vistaLogin) {
+          vistaLogin.style.display = "flex";
+          vistaLogin.classList.remove("hidden");
+        }
+        if (vistaDash) {
+          vistaDash.style.display = "none";
+          vistaDash.classList.add("hidden");
+        }
+      }
+      lucide.createIcons();
+    }
+
+    // Toggle Password en Login
+    window.toggleClaveAdmin = function() {
+      const input = document.getElementById("loginAdminClave");
+      const eye = document.getElementById("eyeClaveAdmin");
+      if (!input) return;
+      if (input.type === "password") {
+        input.type = "text";
+        if (eye) eye.setAttribute("data-lucide", "eye-off");
+      } else {
+        input.type = "password";
+        if (eye) eye.setAttribute("data-lucide", "eye");
+      }
+      lucide.createIcons();
+    };
+
+    // Procesar Login de Administrador
+    window.procesarLoginAdmin = async function(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      
+      const emailInput = document.getElementById("loginAdminUsuario");
+      const claveInput = document.getElementById("loginAdminClave");
+      const err = document.getElementById("errorLoginAdmin");
+      const form = document.getElementById("formLoginAdminDirecto");
+      if (!emailInput || !claveInput) return;
+
+      const email = emailInput.value.trim().toLowerCase();
+      const password = claveInput.value.trim();
+
+      const btn = form ? form.querySelector("button[type='submit']") : null;
+      const originalText = `<span>Iniciar Sesión en el Dashboard</span><i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> <span>Verificando credenciales...</span>`;
+        lucide.createIcons();
+      }
+
+      try {
+        let autenticado = false;
+
+        // 1. Intentar inicio de sesión directo con Supabase Auth si está disponible
+        if (supabaseClient) {
+          try {
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+              email: email,
+              password: password
+            });
+            if (!error && data && data.session) {
+              autenticado = true;
+            }
+          } catch (authErr) {
+            console.warn("Intento Supabase Auth:", authErr);
+          }
+        }
+
+        // 2. Soporte maestro para clave comunal de la JAC (con o sin asterisco o clave 2026)
+        if (!autenticado && (
+          password === CLAVE_OFICIAL_JAC || 
+          password === CLAVE_OFICIAL_JAC_ALT || 
+          password === "2026"
+        )) {
+          autenticado = true;
+        }
+
+        if (autenticado) {
+          if (err) err.classList.add("hidden");
+          localStorage.setItem("jac_sesion_activa", "true");
+          verificarSesion();
+          return;
+        } else {
+          if (err) {
+            err.classList.remove("hidden");
+            err.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-red-500"></i><span>Contraseña incorrecta. Verifica las credenciales comunales.</span>`;
+            lucide.createIcons();
+          }
+        }
+      } catch (ex) {
+        console.error("Error en login:", ex);
+        if (err) err.classList.remove("hidden");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          lucide.createIcons();
+        }
+      }
+    };
+
+    // Registrar listener directo
+    document.addEventListener("DOMContentLoaded", () => {
+      const formAdmin = document.getElementById("formLoginAdminDirecto");
+      if (formAdmin) {
+        formAdmin.addEventListener("submit", window.procesarLoginAdmin);
+      }
+    });
+
+    window.cerrarSesionAdmin = async function() {
+      if (confirm("¿Deseas cerrar la sesión de administración?")) {
+        if (supabaseClient) {
+          try { await supabaseClient.auth.signOut(); } catch (e) {}
+        }
+        localStorage.removeItem("jac_sesion_activa");
+        verificarSesion();
+      }
+    };
+
+    // Cambio de Pestañas
+    window.cambiarPestana = function(pestana) {
+      const tabs = ["pendientes", "validados", "solucionados", "censo"];
+      tabs.forEach(t => {
+        const sec = document.getElementById(`seccion${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (t === pestana) {
+          if (sec) sec.classList.remove("hidden");
+          if (btn) btn.className = "tab-btn px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 transition bg-[#004884] text-white shadow-sm";
+        } else {
+          if (sec) sec.classList.add("hidden");
+          if (btn) btn.className = "tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition";
+        }
+      });
+      lucide.createIcons();
+    };
+
     // Directorio Oficial de Entidades Competentes en Valledupar
     const ENTIDADES_INFO = {
       "Alcaldía de Valledupar - Secretaría de Obras Públicas": {
