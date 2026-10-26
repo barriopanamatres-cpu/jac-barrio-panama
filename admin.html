@@ -257,6 +257,17 @@
         </button>
 
         <button 
+          onclick="cambiarPestana('terminos')" 
+          id="tabTerminos" 
+          class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition"
+          title="Control estricto de los 15 días hábiles de la Ley 1755 de 2015 y generador de Tutelas"
+        >
+          <i data-lucide="scale" class="w-4 h-4 text-rose-600"></i>
+          <span>Control Términos (15 Días) & Tutelas</span>
+          <span id="badgeTabTerminos" class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full text-[10px] font-black">0</span>
+        </button>
+
+        <button 
           onclick="cambiarPestana('solucionados')" 
           id="tabSolucionados" 
           class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition"
@@ -386,6 +397,99 @@
 
         <div id="gridValidados" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <!-- Render dinámico de casos validados -->
+        </div>
+      </section>
+
+
+      <!-- SECCIÓN: RADAR DE TÉRMINOS LEGALES (15 DÍAS) & TUTELAS -->
+      <section id="seccionTerminos" class="space-y-6 hidden">
+        <div class="bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 text-white p-6 rounded-2xl shadow-xl border border-rose-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="space-y-1.5 max-w-2xl">
+            <div class="inline-flex items-center gap-2 bg-rose-500/20 border border-rose-500/40 text-rose-300 px-3 py-1 rounded-full text-xs font-black tracking-wide uppercase">
+              <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+              <span>Control Estricto de Términos · Ley 1755 de 2015</span>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-black text-white">
+              Radar de Vencimientos PQRS & Activación de Tutelas (15 Días Hábiles)
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              En Colombia, las entidades públicas y empresas de servicios tienen un plazo improrrogable de <strong>15 días hábiles</strong> para resolver de fondo las peticiones ciudadanas. Si el plazo expira, se configura <strong>Silencio Administrativo</strong> y la JAC puede generar y radicar inmediatamente una <strong>Acción de Tutela (Art. 86 C.P.)</strong> por violación al derecho fundamental de petición.
+            </p>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2 shrink-0">
+            <button onclick="renderizarTerminosLegalesAdmin()" class="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl border border-white/20 flex items-center gap-1.5 transition cursor-pointer">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>Recalcular Términos</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tarjetas de Métricas de Términos -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total en Seguimiento</p>
+              <h4 id="adminTerminosTotal" class="text-2xl font-black text-slate-900 mt-0.5">0</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5">Oficios formalizados</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-blue-50 text-[#004884] flex items-center justify-center">
+              <i data-lucide="file-text" class="w-5 h-5"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">En Plazo Legal</p>
+              <h4 id="adminTerminosEnPlazo" class="text-2xl font-black text-emerald-700 mt-0.5">0</h4>
+              <p class="text-[10px] text-emerald-600 mt-0.5">Días 1 a 10 hábiles</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+              <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Alerta por Vencer</p>
+              <h4 id="adminTerminosPorVencer" class="text-2xl font-black text-amber-700 mt-0.5">0</h4>
+              <p class="text-[10px] text-amber-600 mt-0.5">Menos de 4 días de ley</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+              <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-red-200 shadow-sm flex items-center justify-between bg-red-50/40">
+            <div>
+              <p class="text-[11px] font-bold text-red-600 uppercase tracking-wider">Vencidos (Tutela)</p>
+              <h4 id="adminTerminosVencidos" class="text-2xl font-black text-red-700 mt-0.5">0</h4>
+              <p class="text-[10px] text-red-600 font-bold mt-0.5">En desacato legal</p>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-red-100 text-red-700 flex items-center justify-center animate-pulse">
+              <i data-lucide="scale" class="w-5 h-5"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de Búsqueda y Filtros de Términos -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+          <div class="relative w-full md:w-80">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="filtroTerminosBuscar" oninput="filtrarListaTerminosAdmin()" placeholder="Buscar por Radicado JAC o Radicado Entidad..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:bg-white focus:border-[#004884]">
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
+            <button onclick="cambiarFiltroTerminosAdmin('todos')" id="btnFiltroTerminos_todos" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-[#004884] text-white cursor-pointer">Todos</button>
+            <button onclick="cambiarFiltroTerminosAdmin('VENCIDO')" id="btnFiltroTerminos_VENCIDO" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 cursor-pointer">🔴 Vencidos (Tutela)</button>
+            <button onclick="cambiarFiltroTerminosAdmin('POR_VENCER')" id="btnFiltroTerminos_POR_VENCER" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 cursor-pointer">🟡 Por Vencer</button>
+            <button onclick="cambiarFiltroTerminosAdmin('EN_TERMINO')" id="btnFiltroTerminos_EN_TERMINO" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 cursor-pointer">🟢 En Plazo</button>
+            <button onclick="cambiarFiltroTerminosAdmin('RESPONDIDO')" id="btnFiltroTerminos_RESPONDIDO" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 cursor-pointer">🟣 Respondidos</button>
+          </div>
+        </div>
+
+        <!-- Lista de Tarjetas de Control de Términos -->
+        <div id="contenedorTerminosAdmin" class="space-y-4">
+          <!-- Render dinámico -->
         </div>
       </section>
 
@@ -981,8 +1085,41 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Fecha de Radicación</label>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Fecha de Radicación Oficial</label>
           <input type="date" id="regRadFecha" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#004884]">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Canal de Radicación</label>
+          <select id="regRadCanal" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-[#004884]">
+            <option value="Correo Electrónico PQRS">Correo Electrónico PQRS (Institucional)</option>
+            <option value="Ventanilla Única Presencial">Ventanilla Única Presencial (Oficio Físico Radicado)</option>
+            <option value="Sede Electrónica / Portal Web">Sede Electrónica / Portal Web de la Entidad</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Comprobante de Radicación / Recibido (Foto o PDF)</label>
+          <div class="border-2 border-dashed border-slate-300 rounded-xl p-3 text-center bg-slate-50 hover:bg-slate-100 transition relative">
+            <input type="file" id="regRadArchivoSoporte" accept="image/*,application/pdf" onchange="manejarArchivoSoporteRadicado(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+            <div id="soportePreviewBox" class="flex flex-col items-center justify-center gap-1 text-slate-500">
+              <i data-lucide="upload-cloud" class="w-6 h-6 text-purple-600"></i>
+              <span class="text-xs font-bold text-slate-700" id="soporteNombreArchivo">Selecciona o arrastra la constancia de radicado</span>
+              <span class="text-[10px] text-slate-400">Captura de pantalla, foto del sello o PDF de radicación</span>
+            </div>
+          </div>
+          <div id="soporteActualLinkBox" class="hidden mt-1.5 flex items-center justify-between bg-purple-50 border border-purple-200 rounded-lg px-2.5 py-1 text-xs">
+            <span class="text-purple-800 font-bold flex items-center gap-1">
+              <i data-lucide="file-check" class="w-3.5 h-3.5"></i>
+              <span>Soporte adjunto actualmente</span>
+            </span>
+            <a id="soporteActualLink" href="#" target="_blank" class="text-purple-700 underline font-bold text-[11px]">Ver archivo</a>
+          </div>
+        </div>
+
+        <div class="p-2.5 bg-blue-50 border border-blue-200 rounded-xl text-[11px] text-blue-900 leading-snug flex items-start gap-2">
+          <i data-lucide="info" class="w-4 h-4 text-blue-600 shrink-0 mt-0.5"></i>
+          <span><strong>Término de Ley:</strong> Desde esta fecha corre el conteo de los <strong>15 días hábiles</strong> (Ley 1755 de 2015). Si la entidad no responde en dicho plazo, el sistema activará la <strong>Acción de Tutela</strong>.</span>
         </div>
 
         <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
@@ -995,6 +1132,76 @@
           </button>
         </div>
       </form>
+
+    </div>
+  </div>
+
+
+  <!-- ================= MODAL: GENERADOR DE ACCIÓN DE TUTELA POR DERECHO DE PETICIÓN (ART. 86 C.P.) ================= -->
+  <div id="modalAccionTutela" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-5 sm:p-7 shadow-2xl relative my-6 text-slate-800 max-h-[92vh] flex flex-col border border-slate-300">
+      
+      <!-- Botón Cerrar -->
+      <button onclick="cerrarModalAccionTutela()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-2 rounded-full hover:bg-slate-100 transition z-20 cursor-pointer">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <!-- Encabezado del Modal -->
+      <div class="flex items-center gap-3 pb-4 border-b border-slate-200 shrink-0">
+        <div class="p-2.5 bg-gradient-to-tr from-red-600 to-rose-700 text-white rounded-2xl shadow-lg">
+          <i data-lucide="scale" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-base sm:text-lg font-black text-slate-900 leading-tight">Acción de Tutela por Violación al Derecho de Petición</h3>
+            <span class="bg-red-100 text-red-800 border border-red-300 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Art. 86 C.P.</span>
+          </div>
+          <p class="text-xs text-slate-500">Demanda judicial formal lista para radicar en el reparto judicial de Valledupar (Cesar)</p>
+        </div>
+      </div>
+
+      <!-- Barra de Acciones Rápidas -->
+      <div class="py-3 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-600">Radicado JAC:</span>
+          <span id="tutelaRadicadoBadge" class="bg-purple-100 text-purple-900 font-mono font-bold text-xs px-2.5 py-0.5 rounded">RAD-PANAMA-2026-0001</span>
+          <span id="tutelaDiasVencidoBadge" class="bg-red-100 text-red-800 font-bold text-xs px-2.5 py-0.5 rounded">¡Vencido hace 4 días!</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="imprimirDemandaTutela()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+            <span>Imprimir / PDF</span>
+          </button>
+          <button onclick="copiarDemandaTutela()" class="bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span id="btnCopiarTutelaTexto">Copiar Demanda</span>
+          </button>
+          <a id="btnEnviarEmailTutela" href="#" target="_blank" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+            <span>Enviar a Reparto Judicial</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Contenedor con Scroll de la Demanda Formal -->
+      <div class="overflow-y-auto py-4 space-y-4 flex-grow pr-2 font-serif text-xs sm:text-sm leading-relaxed text-slate-900 bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-200 select-text">
+        <div id="cuerpoDemandaTutelaImprimible" class="space-y-4 max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-slate-200">
+          <!-- Render dinámico del texto de la Tutela -->
+        </div>
+      </div>
+
+      <!-- Pie con enlaces a los juzgados de Valledupar -->
+      <div class="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 shrink-0">
+        <div class="flex items-center gap-2">
+          <i data-lucide="info" class="w-4 h-4 text-blue-600"></i>
+          <span><strong>Reparto Judicial Valledupar:</strong> <code class="bg-slate-100 px-1 py-0.5 rounded font-mono text-[11px] text-slate-700">repartovalledupar@cendoj.ramajudicial.gov.co</code></span>
+        </div>
+        <a href="https://procesojudicial.ramajudicial.gov.co/TutelaEnLinea/" target="_blank" class="text-blue-700 hover:underline font-bold flex items-center gap-1">
+          <span>Portal Web Tutela en Línea Rama Judicial</span>
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>
 
     </div>
   </div>
@@ -1420,7 +1627,7 @@
 
     // Cambio de Pestañas
     window.cambiarPestana = function(pestana) {
-      const tabs = ["pendientes", "validados", "solucionados", "censo", "directorio"];
+      const tabs = ["pendientes", "validados", "terminos", "solucionados", "censo", "directorio"];
       tabs.forEach(t => {
         const sec = document.getElementById(`seccion${t.charAt(0).toUpperCase() + t.slice(1)}`);
         const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
@@ -1434,6 +1641,8 @@
       });
       if (pestana === "directorio") {
         renderizarDirectorio();
+      } else if (pestana === "terminos") {
+        renderizarTerminosLegalesAdmin();
       }
       lucide.createIcons();
     };
@@ -1614,11 +1823,18 @@
               }
             }
 
+            const canalRad = caso.canal_radicacion || extra.canal_radicacion || "Correo Electrónico PQRS";
+            const soporteRad = caso.soporte_radicado_entidad || extra.soporte_radicado_entidad || "";
+            const fechaEnvioJac = caso.fecha_envio_jac || extra.fecha_envio_jac || caso.fecha || "";
+
             return {
               ...caso,
               radicado_entidad: radEntidad,
               entidad_destino: entDestino,
-              fecha_radicado_entidad: fechaRadEntidad
+              fecha_radicado_entidad: fechaRadEntidad,
+              canal_radicacion: canalRad,
+              soporte_radicado_entidad: soporteRad,
+              fecha_envio_jac: fechaEnvioJac
             };
           });
 
@@ -1661,6 +1877,9 @@
       document.getElementById("badgeTabValidados").textContent = validados.length;
       document.getElementById("badgeTabSolucionados").textContent = solucionados.length;
       document.getElementById("badgeTabCenso").textContent = todosLosVecinos.length;
+
+      // Calcular Términos Legales
+      renderizarTerminosLegalesAdmin();
 
       // 1. Render Bandeja Pendientes
       renderizarPendientes(pendientes);
@@ -2680,14 +2899,46 @@ Se adjunta al presente correo el Oficio de Petición Oficial en PDF y evidencia 
     // ==============================================================
     // REGISTRO DEL RADICADO OTORGADO POR LA ENTIDAD GUBERNAMENTAL
     // ==============================================================
+    let soporteRadicadoDataUrl = "";
+
+    window.manejarArchivoSoporteRadicado = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const nombreEl = document.getElementById("soporteNombreArchivo");
+      if (nombreEl) nombreEl.textContent = `Archivo: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        soporteRadicadoDataUrl = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
     window.abrirModalRegistrarRadicado = function(id) {
       const caso = todosLosReclamos.find(r => r.id === id);
       if (!caso) return;
 
+      soporteRadicadoDataUrl = "";
       document.getElementById("regRadReporteId").value = caso.id;
       document.getElementById("regRadEntidad").value = caso.entidad_destino ? caso.entidad_destino.split(' ')[0] : "Alcaldía de Valledupar";
       document.getElementById("regRadNumero").value = caso.radicado_entidad || "";
       document.getElementById("regRadFecha").value = caso.fecha_radicado_entidad || new Date().toISOString().slice(0, 10);
+      
+      const canalEl = document.getElementById("regRadCanal");
+      if (canalEl) canalEl.value = caso.canal_radicacion || "Correo Electrónico PQRS";
+
+      const soporteActualBox = document.getElementById("soporteActualLinkBox");
+      const soporteActualLink = document.getElementById("soporteActualLink");
+      const nombreEl = document.getElementById("soporteNombreArchivo");
+      if (nombreEl) nombreEl.textContent = "Selecciona o arrastra la constancia de radicado";
+
+      if (caso.soporte_radicado_entidad) {
+        if (soporteActualBox) soporteActualBox.classList.remove("hidden");
+        if (soporteActualLink) soporteActualLink.href = caso.soporte_radicado_entidad;
+      } else {
+        if (soporteActualBox) soporteActualBox.classList.add("hidden");
+      }
 
       document.getElementById("modalRegistrarRadicadoEntidad").classList.remove("hidden");
       lucide.createIcons();
@@ -2709,18 +2960,24 @@ Se adjunta al presente correo el Oficio de Petición Oficial en PDF y evidencia 
       const entidad = document.getElementById("regRadEntidad").value;
       const numero = document.getElementById("regRadNumero").value.trim();
       const fecha = document.getElementById("regRadFecha").value;
+      const canal = document.getElementById("regRadCanal")?.value || "Correo Electrónico PQRS";
 
       if (!numero) {
         alert("Por favor digita el número de radicado asignado por la entidad.");
         return;
       }
 
+      const casoActual = todosLosReclamos.find(r => r.id === id);
+      const soporteFinal = soporteRadicadoDataUrl || (casoActual ? casoActual.soporte_radicado_entidad : "");
+
       try {
-        // 1. Persistir en almacenamiento local
+        // 1. Persistir en almacenamiento local con metadatos extendidos
         guardarMetadatoExtra(id, {
           radicado_entidad: numero,
           entidad_destino: entidad,
-          fecha_radicado_entidad: fecha
+          fecha_radicado_entidad: fecha,
+          canal_radicacion: canal,
+          soporte_radicado_entidad: soporteFinal
         });
 
         // 2. Actualizar Supabase de forma resiliente
@@ -2750,15 +3007,17 @@ Se adjunta al presente correo el Oficio de Petición Oficial en PDF y evidencia 
           caso.radicado_entidad = numero;
           caso.entidad_destino = entidad;
           caso.fecha_radicado_entidad = fecha;
+          caso.canal_radicacion = canal;
+          caso.soporte_radicado_entidad = soporteFinal;
           caso.estado = 'Enviado a Entidad';
         }
 
         renderizarMetricasYListas();
         cerrarModalRegistrarRadicado();
         alert(`✅ Radicado Oficial "${numero}" registrado con éxito para el reporte ${id}.`);
-      } catch (ex) {
-        console.error("Error al registrar radicado:", ex);
-        alert("Error al registrar el radicado.");
+      } catch (err) {
+        console.error("Error al guardar radicado de entidad:", err);
+        alert("Ocurrió un error al guardar el radicado.");
       }
     };
 
@@ -2849,6 +3108,558 @@ Se adjunta al presente correo el Oficio de Petición Oficial en PDF y evidencia 
       a.href = url;
       a.download = `Censo_JAC_Barrio_Panama_${new Date().toISOString().slice(0,10)}.csv`;
       a.click();
+    };
+
+    // ==============================================================
+    // CONTROL DE TÉRMINOS LEGALES DE RESPUESTA (LEY 1755 DE 2015)
+    // ==============================================================
+    let filtroTerminosActivo = 'todos';
+    let casoActivoTutela = null;
+
+    const FESTIVOS_COLOMBIA_2026 = [
+      "2026-01-01", "2026-01-12", "2026-03-23", "2026-04-02", "2026-04-03",
+      "2026-05-01", "2026-05-18", "2026-06-08", "2026-06-15", "2026-06-29",
+      "2026-07-20", "2026-08-07", "2026-08-17", "2026-10-12", "2026-11-02",
+      "2026-11-16", "2026-12-08", "2026-12-25"
+    ];
+
+    function esDiaHabil(fecha) {
+      const diaSemana = fecha.getDay();
+      if (diaSemana === 0 || diaSemana === 6) return false;
+      const isoStr = fecha.toISOString().slice(0, 10);
+      if (FESTIVOS_COLOMBIA_2026.includes(isoStr)) return false;
+      return true;
+    }
+
+    function parsearFechaUniversal(fechaStr) {
+      if (!fechaStr) return new Date();
+      if (fechaStr.includes("/")) {
+        const partes = fechaStr.split("/");
+        if (partes.length === 3) {
+          return new Date(parseInt(partes[2]), parseInt(partes[1]) - 1, parseInt(partes[0]));
+        }
+      }
+      const d = new Date(fechaStr);
+      return isNaN(d.getTime()) ? new Date() : d;
+    }
+
+    function calcularTerminoLegal15Dias(fechaInicioStr, estadoCaso) {
+      const PLAZO_LEGAL_DIAS = 15;
+      const fechaInicio = parsearFechaUniversal(fechaInicioStr);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+
+      let cursor = new Date(fechaInicio);
+      cursor.setHours(0, 0, 0, 0);
+      let diasHabilesSumados = 0;
+
+      while (diasHabilesSumados < PLAZO_LEGAL_DIAS) {
+        cursor.setDate(cursor.getDate() + 1);
+        if (esDiaHabil(cursor)) {
+          diasHabilesSumados++;
+        }
+      }
+      const fechaVencimiento = new Date(cursor);
+
+      let conteoCursor = new Date(fechaInicio);
+      conteoCursor.setHours(0, 0, 0, 0);
+      let diasHabilesTranscurridos = 0;
+
+      while (conteoCursor < hoy) {
+        conteoCursor.setDate(conteoCursor.getDate() + 1);
+        if (esDiaHabil(conteoCursor)) {
+          diasHabilesTranscurridos++;
+        }
+      }
+
+      const diasRestantes = PLAZO_LEGAL_DIAS - diasHabilesTranscurridos;
+      const porcentaje = Math.min(100, Math.round((diasHabilesTranscurridos / PLAZO_LEGAL_DIAS) * 100));
+
+      let estadoTermino = "EN_TERMINO";
+      let colorBadge = "bg-emerald-100 text-emerald-800 border-emerald-300";
+      let colorBarra = "bg-emerald-600";
+      let textoBadge = `Día ${diasHabilesTranscurridos} de ${PLAZO_LEGAL_DIAS} hábiles`;
+      let mensajeAccion = "En plazo legal de respuesta";
+
+      if (estadoCaso === "Solucionado" || estadoCaso === "Respondido") {
+        estadoTermino = "RESPONDIDO";
+        colorBadge = "bg-purple-100 text-purple-800 border-purple-300";
+        colorBarra = "bg-purple-600";
+        textoBadge = "✓ Respondido / Cerrado";
+        mensajeAccion = "La entidad emitió respuesta oficial";
+      } else if (diasHabilesTranscurridos > PLAZO_LEGAL_DIAS) {
+        estadoTermino = "VENCIDO";
+        const diasVencido = diasHabilesTranscurridos - PLAZO_LEGAL_DIAS;
+        colorBadge = "bg-red-100 text-red-800 border-red-300 animate-pulse";
+        colorBarra = "bg-red-600";
+        textoBadge = `¡VENCIDO HACE ${diasVencido} DÍA${diasVencido > 1 ? 'S' : ''}!`;
+        mensajeAccion = "🚨 Silencio administrativo: Sujeto a Tutela";
+      } else if (diasRestantes <= 3) {
+        estadoTermino = "POR_VENCER";
+        colorBadge = "bg-amber-100 text-amber-800 border-amber-300";
+        colorBarra = "bg-amber-500";
+        textoBadge = `⚠️ ¡Quedan ${diasRestantes} día${diasRestantes > 1 ? 's' : ''}!`;
+        mensajeAccion = "Próximo a vencer término legal";
+      }
+
+      const opcionesFecha = { day: '2-digit', month: 'short', year: 'numeric' };
+
+      return {
+        fechaInicioStr: fechaInicio.toLocaleDateString('es-CO', opcionesFecha),
+        fechaVencimientoStr: fechaVencimiento.toLocaleDateString('es-CO', opcionesFecha),
+        diasHabilesTranscurridos,
+        diasRestantes: Math.max(0, diasRestantes),
+        diasVencido: Math.max(0, diasHabilesTranscurridos - PLAZO_LEGAL_DIAS),
+        porcentaje,
+        estadoTermino,
+        colorBadge,
+        colorBarra,
+        textoBadge,
+        mensajeAccion
+      };
+    }
+
+    window.renderizarTerminosLegalesAdmin = function() {
+      const contenedor = document.getElementById("contenedorTerminosAdmin");
+      if (!contenedor) return;
+
+      const radicadosActivos = todosLosReclamos.filter(r => r.estado && (r.estado === "Enviado a Entidad" || r.estado === "Solucionado"));
+
+      let countEnPlazo = 0;
+      let countPorVencer = 0;
+      let countVencidos = 0;
+
+      radicadosActivos.forEach(r => {
+        const termino = calcularTerminoLegal15Dias(r.fecha_radicado_entidad || r.fecha_envio_jac || r.fecha, r.estado);
+        if (termino.estadoTermino === "VENCIDO") countVencidos++;
+        else if (termino.estadoTermino === "POR_VENCER") countPorVencer++;
+        else if (termino.estadoTermino === "EN_TERMINO") countEnPlazo++;
+      });
+
+      const elTotal = document.getElementById("adminTerminosTotal");
+      if (elTotal) elTotal.textContent = radicadosActivos.length;
+      const elEnPlazo = document.getElementById("adminTerminosEnPlazo");
+      if (elEnPlazo) elEnPlazo.textContent = countEnPlazo;
+      const elPorVencer = document.getElementById("adminTerminosPorVencer");
+      if (elPorVencer) elPorVencer.textContent = countPorVencer;
+      const elVencidos = document.getElementById("adminTerminosVencidos");
+      if (elVencidos) elVencidos.textContent = countVencidos;
+
+      const badgeTab = document.getElementById("badgeTabTerminos");
+      if (badgeTab) {
+        badgeTab.textContent = countVencidos > 0 ? `🚨 ${countVencidos}` : radicadosActivos.length;
+        if (countVencidos > 0) {
+          badgeTab.className = "bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse";
+        } else {
+          badgeTab.className = "bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full text-[10px] font-black";
+        }
+      }
+
+      filtrarListaTerminosAdmin();
+    };
+
+    window.cambiarFiltroTerminosAdmin = function(filtro) {
+      filtroTerminosActivo = filtro;
+      const botones = ["todos", "VENCIDO", "POR_VENCER", "EN_TERMINO", "RESPONDIDO"];
+      botones.forEach(b => {
+        const btn = document.getElementById(`btnFiltroTerminos_${b}`);
+        if (!btn) return;
+        if (b === filtro) {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-[#004884] text-white shadow cursor-pointer";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer";
+        }
+      });
+      filtrarListaTerminosAdmin();
+    };
+
+    window.filtrarListaTerminosAdmin = function() {
+      const contenedor = document.getElementById("contenedorTerminosAdmin");
+      if (!contenedor) return;
+
+      const q = (document.getElementById("filtroTerminosBuscar")?.value || "").toLowerCase().trim();
+      const radicadosActivos = todosLosReclamos.filter(r => r.estado && (r.estado === "Enviado a Entidad" || r.estado === "Solucionado"));
+
+      const filtrados = radicadosActivos.filter(caso => {
+        const termino = calcularTerminoLegal15Dias(caso.fecha_radicado_entidad || caso.fecha_envio_jac || caso.fecha, caso.estado);
+
+        if (filtroTerminosActivo !== "todos" && termino.estadoTermino !== filtroTerminosActivo) {
+          return false;
+        }
+
+        if (q) {
+          const matchId = (caso.id || "").toLowerCase().includes(q);
+          const matchRad = (caso.radicado_entidad || "").toLowerCase().includes(q);
+          const matchEnt = (caso.entidad_destino || "").toLowerCase().includes(q);
+          const matchTit = (caso.titulo || "").toLowerCase().includes(q);
+          const matchUbi = (caso.ubicacion || "").toLowerCase().includes(q);
+          if (!matchId && !matchRad && !matchEnt && !matchTit && !matchUbi) return false;
+        }
+        return true;
+      });
+
+      if (filtrados.length === 0) {
+        contenedor.innerHTML = `
+          <div class="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-400">
+            <i data-lucide="scale" class="w-10 h-10 mx-auto opacity-30 mb-2"></i>
+            <p class="text-sm font-bold text-slate-700">No se encontraron radicados en esta categoría</p>
+            <p class="text-xs text-slate-400 mt-1">Los oficios que remitas a las entidades aparecerán aquí con su conteo legal.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      filtrados.sort((a, b) => {
+        const tA = calcularTerminoLegal15Dias(a.fecha_radicado_entidad || a.fecha_envio_jac || a.fecha, a.estado);
+        const tB = calcularTerminoLegal15Dias(b.fecha_radicado_entidad || b.fecha_envio_jac || b.fecha, b.estado);
+        const peso = { "VENCIDO": 4, "POR_VENCER": 3, "EN_TERMINO": 2, "RESPONDIDO": 1 };
+        return (peso[tB.estadoTermino] || 0) - (peso[tA.estadoTermino] || 0);
+      });
+
+      contenedor.innerHTML = filtrados.map(caso => {
+        const termino = calcularTerminoLegal15Dias(caso.fecha_radicado_entidad || caso.fecha_envio_jac || caso.fecha, caso.estado);
+        const entidad = caso.entidad_destino || sugerirEntidadPorCategoria(caso.categoria);
+
+        return `
+          <div class="bg-white rounded-2xl border ${termino.estadoTermino === 'VENCIDO' ? 'border-red-300 shadow-md ring-1 ring-red-200' : 'border-slate-200 shadow-sm'} p-5 transition space-y-4">
+            
+            <!-- Cabecera de la Tarjeta -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-xl ${termino.estadoTermino === 'VENCIDO' ? 'bg-red-100 text-red-700' : 'bg-blue-50 text-[#004884]'} flex items-center justify-center shrink-0">
+                  <i data-lucide="${termino.estadoTermino === 'VENCIDO' ? 'alert-octagon' : 'scale'}" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-black text-xs text-slate-900">${caso.id}</span>
+                    <span class="text-[10px] bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded uppercase">${caso.categoria}</span>
+                  </div>
+                  <div class="text-xs font-extrabold text-[#004884] mt-0.5 flex items-center gap-1">
+                    <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
+                    <span>${entidad}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                ${caso.radicado_entidad ? `
+                  <span class="bg-purple-50 text-purple-800 border border-purple-200 font-mono font-bold text-xs px-2.5 py-1 rounded-lg flex items-center gap-1" title="Radicado oficial de la entidad">
+                    <i data-lucide="bookmark-check" class="w-3.5 h-3.5 text-purple-600"></i>
+                    <span>Rad. Entidad: ${caso.radicado_entidad}</span>
+                  </span>
+                ` : `
+                  <span class="bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold px-2.5 py-1 rounded-lg">
+                    Sin Radicado Entidad
+                  </span>
+                `}
+
+                <span class="px-3 py-1 rounded-full text-xs font-black border ${termino.colorBadge} flex items-center gap-1">
+                  <span>${termino.textoBadge}</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Barra de Progreso de 15 Días Hábiles -->
+            <div class="space-y-1.5 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+              <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                <span class="flex items-center gap-1.5">
+                  <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-500"></i>
+                  <span>Término Legal de Respuesta (Ley 1755 de 2015):</span>
+                </span>
+                <span class="${termino.estadoTermino === 'VENCIDO' ? 'text-red-600 font-black' : 'text-slate-900'}">${termino.mensajeAccion}</span>
+              </div>
+
+              <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                <div class="${termino.colorBarra} h-2.5 rounded-full transition-all duration-500" style="width: ${termino.porcentaje}%"></div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-between text-[11px] text-slate-500 pt-1">
+                <span>📅 <strong>Fecha Envío:</strong> ${termino.fechaInicioStr} (${caso.canal_radicacion || 'Correo PQRS'})</span>
+                <span>⏳ <strong>Vencimiento Legal:</strong> <strong class="${termino.estadoTermino === 'VENCIDO' ? 'text-red-700 underline' : 'text-slate-800'}">${termino.fechaVencimientoStr}</strong></span>
+              </div>
+            </div>
+
+            <!-- Contenido del Reporte -->
+            <div class="flex flex-col sm:flex-row gap-4 items-start">
+              ${caso.foto ? `
+                <img src="${caso.foto}" alt="Evidencia" class="w-full sm:w-28 h-20 object-cover rounded-xl border border-slate-200 shrink-0">
+              ` : ''}
+              <div class="space-y-1 flex-grow">
+                <h4 class="text-sm font-black text-slate-900">${caso.titulo}</h4>
+                <p class="text-xs text-slate-600 flex items-center gap-1">
+                  <i data-lucide="map-pin" class="w-3.5 h-3.5 text-red-500 shrink-0"></i>
+                  <span>${caso.ubicacion} (${caso.sector || 'Panamá II'})</span>
+                </p>
+                <p class="text-xs text-slate-500 line-clamp-2">${caso.descripcion}</p>
+                
+                ${caso.soporte_radicado_entidad ? `
+                  <div class="pt-1">
+                    <a href="${caso.soporte_radicado_entidad}" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2.5 py-1 rounded-lg transition">
+                      <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
+                      <span>Ver Comprobante de Radicado Subido</span>
+                    </a>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- Barra de Acciones -->
+            <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-2">
+                ${termino.estadoTermino === 'VENCIDO' ? `
+                  <button 
+                    onclick="abrirModalAccionTutela('${caso.id}')" 
+                    class="bg-red-600 hover:bg-red-700 text-white font-black text-xs px-3.5 py-2 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer animate-pulse"
+                    title="Generar demanda formal de Acción de Tutela ante juzgados de Valledupar"
+                  >
+                    <i data-lucide="scale" class="w-4 h-4"></i>
+                    <span>⚖️ Generar Acción de Tutela (Art. 86)</span>
+                  </button>
+                ` : ''}
+
+                ${termino.estadoTermino === 'POR_VENCER' ? `
+                  <button 
+                    onclick="enviarOficioReiteracion('${caso.id}')" 
+                    class="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-3 py-2 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+                    title="Enviar oficio de reiteración preventiva por correo"
+                  >
+                    <i data-lucide="mail-warning" class="w-4 h-4"></i>
+                    <span>📧 Enviar Reiteración</span>
+                  </button>
+                ` : ''}
+
+                <button 
+                  onclick="abrirModalRegistrarRadicado('${caso.id}')" 
+                  class="bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 font-extrabold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+                  title="Anotar el número de radicado y subir constancia de la entidad"
+                >
+                  <i data-lucide="bookmark-plus" class="w-4 h-4 text-purple-600"></i>
+                  <span>${caso.radicado_entidad ? 'Editar Radicado / Soporte' : '+ Subir Radicado & Soporte'}</span>
+                </button>
+
+                <button 
+                  onclick="abrirModalRadicado('${caso.id}')" 
+                  class="bg-blue-50 hover:bg-blue-100 text-[#004884] border border-blue-200 font-bold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+                  title="Ver oficio formal en hoja membretada oficial"
+                >
+                  <i data-lucide="file-text" class="w-4 h-4"></i>
+                  <span>Oficio JAC</span>
+                </button>
+
+                <button 
+                  onclick="abrirModalInstagram('${caso.id}')" 
+                  class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs px-3 py-2 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+                  title="Generar afiche de alta presión con fecha y términos de ley para Instagram"
+                >
+                  <i data-lucide="instagram" class="w-4 h-4 text-amber-300"></i>
+                  <span>Afiche Redes</span>
+                </button>
+              </div>
+
+              ${caso.estado !== 'Solucionado' ? `
+                <button 
+                  onclick="accionMarcarSolucionado('${caso.id}')" 
+                  class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1 cursor-pointer ml-auto"
+                  title="Marcar este caso como atendido y solucionado"
+                >
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                  <span>Marcar Solucionado</span>
+                </button>
+              ` : `
+                <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl flex items-center gap-1 ml-auto">
+                  <i data-lucide="check-circle" class="w-4 h-4"></i>
+                  <span>Caso Solucionado</span>
+                </span>
+              `}
+            </div>
+
+          </div>
+        `;
+      }).join("");
+
+      lucide.createIcons();
+    };
+
+    window.abrirModalAccionTutela = function(id) {
+      const caso = todosLosReclamos.find(r => r.id === id);
+      if (!caso) return;
+      casoActivoTutela = caso;
+
+      const termino = calcularTerminoLegal15Dias(caso.fecha_radicado_entidad || caso.fecha_envio_jac || caso.fecha, caso.estado);
+      const infoEntidad = ENTIDADES_INFO[caso.entidad_destino] || ENTIDADES_INFO["Alcaldía de Valledupar - Secretaría de Obras Públicas"];
+
+      document.getElementById("tutelaRadicadoBadge").textContent = caso.id;
+      document.getElementById("tutelaDiasVencidoBadge").textContent = `¡Vencido hace ${termino.diasVencido} días hábiles!`;
+
+      const htmlTutela = `
+        <div class="text-center pb-4 border-b border-slate-300 space-y-1">
+          <h3 class="text-sm font-black tracking-wider uppercase text-slate-900">
+            SEÑOR JUEZ MUNICIPAL O DEL CIRCUITO DE VALLEDUPAR (REPARTO)
+          </h3>
+          <p class="text-xs text-slate-600 font-bold">E. S. D.</p>
+        </div>
+
+        <div class="pt-3 space-y-3 text-xs leading-relaxed text-slate-800">
+          <p>
+            <strong>REF: ACCIÓN DE TUTELA PARA LA PROTECCIÓN DEL DERECHO FUNDAMENTAL DE PETICIÓN (ARTÍCULO 23 DE LA CONSTITUCIÓN POLÍTICA Y LEY ESTATUTARIA 1755 DE 2015).</strong>
+          </p>
+
+          <p>
+            <strong>ACCIONANTE:</strong> JUNTA DE ACCIÓN COMUNAL BARRIO PANAMÁ II Y III (Valledupar, Cesar), entidad cívica sin ánimo de lucro reconocida mediante <strong>Personería Jurídica No. 000015 de 2003</strong> y con <strong>NIT 900218415-5</strong>, domiciliada en la Calle 44 A # 5 A-89, actuando a través de su Junta Directiva y Veeduría Ciudadana en representación y defensa de los derechos de la comunidad afectada.
+          </p>
+
+          <p>
+            <strong>ACCIONADO:</strong> <strong>${infoEntidad.nombre.toUpperCase()}</strong>, representada legalmente por su Alcalde Municipal, Gerente General o quien haga sus veces.
+          </p>
+
+          <div class="border-t border-slate-200 pt-2">
+            <h4 class="font-black text-xs uppercase tracking-wide text-slate-900 mb-1">I. HECHOS FÁCTICOS</h4>
+            <ol class="list-decimal pl-5 space-y-2">
+              <li>
+                El día <strong>${termino.fechaInicioStr}</strong>, la Junta de Acción Comunal radicó formalmente ante la entidad accionada la petición y requerimiento oficial identificado con radicado interno <strong>${caso.id}</strong> ${caso.radicado_entidad ? `(y número de radicado asignado por la entidad: <strong>${caso.radicado_entidad}</strong>)` : ''}, solicitando la intervención urgente sobre: <em>"${caso.titulo}"</em>, en la dirección <strong>${caso.ubicacion} (Barrio Panamá II y III, Valledupar)</strong>.
+              </li>
+              <li>
+                En dicho oficio se expuso con precisión técnica y fotográfica la problemática comunitaria: <em>"${caso.descripcion}"</em>, la cual compromete la salubridad pública, la seguridad y la dignidad de las familias del sector.
+              </li>
+              <li>
+                De conformidad con el Artículo 14 de la Ley 1755 de 2015 (por medio de la cual se regula el Derecho Fundamental de Petición), la entidad accionada disponía de un <strong>término legal perentorio e improrrogable de quince (15) días hábiles</strong> siguientes a su recepción para resolver de fondo la solicitud.
+              </li>
+              <li>
+                Dicho plazo legal venció inexorablemente el día <strong>${termino.fechaVencimientoStr}</strong>.
+              </li>
+              <li>
+                A la fecha de interposición de la presente acción de tutela, han transcurrido <strong>${termino.diasHabilesTranscurridos} días hábiles</strong>, superando en <strong>${termino.diasVencido} días</strong> el plazo legal fijado por el legislador estatutario, sin que la entidad accionada haya emitido una respuesta de fondo, clara, precisa y congruente, ni haya informado motivo alguno de justificación para la demora.
+              </li>
+              <li>
+                La omisión administrativa reiterada de la entidad accionada configura una flagrante vulneración al <strong>Derecho Fundamental de Petición (Art. 23 C.P.)</strong> y deja en estado de absoluta indefensión a los habitantes del Barrio Panamá.
+              </li>
+            </ol>
+          </div>
+
+          <div class="border-t border-slate-200 pt-2">
+            <h4 class="font-black text-xs uppercase tracking-wide text-slate-900 mb-1">II. FUNDAMENTOS DE DERECHO Y JURISPRUDENCIA</h4>
+            <p>
+              El Artículo 23 de la Constitución Política consagra el derecho fundamental de toda persona a presentar peticiones respetuosas a las autoridades por motivos de interés general o particular y a <strong>obtener pronta resolución</strong>.
+            </p>
+            <p class="mt-1">
+              La <strong>Corte Constitucional de Colombia</strong> (Sentencias T-377/00, T-149/13, C-951/14 y SU-140/19) ha reiterado pacíficamente que el derecho de petición no se agota con la simple radicación del documento, sino que exige:
+              <em>a) Una respuesta pronta y oportuna dentro de los términos de ley; b) Una resolución de fondo, material y efectiva; y c) La notificación oportuna al peticionario.</em>
+            </p>
+          </div>
+
+          <div class="border-t border-slate-200 pt-2">
+            <h4 class="font-black text-xs uppercase tracking-wide text-slate-900 mb-1">III. PRETENSIONES</h4>
+            <ol class="list-decimal pl-5 space-y-1.5 font-medium">
+              <li>
+                <strong>TUTELAR</strong> el derecho fundamental de petición consagrado en el Artículo 23 de la Constitución Política y regulado por la Ley 1755 de 2015, a favor de la Junta de Acción Comunal Barrio Panamá II y III y de la comunidad afectada.
+              </li>
+              <li>
+                <strong>ORDENAR</strong> al representante legal de <strong>${infoEntidad.nombre}</strong> que, dentro del término perentorio e improrrogable de <strong>cuarenta y ocho (48) horas</strong> contadas a partir de la notificación del fallo, proceda a dar respuesta completa, de fondo, clara y precisa al requerimiento <strong>${caso.id}</strong> ${caso.radicado_entidad ? `(Rad. ${caso.radicado_entidad})` : ''}, disponiendo las medidas técnicas y operativas para la solución inmediata de la problemática.
+              </li>
+              <li>
+                <strong>PREVENIR</strong> a la entidad accionada para que en ningún caso vuelva a incurrir en omisiones o dilaciones injustificadas, bajo apremio de las sanciones por <strong>DESACATO</strong> consagradas en los Artículos 52 y 53 del Decreto 2591 de 1991.
+              </li>
+            </ol>
+          </div>
+
+          <div class="border-t border-slate-200 pt-2">
+            <h4 class="font-black text-xs uppercase tracking-wide text-slate-900 mb-1">IV. PRUEBAS</h4>
+            <ul class="list-disc pl-5 space-y-1 text-[11px]">
+              <li>Copia digital del Oficio Formal de Requerimiento radicado por la JAC (Radicado No. ${caso.id}).</li>
+              ${caso.soporte_radicado_entidad ? `<li>Constancia o comprobante oficial de recibido expedido por la entidad.</li>` : `<li>Constancia de envío telemático al correo oficial institucional de la entidad: ${infoEntidad.email}.</li>`}
+              <li>Registro fotográfico georreferenciado de la problemática en la comunidad.</li>
+            </ul>
+          </div>
+
+          <div class="border-t border-slate-200 pt-2">
+            <h4 class="font-black text-xs uppercase tracking-wide text-slate-900 mb-1">V. NOTIFICACIONES</h4>
+            <p class="text-[11px]">
+              <strong>La parte accionante (JAC Panamá II y III):</strong> Correo oficial: <code class="font-mono font-bold">barriopanamatres@gmail.com</code> · Celular / WhatsApp: 300 249 9700 · Dirección: Calle 44 A # 5 A-89, Barrio Panamá, Valledupar.<br>
+              <strong>La parte accionada (${infoEntidad.nombre}):</strong> Correo institucional: <code class="font-mono font-bold">${infoEntidad.email}</code> · Dirección: ${infoEntidad.direccion}, Valledupar.
+            </p>
+          </div>
+
+          <div class="pt-6 text-center">
+            <div class="inline-block border-t border-slate-800 pt-1 w-64 text-center">
+              <p class="font-black text-xs text-slate-900">JUNTA DIRECTIVA & VEEDURÍA</p>
+              <p class="text-[10px] text-slate-600">JAC Barrio Panamá II y III · Valledupar</p>
+              <p class="text-[9px] text-slate-500 font-mono">Personería Jurídica No. 000015 de 2003 · NIT: 900218415-5</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById("cuerpoDemandaTutelaImprimible").innerHTML = htmlTutela;
+
+      const btnEmail = document.getElementById("btnEnviarEmailTutela");
+      const subjectTutela = encodeURIComponent(`ACCIÓN DE TUTELA - DERECHO DE PETICIÓN - ACCIONANTE: JAC BARRIO PANAMA II Y III - ACCIONADO: ${infoEntidad.nombre}`);
+      const mailtoLink = `mailto:repartovalledupar@cendoj.ramajudicial.gov.co?subject=${subjectTutela}&body=${encodeURIComponent("Adjunto formalmente demanda de Acción de Tutela por violación flagrante al Derecho Fundamental de Petición (Ley 1755 de 2015).\n\nAccionante: JAC Barrio Panamá II y III (NIT 900218415-5)\nAccionado: " + infoEntidad.nombre + "\nRadicado: " + caso.id + "\n\nFavor radicar y remitir constancia con número de proceso asignado al correo: barriopanamatres@gmail.com")}`;
+      btnEmail.href = mailtoLink;
+
+      document.getElementById("modalAccionTutela").classList.remove("hidden");
+      lucide.createIcons();
+    };
+
+    window.cerrarModalAccionTutela = function() {
+      document.getElementById("modalAccionTutela").classList.add("hidden");
+    };
+
+    window.imprimirDemandaTutela = function() {
+      const elemento = document.getElementById("cuerpoDemandaTutelaImprimible");
+      if (!elemento) return;
+      const ventana = window.open('', '_blank');
+      ventana.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Demanda_Accion_Tutela_JAC_Panama_${casoActivoTutela ? casoActivoTutela.id : '2026'}</title>
+          <style>
+            body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; margin: 40px; color: #000; }
+            h3 { text-align: center; font-size: 13pt; margin-bottom: 20px; }
+            h4 { font-size: 12pt; margin-top: 18px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+            ol, ul { padding-left: 25px; }
+            li { margin-bottom: 8px; }
+            p { margin-bottom: 10px; text-align: justify; }
+            code { font-family: monospace; }
+            @page { margin: 2.5cm; }
+          </style>
+        </head>
+        <body>
+          ${elemento.innerHTML}
+        </body>
+        </html>
+      `);
+      ventana.document.close();
+      ventana.focus();
+      setTimeout(() => { ventana.print(); }, 400);
+    };
+
+    window.copiarDemandaTutela = function() {
+      const el = document.getElementById("cuerpoDemandaTutelaImprimible");
+      if (!el) return;
+      const texto = el.innerText;
+      navigator.clipboard.writeText(texto).then(() => {
+        const btn = document.getElementById("btnCopiarTutelaTexto");
+        if (btn) {
+          const orig = btn.textContent;
+          btn.textContent = "✓ ¡Demanda Copiada!";
+          setTimeout(() => { btn.textContent = orig; }, 2500);
+        }
+      });
+    };
+
+    window.enviarOficioReiteracion = function(id) {
+      const caso = todosLosReclamos.find(r => r.id === id);
+      if (!caso) return;
+      const termino = calcularTerminoLegal15Dias(caso.fecha_radicado_entidad || caso.fecha_envio_jac || caso.fecha, caso.estado);
+      const infoEntidad = ENTIDADES_INFO[caso.entidad_destino] || ENTIDADES_INFO["Alcaldía de Valledupar - Secretaría de Obras Públicas"];
+
+      const asunto = encodeURIComponent(`🚨 REITERACIÓN URGENTE Y ALERTA DE VENCIMIENTO DE TÉRMINOS PQRS - RAD: ${caso.id} ${caso.radicado_entidad ? '(' + caso.radicado_entidad + ')' : ''}`);
+      const cuerpo = encodeURIComponent(`SEÑORES\n${infoEntidad.nombre.toUpperCase()}\nVALLEDUPAR, CESAR\n\nASUNTO: REITERACIÓN DE PETICIÓN Y ALERTA PREVENTIVA DE VENCIMIENTO DE TÉRMINO LEGAL (LEY 1755 DE 2015)\n\nRespetados señores:\n\nPor medio del presente oficio, la JUNTA DE ACCIÓN COMUNAL BARRIO PANAMÁ II Y III (Personería No. 000015 de 2003 · NIT: 900218415-5) les recuerda de manera respetuosa pero enérgica que el requerimiento radicado bajo el código JAC: ${caso.id} ${caso.radicado_entidad ? 'y radicado de entidad: ' + caso.radicado_entidad : ''} sobre "${caso.titulo}" en ${caso.ubicacion}, se encuentra en el DÍA ${termino.diasHabilesTranscurridos} DE LOS 15 DÍAS HÁBILES de plazo legal.\n\nFecha límite de vencimiento: ${termino.fechaVencimientoStr}.\n\nLes solicitamos dar respuesta inmediata de fondo y ejecutar las acciones requeridas antes de dicha fecha para evitar la interposición de Acción de Tutela (Art. 86 C.P.) ante los Juzgados de Valledupar y queja disciplinaria ante la Personería.\n\nAtentamente,\n\nJUNTA DE ACCIÓN COMUNAL BARRIO PANAMÁ II Y III\nValledupar, Cesar\nbarriopanamatres@gmail.com`);
+
+      const url = `mailto:${infoEntidad.email}?cc=barriopanamatres@gmail.com&subject=${asunto}&body=${cuerpo}`;
+      window.open(url, '_blank');
     };
 
     // ==========================================
