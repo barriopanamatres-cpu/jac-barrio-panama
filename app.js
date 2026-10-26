@@ -1,94 +1,135 @@
-﻿/**
- * JAC PanamÃ¡ II - Plataforma Oficial de VeedurÃ­a Ciudadana y PresiÃ³n Social
- * AlcaldÃ­a de Valledupar, Cesar - Colombia
+/**
+ * JAC Panamá II y III - Plataforma Oficial de Veeduría Ciudadana y Presión Social
+ * Alcaldía de Valledupar, Cesar - Colombia
+ * Integración Oficial: Supabase (PostgreSQL + Storage) + Leaflet (Mapa Delimitado)
  */
 
-// Casos precargados iniciales con el caso clave del poste de luz
+// Configuración Oficial de Supabase
+const SUPABASE_URL = "https://qumwwqmfdszwrwtcznfq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_eharY6YnMohsirphNAizng_db4PD0bV";
+let supabaseClient = null;
+
+if (window.supabase) {
+  try {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  } catch (err) {
+    console.warn("Supabase init aviso:", err);
+  }
+}
+
+// Delimitación Geográfica Estricta de Barrio Panamá II y III (Comuna 2 Sur de Valledupar)
+// Bordeado por Calle 44 al norte, Calle 50 al sur, Carrera 5A al oriente, Carrera 7 al occidente
+const PANAMA_BOUNDS = [
+  [10.4410, -73.2465], // Suroccidente
+  [10.4530, -73.2335]  // Nororiente
+];
+const PANAMA_CENTRO_II = [10.4471, -73.2398]; // Cerca a Manzana 14 Casa 8
+const PANAMA_CENTRO_III = [10.4452, -73.2415]; // Sector Panamá III
+
+// Variables de Mapas Leaflet
+let mapaPicker = null;
+let pickerMarker = null;
+let mapaGeneral = null;
+let marcadoresCapa = null;
+
+// Casos precargados iniciales de respaldo (si la base de datos está recién creada)
 const CASOS_INICIALES = [
   {
     id: "RAD-PANAMA-2026-0001",
-    titulo: "Poste de alumbrado pÃºblico a punto de colapsar sobre viviendas",
-    categoria: "Alumbrado PÃºblico",
-    ubicacion: "Manzana 14 Casa 8 (CallejÃ³n peatonal)",
-    tiempo: "38 dÃ­as",
+    titulo: "Poste de alumbrado público a punto de colapsar sobre viviendas",
+    categoria: "Alumbrado Público",
+    ubicacion: "Manzana 14 Casa 8 (Callejón peatonal)",
+    sector: "Panamá II",
+    tiempo: "38 días",
     diasNumero: 38,
-    descripcion: "El poste de concreto presenta fractura severa en la base y se encuentra inclinado, sostenido Ãºnicamente por el cableado de energÃ­a. Se radicÃ³ peticiÃ³n formal a ESTIV y a la AlcaldÃ­a pero fuimos totalmente ignorados. NiÃ±os juegan a diario en la zona y el riesgo de electrocuciÃ³n o colapso es crÃ­tico.",
+    descripcion: "El poste de concreto presenta fractura severa en la base y se encuentra inclinado, sostenido únicamente por el cableado de energía. Se radicó petición formal a ESTIV y a la Alcaldía pero fuimos totalmente ignorados. Niños juegan a diario en la zona y el riesgo de electrocución o colapso es crítico.",
     foto: "https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=crop&w=800&q=80",
     estado: "Ignorado",
     afectados: "45 familias",
     fecha: "18 de Septiembre, 2026",
-    solicitante: "JAC PanamÃ¡ II / ComitÃ© de VeedurÃ­a"
+    solicitante: "JAC Panamá II / Comité de Veeduría",
+    lat: 10.4471,
+    lng: -73.2398
   },
   {
     id: "RAD-PANAMA-2026-0002",
-    titulo: "Alcantarilla rebosada de aguas servidas frente a la cancha sintÃ©tica",
+    titulo: "Alcantarilla rebosada de aguas servidas frente a la cancha sintética",
     categoria: "Emdupar",
-    ubicacion: "Carrera 6B frente a la Cancha SintÃ©tica",
-    tiempo: "22 dÃ­as",
+    ubicacion: "Carrera 6B frente a la Cancha Sintética",
+    sector: "Panamá III",
+    tiempo: "22 días",
     diasNumero: 22,
-    descripcion: "Aguas negras corriendo por la calle, olores nauseabundos e invasiÃ³n de mosquitos. Emdupar no ha enviado el carro vactor a pesar de los constantes llamados de la comunidad.",
+    descripcion: "Aguas negras corriendo por la calle, olores nauseabundos e invasión de mosquitos. Emdupar no ha enviado el carro vactor a pesar de los constantes llamados de la comunidad.",
     foto: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80",
     estado: "En espera",
     afectados: "120 familias",
     fecha: "03 de Octubre, 2026",
-    solicitante: "Comunidad Vecinal Mz 9 y 10"
+    solicitante: "Comunidad Vecinal Mz 9 y 10",
+    lat: 10.4455,
+    lng: -73.2410
   },
   {
     id: "RAD-PANAMA-2026-0003",
-    titulo: "CrÃ¡ter peligroso en la vÃ­a de acceso Calle 44 con Carrera 6",
+    titulo: "Cráter peligroso en la vía de acceso Calle 44 con Carrera 6",
     categoria: "Malla Vial",
     ubicacion: "Entrada principal Calle 44 con Carrera 6",
-    tiempo: "60 dÃ­as",
+    sector: "Panamá II",
+    tiempo: "60 días",
     diasNumero: 60,
-    descripcion: "Hueco profundo que abarca media calzada y ha provocado caÃ­das de motociclistas y daÃ±os en vehÃ­culos. La SecretarÃ­a de Obras PÃºblicas de Valledupar no ha intervenido.",
+    descripcion: "Hueco profundo que abarca media calzada y ha provocado caídas de motociclistas y daños en vehículos. La Secretaría de Obras Públicas de Valledupar no ha intervenido.",
     foto: "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80",
     estado: "Ignorado",
     afectados: "Todo el sector",
     fecha: "25 de Agosto, 2026",
-    solicitante: "Gremio de Transportadores y Vecinos"
+    solicitante: "Gremio de Transportadores y Vecinos",
+    lat: 10.4490,
+    lng: -73.2385
   },
   {
     id: "RAD-PANAMA-2026-0004",
-    titulo: "RecuperaciÃ³n de iluminaciÃ³n LED en el parque infantil",
+    titulo: "Recuperación de iluminación LED en el parque infantil",
     categoria: "Seguridad y Parques",
-    ubicacion: "Parque Central del Barrio PanamÃ¡ II",
+    ubicacion: "Parque Central del Barrio Panamá II",
+    sector: "Panamá II",
     tiempo: "Solucionado",
     diasNumero: 0,
-    descripcion: "Gracias a la presiÃ³n pÃºblica comunitaria en redes sociales y la gestiÃ³n de la JAC, la cuadrilla de alumbrado realizÃ³ el cambio total de luminarias.",
+    descripcion: "Gracias a la presión pública comunitaria en redes sociales y la gestión de la JAC, la cuadrilla de alumbrado realizó el cambio total de luminarias.",
     foto: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=800&q=80",
     estado: "Solucionado",
     afectados: "Resuelto",
     fecha: "12 de Octubre, 2026",
-    solicitante: "JAC PanamÃ¡ II"
+    solicitante: "JAC Panamá II",
+    lat: 10.4465,
+    lng: -73.2405
   }
 ];
 
-// Noticias iniciales en vivo (extraÃ­das del portal de Valledupar)
+// Noticias iniciales en vivo
 const NOTICIAS_DEFAULT = [
   {
     id: "noticia-1",
     titulo: "Equipo Azul, a dar un paso gigante antes Real Aracataca",
     fecha: "23 de octubre de 2026",
     categoria: "Deportes",
-    descripcion: "Los vallenatos vienen de imponerse en la serie sobre Locos por el FÃºtbol de NariÃ±o, teniendo en cuenta que el partido de ida terminÃ³ con victoria 1-0 a favor de los cesarenses.",
+    descripcion: "Los vallenatos vienen de imponerse en la serie sobre Locos por el Fútbol de Nariño, teniendo en cuenta que el partido de ida terminó con victoria 1-0 a favor de los cesarenses.",
     foto: "https://valledupar-sedigov.s-integrations.co/attachment/files/download/94AE4B3E-F36B-1410-8C8C-00A971D655DB",
     enlace: "https://www.valledupar-cesar.gov.co/noticias/equipo-azul-a-dar-un-paso-gigante-antes-real-aracataca"
   },
   {
     id: "noticia-2",
-    titulo: "Gobierno del alcalde Ernesto Orozco suma mÃ¡s de 130.000 acciones contra el dengue",
+    titulo: "Gobierno del alcalde Ernesto Orozco suma más de 130.000 acciones contra el dengue",
     fecha: "23 de octubre de 2026",
-    categoria: "Salud PÃºblica",
-    descripcion: "En dos aÃ±os y diez meses de la actual administraciÃ³n, los equipos de Enfermedades Transmitidas por Vectores intensifican fumigaciÃ³n y control.",
+    categoria: "Salud Pública",
+    descripcion: "En dos años y diez meses de la actual administración, los equipos de Enfermedades Transmitidas por Vectores intensifican fumigación y control.",
     foto: "https://valledupar-sedigov.s-integrations.co/attachment/files/download/3B484A3E-F36B-1410-8C8C-00A971D655DB",
     enlace: "https://www.valledupar-cesar.gov.co/noticias/gobierno-del-alcalde-ernesto-orozco-suma-mas-de-130000-acciones-contra-el-dengue"
   },
   {
     id: "noticia-3",
-    titulo: "Capturado en Valledupar alias 'El Guajiro', seÃ±alado de cometer dos homicidios en Santa Marta",
+    titulo: "Capturado en Valledupar alias 'El Guajiro', señalado de cometer dos homicidios en Santa Marta",
     fecha: "22 de octubre de 2026",
     categoria: "Seguridad",
-    descripcion: "De acuerdo con las autoridades, la captura se produjo en un puesto de registro y control en el perÃ­metro urbano del municipio.",
+    descripcion: "De acuerdo con las autoridades, la captura se produjo en un puesto de registro y control en el perímetro urbano del municipio.",
     foto: "https://valledupar-sedigov.s-integrations.co/attachment/files/download/290B4A3E-F36B-1410-8C8C-00A971D655DB",
     enlace: "https://www.valledupar-cesar.gov.co/noticias/capturado-en-valledupar-alias-el-guajiro-senalado-de-cometer-dos-homicidios-en-santa-marta"
   }
@@ -96,189 +137,235 @@ const NOTICIAS_DEFAULT = [
 
 let reclamos = [];
 let noticias = [];
+let archivoFotoSeleccionado = null;
 let fotoActualDataUrl = "";
 let reclamoSeleccionado = null;
 
-// InicializaciÃ³n
-document.addEventListener("DOMContentLoaded", () => {
-  cargarReclamos();
+// Inicialización de la aplicación
+document.addEventListener("DOMContentLoaded", async () => {
+  await cargarReclamos();
   cargarNoticias();
   renderizarMuro("todos");
+  inicializarMapaPicker();
   configurarEventos();
   lucide.createIcons();
 });
 
-// Cargar Noticias (con persistencia local y fallback)
-function cargarNoticias() {
-  const guardadas = localStorage.getItem("valledupar_noticias_cache");
-  if (guardadas) {
-    try {
-      noticias = JSON.parse(guardadas);
-    } catch (e) {
-      noticias = NOTICIAS_DEFAULT;
-    }
-  } else {
-    noticias = NOTICIAS_DEFAULT;
-    localStorage.setItem("valledupar_noticias_cache", JSON.stringify(noticias));
-  }
-  renderizarNoticias();
+// ==========================================
+// INICIALIZACIÓN DE MAPAS LEAFLET (PANAMÁ II Y III)
+// ==========================================
+function inicializarMapaPicker() {
+  const contenedor = document.getElementById("mapaPanamaPicker");
+  if (!contenedor || typeof L === "undefined") return;
+
+  const southWest = L.latLng(PANAMA_BOUNDS[0][0], PANAMA_BOUNDS[0][1]);
+  const northEast = L.latLng(PANAMA_BOUNDS[1][0], PANAMA_BOUNDS[1][1]);
+  const bounds = L.latLngBounds(southWest, northEast);
+
+  mapaPicker = L.map("mapaPanamaPicker", {
+    center: PANAMA_CENTRO_II,
+    zoom: 17,
+    minZoom: 15,
+    maxZoom: 19,
+    maxBounds: bounds,
+    maxBoundsViscosity: 1.0 // Impide estrictamente salirse de Panamá II y III
+  });
+
+  // Capa de mapas OpenStreetMap
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '© OpenStreetMap | JAC Panamá II y III',
+    maxZoom: 19
+  }).addTo(mapaPicker);
+
+  // Polígono visual representativo de Panamá II y III
+  const poligonoPanama = [
+    [10.4510, -73.2440],
+    [10.4505, -73.2360],
+    [10.4430, -73.2365],
+    [10.4425, -73.2445]
+  ];
+  L.polygon(poligonoPanama, {
+    color: '#004884',
+    fillColor: '#3366CC',
+    fillOpacity: 0.1,
+    weight: 2,
+    dashArray: '4, 4'
+  }).addTo(mapaPicker);
+
+  // Marcador seleccionable
+  pickerMarker = L.marker(PANAMA_CENTRO_II, {
+    draggable: true,
+    title: "Arrastra para fijar la manzana o casa afectada"
+  }).addTo(mapaPicker);
+
+  pickerMarker.bindPopup("<b>Ubicación seleccionada</b><br>Manzana 14 Casa 8 (Barrio Panamá II)").openPopup();
+
+  // Actualizar coordenadas al arrastrar el pin
+  pickerMarker.on("dragend", (e) => {
+    const latLng = e.target.getLatLng();
+    actualizarCoordenadasFormulario(latLng.lat, latLng.lng);
+  });
+
+  // Actualizar coordenadas al hacer clic en el mapa
+  mapaPicker.on("click", (e) => {
+    pickerMarker.setLatLng(e.latlng);
+    actualizarCoordenadasFormulario(e.latlng.lat, e.latlng.lng);
+  });
 }
 
-// Sincronizar noticias en vivo desde el portal de la AlcaldÃ­a
-async function sincronizarNoticiasEnVivo() {
-  const btn = document.getElementById("btnRecargarNoticias");
-  const originalHtml = btn.innerHTML;
-  btn.innerHTML = `<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> <span>Consultando...</span>`;
-  lucide.createIcons();
+function actualizarCoordenadasFormulario(lat, lng) {
+  const geoLat = document.getElementById("geoLat");
+  const geoLng = document.getElementById("geoLng");
+  const texto = document.getElementById("coordenadasTexto");
+  if (geoLat) geoLat.value = lat.toFixed(5);
+  if (geoLng) geoLng.value = lng.toFixed(5);
+  if (texto) texto.textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+}
 
-  try {
-    // Usamos proxy pÃºblico o fetch directo para consultar el portal oficial
-    const res = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://www.valledupar-cesar.gov.co/"));
-    if (res.ok) {
-      const data = await res.json();
-      const html = data.contents;
-      
-      // Extraemos las noticias del DOM oficial
-      const newsLinks = [...html.matchAll(/href="\/noticias\/([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)];
-      if (newsLinks.length > 0) {
-        const nuevasNoticias = [];
-        const visitados = new Set();
+// Inicializar Mapa Comunitario Completo
+function inicializarMapaComunitario() {
+  const contenedor = document.getElementById("mapaPanamaGeneral");
+  if (!contenedor || typeof L === "undefined") return;
 
-        for (const nl of newsLinks) {
-          const slug = nl[1];
-          if (visitados.has(slug)) continue;
-          visitados.add(slug);
+  if (mapaGeneral) {
+    mapaGeneral.invalidateSize();
+    actualizarMarcadoresComunitarios();
+    return;
+  }
 
-          const inner = nl[2];
-          const imgMatch = inner.match(/src="([^"]+)"/);
-          const textClean = inner.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const southWest = L.latLng(PANAMA_BOUNDS[0][0], PANAMA_BOUNDS[0][1]);
+  const northEast = L.latLng(PANAMA_BOUNDS[1][0], PANAMA_BOUNDS[1][1]);
+  const bounds = L.latLngBounds(southWest, northEast);
 
-          // extraer fecha aproximada
-          const fechaMatch = textClean.match(/\d{1,2}\s+de\s+[a-zÃ¡Ã©Ã­Ã³ÃºÃ±]+\s+de\s+\d{4}/i);
-          const fecha = fechaMatch ? fechaMatch[0] : "Reciente";
+  mapaGeneral = L.map("mapaPanamaGeneral", {
+    center: PANAMA_CENTRO_II,
+    zoom: 17,
+    minZoom: 15,
+    maxZoom: 19,
+    maxBounds: bounds,
+    maxBoundsViscosity: 1.0
+  });
 
-          nuevasNoticias.push({
-            id: slug,
-            titulo: slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-            fecha: fecha,
-            categoria: "AlcaldÃ­a de Valledupar",
-            descripcion: textClean.slice(0, 160) + "...",
-            foto: imgMatch ? imgMatch[1] : NOTICIAS_DEFAULT[0].foto,
-            enlace: "https://www.valledupar-cesar.gov.co/noticias/" + slug
-          });
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '© OpenStreetMap | Veeduría JAC Panamá II y III',
+    maxZoom: 19
+  }).addTo(mapaGeneral);
 
-          if (nuevasNoticias.length >= 3) break;
-        }
+  // Marco perimetral
+  L.polygon([
+    [10.4510, -73.2440],
+    [10.4505, -73.2360],
+    [10.4430, -73.2365],
+    [10.4425, -73.2445]
+  ], {
+    color: '#D83744',
+    fillColor: '#004884',
+    fillOpacity: 0.08,
+    weight: 2
+  }).addTo(mapaGeneral);
 
-        if (nuevasNoticias.length > 0) {
-          noticias = nuevasNoticias;
-          localStorage.setItem("valledupar_noticias_cache", JSON.stringify(noticias));
-          renderizarNoticias();
-        }
+  marcadoresCapa = L.layerGroup().addTo(mapaGeneral);
+  actualizarMarcadoresComunitarios();
+}
+
+function actualizarMarcadoresComunitarios() {
+  if (!mapaGeneral || !marcadoresCapa) return;
+  marcadoresCapa.clearLayers();
+
+  reclamos.forEach(caso => {
+    const lat = caso.lat || 10.4471;
+    const lng = caso.lng || -73.2398;
+
+    let markerColor = "#DC2626"; // Ignorado
+    if (caso.estado === "En espera") markerColor = "#D97706";
+    if (caso.estado === "Solucionado") markerColor = "#059669";
+
+    const circleMarker = L.circleMarker([lat, lng], {
+      radius: 9,
+      fillColor: markerColor,
+      color: "#FFFFFF",
+      weight: 2.5,
+      opacity: 1,
+      fillOpacity: 0.95
+    });
+
+    const popupHtml = `
+      <div style="min-width: 220px; font-family: Montserrat, sans-serif;">
+        <div style="font-size: 10px; font-weight: 800; color: #004884; margin-bottom: 2px;">
+          ${caso.id} • ${caso.sector || 'Panamá II'}
+        </div>
+        <div style="font-size: 12px; font-weight: 700; color: #1e293b; line-height: 1.25; margin-bottom: 4px;">
+          ${caso.titulo}
+        </div>
+        <div style="font-size: 11px; color: #64748b; margin-bottom: 6px;">
+          📍 ${caso.ubicacion}
+        </div>
+        <img src="${caso.foto}" style="width: 100%; height: 95px; object-fit: cover; border-radius: 6px; margin-bottom: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-weight: 700;">
+          <span style="color: ${markerColor};">${caso.estado.toUpperCase()}</span>
+          <button onclick="abrirModalInstagram('${caso.id}')" style="background: #004884; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
+            Ficha Instagram
+          </button>
+        </div>
+      </div>
+    `;
+
+    circleMarker.bindPopup(popupHtml);
+    circleMarker.addTo(marcadoresCapa);
+  });
+}
+
+// ==========================================
+// GESTIÓN DE BASE DE DATOS Y SUPABASE
+// ==========================================
+async function cargarReclamos() {
+  let cargadosDesdeSupabase = false;
+
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient
+        .from('reclamos')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        reclamos = data.map(r => ({
+          id: r.id,
+          titulo: r.titulo,
+          categoria: r.categoria,
+          ubicacion: r.ubicacion,
+          sector: r.sector || "Panamá II",
+          tiempo: r.tiempo,
+          diasNumero: r.dias_numero || 1,
+          descripcion: r.descripcion,
+          foto: r.foto,
+          estado: r.estado || "Ignorado",
+          afectados: r.afectados || "Comunidad Panamá",
+          fecha: r.fecha,
+          solicitante: r.solicitante || "Habitante Panamá",
+          lat: r.lat || 10.4471,
+          lng: r.lng || -73.2398
+        }));
+        cargadosDesdeSupabase = true;
+        localStorage.setItem("jac_panama2_reclamos", JSON.stringify(reclamos));
       }
-    }
-  } catch (err) {
-    console.log("Aviso: SincronizaciÃ³n en vivo utilizÃ³ la cachÃ© local mÃ¡s reciente.", err);
-  } finally {
-    btn.innerHTML = originalHtml;
-    lucide.createIcons();
-  }
-}
-
-function renderizarNoticias() {
-  const cont = document.getElementById("contenedorNoticias");
-  if (!cont || noticias.length < 3) return;
-
-  const p = noticias[0];
-  const s1 = noticias[1];
-  const s2 = noticias[2];
-
-  cont.innerHTML = `
-    <!-- NOTICIA PRINCIPAL (Izquierda, Foto 3) -->
-    <div class="md:col-span-6 bg-white rounded-xl border border-[#CADDFB] overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between">
-      <div>
-        <div class="relative h-60 w-full overflow-hidden bg-slate-900">
-          <img src="${p.foto}" alt="${p.titulo}" class="w-full h-full object-cover">
-          <div class="absolute top-3 left-3 bg-[#004884] text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
-            ${p.fecha}
-          </div>
-        </div>
-        <div class="p-5">
-          <h3 class="text-base sm:text-lg font-bold text-slate-900 leading-snug hover:text-[#004884] transition cursor-pointer">
-            ${p.titulo}
-          </h3>
-          <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-            ${p.descripcion}
-          </p>
-        </div>
-      </div>
-      <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex justify-between items-center text-xs">
-        <span class="text-slate-400 text-[11px]">${p.categoria}</span>
-        <a href="${p.enlace}" target="_blank" class="text-[#004884] font-bold hover:underline">Leer completa â†’</a>
-      </div>
-    </div>
-
-    <!-- NOTICIAS SECUNDARIAS (Derecha, Foto 3) -->
-    <div class="md:col-span-6 flex flex-col gap-6">
-      
-      <!-- Sec 1 -->
-      <div class="bg-white rounded-xl border border-[#CADDFB] overflow-hidden shadow-sm hover:shadow-md transition flex flex-col sm:flex-row items-stretch">
-        <div class="sm:w-2/5 relative h-40 sm:h-auto shrink-0 bg-slate-900">
-          <img src="${s1.foto}" alt="${s1.titulo}" class="w-full h-full object-cover">
-        </div>
-        <div class="p-4 flex flex-col justify-between flex-grow">
-          <div>
-            <span class="text-[10px] font-bold text-slate-400 uppercase">${s1.fecha}</span>
-            <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug mt-1 hover:text-[#004884] transition cursor-pointer">
-              ${s1.titulo}
-            </h4>
-            <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-              ${s1.descripcion}
-            </p>
-          </div>
-          <div class="mt-2 text-right">
-            <a href="${s1.enlace}" target="_blank" class="text-xs font-bold text-[#004884] hover:underline">Ver noticia â†’</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sec 2 -->
-      <div class="bg-white rounded-xl border border-[#CADDFB] overflow-hidden shadow-sm hover:shadow-md transition flex flex-col sm:flex-row items-stretch">
-        <div class="sm:w-2/5 relative h-40 sm:h-auto shrink-0 bg-slate-900">
-          <img src="${s2.foto}" alt="${s2.titulo}" class="w-full h-full object-cover">
-        </div>
-        <div class="p-4 flex flex-col justify-between flex-grow">
-          <div>
-            <span class="text-[10px] font-bold text-slate-400 uppercase">${s2.fecha}</span>
-            <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug mt-1 hover:text-[#004884] transition cursor-pointer">
-              ${s2.titulo}
-            </h4>
-            <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-              ${s2.descripcion}
-            </p>
-          </div>
-          <div class="mt-2 text-right">
-            <a href="${s2.enlace}" target="_blank" class="text-xs font-bold text-[#004884] hover:underline">Ver noticia â†’</a>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  `;
-}
-
-// Cargar y almacenar reclamos de PanamÃ¡ II
-function cargarReclamos() {
-  const guardados = localStorage.getItem("jac_panama2_reclamos");
-  if (guardados) {
-    try {
-      reclamos = JSON.parse(guardados);
     } catch (e) {
-      reclamos = CASOS_INICIALES;
+      console.log("Aviso: Conectando con fallback local de reclamos", e);
     }
-  } else {
-    reclamos = CASOS_INICIALES;
-    guardarEnLocalStorage();
+  }
+
+  if (!cargadosDesdeSupabase) {
+    const guardados = localStorage.getItem("jac_panama2_reclamos");
+    if (guardados) {
+      try {
+        reclamos = JSON.parse(guardados);
+      } catch (e) {
+        reclamos = CASOS_INICIALES;
+      }
+    } else {
+      reclamos = CASOS_INICIALES;
+      guardarEnLocalStorage();
+    }
   }
 }
 
@@ -286,7 +373,37 @@ function guardarEnLocalStorage() {
   localStorage.setItem("jac_panama2_reclamos", JSON.stringify(reclamos));
 }
 
-// Renderizar Muro de Reclamos
+// Subir fotografía de evidencia al Storage de Supabase
+async function subirFotoSupabase(file) {
+  if (!supabaseClient || !file) return null;
+  try {
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const fileName = `evidencia_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabaseClient.storage
+      .from('evidencias')
+      .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+    if (uploadError) {
+      console.warn("Aviso subiendo a Supabase Storage:", uploadError);
+      return null;
+    }
+
+    const { data: publicUrlData } = supabaseClient.storage
+      .from('evidencias')
+      .getPublicUrl(filePath);
+
+    return publicUrlData?.publicUrl || null;
+  } catch (err) {
+    console.warn("Excepción al subir foto a Supabase:", err);
+    return null;
+  }
+}
+
+// ==========================================
+// RENDERIZADO DEL MURO Y NOTICIAS
+// ==========================================
 function renderizarMuro(filtro = "todos") {
   const contenedor = document.getElementById("gridReclamos");
   if (!contenedor) return;
@@ -296,13 +413,14 @@ function renderizarMuro(filtro = "todos") {
     ? reclamos 
     : reclamos.filter(r => r.estado.toLowerCase() === filtro.toLowerCase());
 
-  document.getElementById("countTodos").textContent = reclamos.length;
+  const countElem = document.getElementById("countTodos");
+  if (countElem) countElem.textContent = reclamos.length;
 
   if (filtrados.length === 0) {
     contenedor.innerHTML = `
       <div class="col-span-full py-12 text-center bg-white rounded-xl border border-slate-200">
         <i data-lucide="check-circle" class="w-12 h-12 text-emerald-500 mx-auto mb-2"></i>
-        <h4 class="font-bold text-slate-800">No hay reclamos en esta categorÃ­a</h4>
+        <h4 class="font-bold text-slate-800">No hay reclamos en esta categoría</h4>
         <p class="text-xs text-slate-500">No se registran solicitudes pendientes en este estado.</p>
       </div>
     `;
@@ -330,7 +448,7 @@ function renderizarMuro(filtro = "todos") {
           <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
             <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full ${badgeClass}">
               <i data-lucide="${badgeIcon}" class="w-3 h-3"></i>
-              ${caso.estado === "Ignorado" ? "IGNORADO POR ALCALDÃA" : caso.estado.toUpperCase()}
+              ${caso.estado === "Ignorado" ? "IGNORADO POR ALCALDÍA" : caso.estado.toUpperCase()}
             </span>
           </div>
           <div class="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded border border-white/20">
@@ -339,8 +457,9 @@ function renderizarMuro(filtro = "todos") {
         </div>
 
         <div class="p-5">
-          <div class="text-[10px] font-extrabold text-[#004884] uppercase tracking-wider mb-1">
-            ${caso.categoria}
+          <div class="flex items-center justify-between text-[10px] font-extrabold text-[#004884] uppercase tracking-wider mb-1">
+            <span>${caso.categoria}</span>
+            <span class="bg-blue-50 text-[#004884] px-1.5 py-0.5 rounded border border-blue-200">${caso.sector || 'Panamá II'}</span>
           </div>
           <h4 class="font-bold text-slate-900 text-base leading-snug mb-2">
             ${caso.titulo}
@@ -366,7 +485,7 @@ function renderizarMuro(filtro = "todos") {
             ` : `
               <div class="flex items-center gap-1.5 text-emerald-600 font-bold">
                 <i data-lucide="badge-check" class="w-3.5 h-3.5 shrink-0"></i>
-                <span>Solucionado con gestiÃ³n comunitaria</span>
+                <span>Solucionado con gestión comunitaria</span>
               </div>
             `}
           </div>
@@ -390,15 +509,183 @@ function renderizarMuro(filtro = "todos") {
   lucide.createIcons();
 }
 
-// Configurar Eventos
+// Cargar Noticias
+function cargarNoticias() {
+  const guardadas = localStorage.getItem("valledupar_noticias_cache");
+  if (guardadas) {
+    try {
+      noticias = JSON.parse(guardadas);
+    } catch (e) {
+      noticias = NOTICIAS_DEFAULT;
+    }
+  } else {
+    noticias = NOTICIAS_DEFAULT;
+    localStorage.setItem("valledupar_noticias_cache", JSON.stringify(noticias));
+  }
+  renderizarNoticias();
+}
+
+async function sincronizarNoticiasEnVivo() {
+  const btn = document.getElementById("btnRecargarNoticias");
+  if (!btn) return;
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = `<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> <span>Consultando...</span>`;
+  lucide.createIcons();
+
+  try {
+    const res = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://www.valledupar-cesar.gov.co/"));
+    if (res.ok) {
+      const data = await res.json();
+      const html = data.contents;
+      const newsLinks = [...html.matchAll(/href="\/noticias\/([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)];
+      if (newsLinks.length > 0) {
+        const nuevasNoticias = [];
+        const visitados = new Set();
+
+        for (const nl of newsLinks) {
+          const slug = nl[1];
+          if (visitados.has(slug)) continue;
+          visitados.add(slug);
+
+          const inner = nl[2];
+          const imgMatch = inner.match(/src="([^"]+)"/);
+          const textClean = inner.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+          const fechaMatch = textClean.match(/\d{1,2}\s+de\s+[a-záéíóúñ]+\s+de\s+\d{4}/i);
+          const fecha = fechaMatch ? fechaMatch[0] : "Reciente";
+
+          nuevasNoticias.push({
+            id: slug,
+            titulo: slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            fecha: fecha,
+            categoria: "Alcaldía de Valledupar",
+            descripcion: textClean.slice(0, 160) + "...",
+            foto: imgMatch ? imgMatch[1] : NOTICIAS_DEFAULT[0].foto,
+            enlace: "https://www.valledupar-cesar.gov.co/noticias/" + slug
+          });
+
+          if (nuevasNoticias.length >= 3) break;
+        }
+
+        if (nuevasNoticias.length > 0) {
+          noticias = nuevasNoticias;
+          localStorage.setItem("valledupar_noticias_cache", JSON.stringify(noticias));
+          renderizarNoticias();
+        }
+      }
+    }
+  } catch (err) {
+    console.log("Sincronización utilizó la caché más reciente:", err);
+  } finally {
+    btn.innerHTML = originalHtml;
+    lucide.createIcons();
+  }
+}
+
+function renderizarNoticias() {
+  const cont = document.getElementById("contenedorNoticias");
+  if (!cont || noticias.length < 3) return;
+
+  const p = noticias[0];
+  const s1 = noticias[1];
+  const s2 = noticias[2];
+
+  cont.innerHTML = `
+    <!-- NOTICIA PRINCIPAL -->
+    <div class="md:col-span-6 bg-white rounded-xl border border-[#CADDFB] overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between">
+      <div>
+        <div class="relative h-60 w-full overflow-hidden bg-slate-900">
+          <img src="${p.foto}" alt="${p.titulo}" class="w-full h-full object-cover">
+          <span class="absolute top-3 left-3 bg-[#004884] text-white text-[11px] font-bold px-2.5 py-1 rounded shadow">
+            ${p.categoria}
+          </span>
+        </div>
+        <div class="p-6">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">${p.fecha}</span>
+          <h3 class="text-base sm:text-lg font-bold text-slate-900 leading-snug mt-1 hover:text-[#004884] transition cursor-pointer">
+            ${p.titulo}
+          </h3>
+          <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+            ${p.descripcion}
+          </p>
+        </div>
+      </div>
+      <div class="p-6 pt-0 text-right">
+        <a href="${p.enlace}" target="_blank" class="inline-flex items-center gap-1 text-xs font-bold text-[#004884] hover:underline">
+          <span>Leer noticia completa</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- NOTICIAS SECUNDARIAS -->
+    <div class="md:col-span-6 flex flex-col gap-4">
+      <div class="bg-white rounded-xl border border-[#CADDFB] overflow-hidden shadow-sm hover:shadow-md transition flex flex-col sm:flex-row items-stretch">
+        <div class="sm:w-2/5 relative h-40 sm:h-auto shrink-0 bg-slate-900">
+          <img src="${s1.foto}" alt="${s1.titulo}" class="w-full h-full object-cover">
+        </div>
+        <div class="p-4 flex flex-col justify-between flex-grow">
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase">${s1.fecha}</span>
+            <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug mt-1 hover:text-[#004884] transition cursor-pointer">
+              ${s1.titulo}
+            </h4>
+            <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+              ${s1.descripcion}
+            </p>
+          </div>
+          <div class="mt-2 text-right">
+            <a href="${s1.enlace}" target="_blank" class="text-xs font-bold text-[#004884] hover:underline">Ver noticia →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-[#CADDFB] overflow-hidden shadow-sm hover:shadow-md transition flex flex-col sm:flex-row items-stretch">
+        <div class="sm:w-2/5 relative h-40 sm:h-auto shrink-0 bg-slate-900">
+          <img src="${s2.foto}" alt="${s2.titulo}" class="w-full h-full object-cover">
+        </div>
+        <div class="p-4 flex flex-col justify-between flex-grow">
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase">${s2.fecha}</span>
+            <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug mt-1 hover:text-[#004884] transition cursor-pointer">
+              ${s2.titulo}
+            </h4>
+            <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+              ${s2.descripcion}
+            </p>
+          </div>
+          <div class="mt-2 text-right">
+            <a href="${s2.enlace}" target="_blank" class="text-xs font-bold text-[#004884] hover:underline">Ver noticia →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ==========================================
+// CONFIGURACIÓN DE EVENTOS DEL PORTAL
+// ==========================================
 function configurarEventos() {
-  // BotÃ³n recargar noticias en vivo
   const btnRecargar = document.getElementById("btnRecargarNoticias");
   if (btnRecargar) {
     btnRecargar.addEventListener("click", sincronizarNoticiasEnVivo);
   }
 
-  // Foto Dropzone
+  // Selector de Sector (Panamá II vs Panamá III)
+  const selectorSector = document.getElementById("sector");
+  if (selectorSector) {
+    selectorSector.addEventListener("change", (e) => {
+      const sec = e.target.value;
+      const targetCoords = sec === "Panamá III" ? PANAMA_CENTRO_III : PANAMA_CENTRO_II;
+      if (mapaPicker && pickerMarker) {
+        mapaPicker.panTo(targetCoords);
+        pickerMarker.setLatLng(targetCoords);
+        actualizarCoordenadasFormulario(targetCoords[0], targetCoords[1]);
+      }
+    });
+  }
+
+  // Manejo de Fotos (Dropzone)
   const dropzone = document.getElementById("dropzone");
   const fotoInput = document.getElementById("fotoInput");
   const dropzonePrompt = document.getElementById("dropzonePrompt");
@@ -407,105 +694,193 @@ function configurarEventos() {
   const previewName = document.getElementById("previewName");
   const btnRemoveImg = document.getElementById("btnRemoveImg");
 
-  dropzone.addEventListener("click", () => fotoInput.click());
+  if (dropzone && fotoInput) {
+    dropzone.addEventListener("click", () => fotoInput.click());
 
-  fotoInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert("La fotografÃ­a es demasiado pesada (mÃ¡x 5MB).");
-        return;
+    fotoInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        if (file.size > 10 * 1024 * 1024) {
+          alert("La fotografía es demasiado pesada (máx 10MB).");
+          return;
+        }
+        archivoFotoSeleccionado = file;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          fotoActualDataUrl = event.target.result;
+          previewImg.src = fotoActualDataUrl;
+          previewName.textContent = file.name;
+          dropzonePrompt.classList.add("hidden");
+          dropzonePreview.classList.remove("hidden");
+        };
+        reader.readAsDataURL(file);
       }
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        fotoActualDataUrl = event.target.result;
-        previewImg.src = fotoActualDataUrl;
-        previewName.textContent = file.name;
-        dropzonePrompt.classList.add("hidden");
-        dropzonePreview.classList.remove("hidden");
-      };
-      reader.readAsDataURL(file);
-    }
-  });
+    });
 
-  btnRemoveImg.addEventListener("click", (e) => {
-    e.stopPropagation();
-    fotoInput.value = "";
-    fotoActualDataUrl = "";
-    dropzonePrompt.classList.remove("hidden");
-    dropzonePreview.classList.add("hidden");
-  });
+    btnRemoveImg.addEventListener("click", (e) => {
+      e.stopPropagation();
+      fotoInput.value = "";
+      archivoFotoSeleccionado = null;
+      fotoActualDataUrl = "";
+      dropzonePrompt.classList.remove("hidden");
+      dropzonePreview.classList.add("hidden");
+    });
+  }
 
-  // Checkbox anÃ³nimo
+  // Checkbox anónimo
   const checkAnonimo = document.getElementById("checkAnonimo");
   const datosPersonales = document.getElementById("datosPersonales");
-  checkAnonimo.addEventListener("change", (e) => {
-    if (e.target.checked) {
-      datosPersonales.classList.add("opacity-40", "pointer-events-none");
-    } else {
-      datosPersonales.classList.remove("opacity-40", "pointer-events-none");
-    }
-  });
-
-  // Formulario radicaciÃ³n
-  const form = document.getElementById("formReclamo");
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const categoria = document.getElementById("categoria").value;
-    const titulo = document.getElementById("titulo").value.trim();
-    const ubicacion = document.getElementById("ubicacion").value.trim();
-    const tiempoCantidad = document.getElementById("tiempoCantidad").value;
-    const tiempoUnidad = document.getElementById("tiempoUnidad").value;
-    const descripcion = document.getElementById("descripcion").value.trim();
-    const esAnonimo = checkAnonimo.checked;
-    const nombreVecino = document.getElementById("nombreVecino").value.trim();
-
-    const numRandom = Math.floor(1000 + Math.random() * 9000);
-    const nuevoRadicado = `RAD-PANAMA-2026-${numRandom}`;
-
-    let fotoFinal = fotoActualDataUrl;
-    if (!fotoFinal) {
-      if (categoria.includes("Alumbrado")) {
-        fotoFinal = "https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=crop&w=800&q=80";
-      } else if (categoria.includes("Emdupar")) {
-        fotoFinal = "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80";
+  if (checkAnonimo && datosPersonales) {
+    checkAnonimo.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        datosPersonales.classList.add("opacity-40", "pointer-events-none");
       } else {
-        fotoFinal = "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80";
+        datosPersonales.classList.remove("opacity-40", "pointer-events-none");
       }
-    }
+    });
+  }
 
-    const nuevoCaso = {
-      id: nuevoRadicado,
-      titulo: titulo,
-      categoria: categoria,
-      ubicacion: ubicacion,
-      tiempo: `${tiempoCantidad} ${tiempoUnidad}`,
-      diasNumero: parseInt(tiempoCantidad) * (tiempoUnidad === "meses" ? 30 : (tiempoUnidad === "aÃ±os" ? 365 : 1)),
-      descripcion: descripcion,
-      foto: fotoFinal,
-      estado: parseInt(tiempoCantidad) > 20 ? "Ignorado" : "En espera",
-      afectados: "Comunidad PanamÃ¡ II",
-      fecha: new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }),
-      solicitante: esAnonimo ? "Vecino AnÃ³nimo" : (nombreVecino || "Habitante PanamÃ¡ II")
-    };
+  // Conmutador de Vistas: Muro de Tarjetas vs Mapa Comunitario
+  const btnVistaGrid = document.getElementById("btnVistaGrid");
+  const btnVistaMapa = document.getElementById("btnVistaMapa");
+  const gridReclamos = document.getElementById("gridReclamos");
+  const vistaMapaComunitario = document.getElementById("vistaMapaComunitario");
 
-    reclamos.unshift(nuevoCaso);
-    guardarEnLocalStorage();
-    renderizarMuro("todos");
+  if (btnVistaGrid && btnVistaMapa) {
+    btnVistaGrid.addEventListener("click", () => {
+      btnVistaGrid.className = "px-3 py-1.5 rounded-md font-bold bg-white text-[#004884] shadow-sm flex items-center gap-1.5 transition";
+      btnVistaMapa.className = "px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition";
+      gridReclamos.classList.remove("hidden");
+      vistaMapaComunitario.classList.add("hidden");
+    });
 
-    form.reset();
-    fotoActualDataUrl = "";
-    dropzonePrompt.classList.remove("hidden");
-    dropzonePreview.classList.add("hidden");
+    btnVistaMapa.addEventListener("click", () => {
+      btnVistaMapa.className = "px-3 py-1.5 rounded-md font-bold bg-white text-[#004884] shadow-sm flex items-center gap-1.5 transition";
+      btnVistaGrid.className = "px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition";
+      gridReclamos.classList.add("hidden");
+      vistaMapaComunitario.classList.remove("hidden");
+      inicializarMapaComunitario();
+    });
+  }
 
-    if (window.confetti) {
-      confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
-    }
+  // FORMULARIO DE RADICACIÓN
+  const form = document.getElementById("formReclamo");
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    alert(`Â¡Reclamo radicado exitosamente!\n\nNÃºmero Oficial:\n${nuevoRadicado}\n\nHa sido publicado en el Muro de Evidencias de PanamÃ¡ II. Ya puedes generar la ficha grÃ¡fica para Instagram.`);
-    document.getElementById("muro").scrollIntoView({ behavior: 'smooth' });
-  });
+      const btnSubmit = form.querySelector("button[type='submit']");
+      const btnOriginalText = btnSubmit.innerHTML;
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> <span>Radicando y subiendo evidencia...</span>`;
+      lucide.createIcons();
+
+      try {
+        const sector = document.getElementById("sector").value;
+        const categoria = document.getElementById("categoria").value;
+        const titulo = document.getElementById("titulo").value.trim();
+        const ubicacion = document.getElementById("ubicacion").value.trim();
+        const tiempoCantidad = document.getElementById("tiempoCantidad").value;
+        const tiempoUnidad = document.getElementById("tiempoUnidad").value;
+        const descripcion = document.getElementById("descripcion").value.trim();
+        const esAnonimo = checkAnonimo ? checkAnonimo.checked : false;
+        const nombreVecino = document.getElementById("nombreVecino") ? document.getElementById("nombreVecino").value.trim() : "";
+        const latVal = parseFloat(document.getElementById("geoLat").value) || PANAMA_CENTRO_II[0];
+        const lngVal = parseFloat(document.getElementById("geoLng").value) || PANAMA_CENTRO_II[1];
+
+        const numRandom = Math.floor(1000 + Math.random() * 9000);
+        const nuevoRadicado = `RAD-PANAMA-2026-${numRandom}`;
+
+        // Subir foto a Supabase Storage si se cargó un archivo
+        let fotoFinal = fotoActualDataUrl;
+        if (archivoFotoSeleccionado) {
+          const urlStorage = await subirFotoSupabase(archivoFotoSeleccionado);
+          if (urlStorage) {
+            fotoFinal = urlStorage;
+          }
+        }
+
+        // Fallbacks visuales por categoría si no subió foto
+        if (!fotoFinal) {
+          if (categoria.includes("Alumbrado")) {
+            fotoFinal = "https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=crop&w=800&q=80";
+          } else if (categoria.includes("Emdupar")) {
+            fotoFinal = "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80";
+          } else {
+            fotoFinal = "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80";
+          }
+        }
+
+        const nuevoCaso = {
+          id: nuevoRadicado,
+          titulo: titulo,
+          categoria: categoria,
+          ubicacion: ubicacion,
+          sector: sector,
+          tiempo: `${tiempoCantidad} ${tiempoUnidad}`,
+          diasNumero: parseInt(tiempoCantidad) * (tiempoUnidad === "meses" ? 30 : (tiempoUnidad === "años" ? 365 : 1)),
+          descripcion: descripcion,
+          foto: fotoFinal,
+          estado: parseInt(tiempoCantidad) > 20 ? "Ignorado" : "En espera",
+          afectados: `Comunidad ${sector}`,
+          fecha: new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }),
+          solicitante: esAnonimo ? "Vecino Anónimo" : (nombreVecino || `Habitante ${sector}`),
+          lat: latVal,
+          lng: lngVal
+        };
+
+        // Guardar en Supabase Database
+        if (supabaseClient) {
+          try {
+            await supabaseClient.from('reclamos').insert([{
+              id: nuevoCaso.id,
+              titulo: nuevoCaso.titulo,
+              categoria: nuevoCaso.categoria,
+              ubicacion: nuevoCaso.ubicacion,
+              sector: nuevoCaso.sector,
+              tiempo: nuevoCaso.tiempo,
+              dias_numero: nuevoCaso.diasNumero,
+              descripcion: nuevoCaso.descripcion,
+              foto: nuevoCaso.foto,
+              estado: nuevoCaso.estado,
+              afectados: nuevoCaso.afectados,
+              fecha: nuevoCaso.fecha,
+              solicitante: nuevoCaso.solicitante,
+              lat: nuevoCaso.lat,
+              lng: nuevoCaso.lng
+            }]);
+          } catch (dbErr) {
+            console.warn("Aviso al guardar en Supabase (usando réplica local):", dbErr);
+          }
+        }
+
+        reclamos.unshift(nuevoCaso);
+        guardarEnLocalStorage();
+        renderizarMuro("todos");
+        actualizarMarcadoresComunitarios();
+
+        form.reset();
+        archivoFotoSeleccionado = null;
+        fotoActualDataUrl = "";
+        dropzonePrompt.classList.remove("hidden");
+        dropzonePreview.classList.add("hidden");
+
+        if (window.confetti) {
+          confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+        }
+
+        alert(`¡Reclamo radicado exitosamente!\n\nNúmero Oficial:\n${nuevoRadicado}\nSector: ${sector}\n\nHa quedado georreferenciado en el mapa y guardado en la base de datos de Panamá II y III. Ahora puedes generar la ficha gráfica para Instagram.`);
+        document.getElementById("muro").scrollIntoView({ behavior: 'smooth' });
+      } catch (err) {
+        console.error("Error al radicar:", err);
+        alert("Ocurrió un error al registrar el reclamo. Por favor revisa los campos e intenta de nuevo.");
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = btnOriginalText;
+        lucide.createIcons();
+      }
+    });
+  }
 
   // Filtros del Muro
   const filterBtns = document.querySelectorAll(".filter-btn");
@@ -523,79 +898,99 @@ function configurarEventos() {
   const inputBuscar = document.getElementById("inputBuscarRadicado");
   const resultadoBusqueda = document.getElementById("resultadoBusqueda");
 
-  btnBuscar.addEventListener("click", () => {
-    const q = inputBuscar.value.trim().toUpperCase();
-    if (!q) return;
+  if (btnBuscar && inputBuscar) {
+    btnBuscar.addEventListener("click", () => {
+      const q = inputBuscar.value.trim().toUpperCase();
+      if (!q) return;
 
-    const encontrado = reclamos.find(r => r.id.toUpperCase() === q || r.id.toUpperCase().includes(q));
-    resultadoBusqueda.classList.remove("hidden");
+      const encontrado = reclamos.find(r => r.id.toUpperCase() === q || r.id.toUpperCase().includes(q));
+      resultadoBusqueda.classList.remove("hidden");
 
-    if (encontrado) {
-      resultadoBusqueda.innerHTML = `
-        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded text-emerald-900">
-          <div class="font-bold text-xs flex justify-between">
-            <span>${encontrado.id}</span>
-            <span class="uppercase">${encontrado.estado}</span>
+      if (encontrado) {
+        resultadoBusqueda.innerHTML = `
+          <div class="p-3 bg-emerald-50 border border-emerald-200 rounded text-emerald-900">
+            <div class="font-bold text-xs flex justify-between">
+              <span>${encontrado.id}</span>
+              <span class="uppercase">${encontrado.estado}</span>
+            </div>
+            <div class="text-xs font-semibold mt-1">${encontrado.titulo}</div>
+            <div class="text-[11px] text-slate-600 mt-0.5">Ubicación: ${encontrado.ubicacion} (${encontrado.sector || 'Panamá II'})</div>
+            <button onclick="abrirModalInstagram('${encontrado.id}')" class="mt-2 text-xs font-bold text-[#004884] hover:underline inline-flex items-center gap-1">
+              <i data-lucide="instagram" class="w-3.5 h-3.5"></i> Crear ficha Instagram de este caso
+            </button>
           </div>
-          <div class="text-xs font-semibold mt-1">${encontrado.titulo}</div>
-          <div class="text-[11px] text-slate-600 mt-0.5">UbicaciÃ³n: ${encontrado.ubicacion}</div>
-          <button onclick="abrirModalInstagram('${encontrado.id}')" class="mt-2 text-xs font-bold text-[#004884] hover:underline inline-flex items-center gap-1">
-            <i data-lucide="instagram" class="w-3.5 h-3.5"></i> Crear ficha Instagram de este caso
-          </button>
-        </div>
-      `;
-    } else {
-      resultadoBusqueda.innerHTML = `
-        <div class="p-3 bg-red-50 border border-red-200 rounded text-red-700">
-          No se encontrÃ³ ningÃºn radicado con el cÃ³digo <strong>${q}</strong>.
-        </div>
-      `;
-    }
-    lucide.createIcons();
-  });
+        `;
+      } else {
+        resultadoBusqueda.innerHTML = `
+          <div class="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-xs">
+            No se encontró ningún radicado con el código <strong>${q}</strong>.
+          </div>
+        `;
+      }
+      lucide.createIcons();
+    });
+  }
 
   // Buscador del Header
   const btnTopSearch = document.getElementById("btnTopSearch");
   const topSearchInput = document.getElementById("topSearchInput");
-  btnTopSearch.addEventListener("click", () => {
-    const term = topSearchInput.value.trim().toLowerCase();
-    if (!term) return;
+  if (btnTopSearch && topSearchInput) {
+    btnTopSearch.addEventListener("click", () => {
+      const term = topSearchInput.value.trim().toLowerCase();
+      if (!term) return;
 
-    const filtrados = reclamos.filter(r => 
-      r.titulo.toLowerCase().includes(term) || 
-      r.descripcion.toLowerCase().includes(term) || 
-      r.id.toLowerCase().includes(term) || 
-      r.categoria.toLowerCase().includes(term)
-    );
+      const filtrados = reclamos.filter(r => 
+        r.titulo.toLowerCase().includes(term) || 
+        r.descripcion.toLowerCase().includes(term) || 
+        r.id.toLowerCase().includes(term) || 
+        r.categoria.toLowerCase().includes(term) ||
+        (r.sector && r.sector.toLowerCase().includes(term))
+      );
 
-    document.getElementById("muro").scrollIntoView({ behavior: 'smooth' });
-    if (filtrados.length > 0) {
-      reclamos = filtrados;
-      renderizarMuro("todos");
-      cargarReclamos();
-    } else {
-      alert(`No encontramos reclamos con el tÃ©rmino "${term}". Puedes radicarlo en el formulario.`);
-    }
-  });
+      document.getElementById("muro").scrollIntoView({ behavior: 'smooth' });
+      if (filtrados.length > 0) {
+        reclamos = filtrados;
+        renderizarMuro("todos");
+        actualizarMarcadoresComunitarios();
+      } else {
+        alert(`No encontramos reclamos con el término "${term}". Puedes radicarlo en el formulario.`);
+      }
+    });
+  }
 
   // Modal Instagram
-  document.getElementById("btnCerrarModal").addEventListener("click", cerrarModalInstagram);
-  document.getElementById("modalInstagram").addEventListener("click", (e) => {
-    if (e.target.id === "modalInstagram") cerrarModalInstagram();
-  });
-
-  document.getElementById("btnCopiarCaption").addEventListener("click", () => {
-    const texto = document.getElementById("captionText").textContent;
-    navigator.clipboard.writeText(texto).then(() => {
-      const toast = document.getElementById("copiedToast");
-      toast.classList.remove("hidden");
-      setTimeout(() => toast.classList.add("hidden"), 3000);
+  const btnCerrarModal = document.getElementById("btnCerrarModal");
+  const modalInstagram = document.getElementById("modalInstagram");
+  if (btnCerrarModal && modalInstagram) {
+    btnCerrarModal.addEventListener("click", cerrarModalInstagram);
+    modalInstagram.addEventListener("click", (e) => {
+      if (e.target.id === "modalInstagram") cerrarModalInstagram();
     });
-  });
+  }
 
-  document.getElementById("btnDescargarImagen").addEventListener("click", descargarImagenInstagram);
+  const btnCopiarCaption = document.getElementById("btnCopiarCaption");
+  if (btnCopiarCaption) {
+    btnCopiarCaption.addEventListener("click", () => {
+      const texto = document.getElementById("captionText").textContent;
+      navigator.clipboard.writeText(texto).then(() => {
+        const toast = document.getElementById("copiedToast");
+        if (toast) {
+          toast.classList.remove("hidden");
+          setTimeout(() => toast.classList.add("hidden"), 3000);
+        }
+      });
+    });
+  }
+
+  const btnDescargarImagen = document.getElementById("btnDescargarImagen");
+  if (btnDescargarImagen) {
+    btnDescargarImagen.addEventListener("click", descargarImagenInstagram);
+  }
 }
 
+// ==========================================
+// MODAL DE INSTAGRAM Y DESCARGA ULTRA HD
+// ==========================================
 window.abrirModalInstagram = function(id) {
   const caso = reclamos.find(r => r.id === id);
   if (!caso) return;
@@ -603,26 +998,26 @@ window.abrirModalInstagram = function(id) {
 
   document.getElementById("igRadicado").textContent = caso.id;
   document.getElementById("igFecha").textContent = caso.fecha;
-  document.getElementById("igCategoria").textContent = caso.categoria.toUpperCase();
+  document.getElementById("igCategoria").textContent = `${caso.categoria.toUpperCase()} • ${caso.sector ? caso.sector.toUpperCase() : 'PANAMÁ II'}`;
   document.getElementById("igTitulo").textContent = caso.titulo;
-  document.getElementById("igUbicacion").textContent = caso.ubicacion;
+  document.getElementById("igUbicacion").textContent = `${caso.ubicacion} (${caso.sector || 'Panamá II'})`;
   document.getElementById("igFoto").src = caso.foto;
   document.getElementById("igTiempo").textContent = `${caso.tiempo.toUpperCase()} SIN RESPUESTA`;
 
-  const caption = `ðŸš¨ DENUNCIA CIUDADANA - BARRIO PANAMÃ II (VALLEDUPAR)
-ðŸ“ UbicaciÃ³n: ${caso.ubicacion}
-ðŸ“‹ Radicado Oficial: ${caso.id}
-â±ï¸ Tiempo ignorado por la administraciÃ³n: ${caso.tiempo} sin soluciÃ³n.
+  const caption = `🚨 DENUNCIA CIUDADANA - BARRIO ${caso.sector ? caso.sector.toUpperCase() : 'PANAMÁ II'} (VALLEDUPAR)
+📍 Ubicación: ${caso.ubicacion}
+📋 Radicado Oficial: ${caso.id}
+⏱️ Tiempo ignorado por la administración: ${caso.tiempo} sin solución.
 
 ${caso.descripcion}
 
-Los habitantes del Barrio PanamÃ¡ II exigimos que la @alcaldiavpar y las empresas de servicios pÃºblicos cumplan con sus obligaciones. No esperemos que ocurra una tragedia para actuar.
+Los habitantes del Barrio Panamá exigimos que la @alcaldiavpar y las entidades competentes cumplan con sus obligaciones conforme a la Ley 1757 de 2015. ¡No esperemos que ocurra una tragedia o colapso para actuar!
 
-SeÃ±or Alcalde @ernestoorozcodurango, @personeriavalledupar, @gobcesar: Â¿quiÃ©n responde por nuestra comunidad?
+Señor Alcalde @ernestoorozcodurango, @personeriavalledupar, @gobcesar: ¿quién responde por nuestra comunidad?
 
-Por favor comparte esta publicaciÃ³n en tus historias para que no lo sigan ignorando. ðŸ“¢
+Por favor comparte esta publicación en tus historias para que no lo sigan ignorando. 📢
 .
-#Valledupar #PanamaII #PanamaPideRespuesta #ValleduparSinLuz #AlcaldiaValledupar #ErnestoOrozco #Emdupar #Cesar`;
+#Valledupar #PanamaII #PanamaIII #PanamaPideRespuesta #ValleduparSinLuz #AlcaldiaValledupar #ErnestoOrozco #Emdupar #Cesar`;
 
   document.getElementById("captionText").textContent = caption;
   document.getElementById("modalInstagram").classList.remove("hidden");
@@ -663,7 +1058,8 @@ function descargarImagenInstagram() {
   });
 }
 
-window.cambiarEstado = function(id) {
+// Alternar estado y sincronizar con Supabase
+window.cambiarEstado = async function(id) {
   const index = reclamos.findIndex(r => r.id === id);
   if (index === -1) return;
 
@@ -674,5 +1070,13 @@ window.cambiarEstado = function(id) {
   reclamos[index].estado = nuevoEstado;
   guardarEnLocalStorage();
   renderizarMuro("todos");
-};
+  actualizarMarcadoresComunitarios();
 
+  if (supabaseClient) {
+    try {
+      await supabaseClient.from('reclamos').update({ estado: nuevoEstado }).eq('id', id);
+    } catch (e) {
+      console.warn("Aviso al actualizar estado en Supabase:", e);
+    }
+  }
+};

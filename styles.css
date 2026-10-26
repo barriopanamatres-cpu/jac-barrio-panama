@@ -59,3 +59,17 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Leaflet map styles */
+.leaflet-container {
+  font-family: inherit;
+  z-index: 10 !important;
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+}
+.leaflet-popup-content {
+  margin: 10px 12px;
+  font-size: 12px;
+}
