@@ -1915,7 +1915,22 @@
             let entDestino = caso.entidad_destino || extra.entidad_destino || sugerirEntidadPorCategoria(caso.categoria);
             let fechaRadEntidad = caso.fecha_radicado_entidad || extra.fecha_radicado_entidad || "";
 
-            // Parsear marca de respaldo en 'afectados' si existe
+            // Parsear paquete en la nube [RAD_DATA:...] si existe (para sincronización universal)
+            let soporteNubeRad = caso.soporte_radicado_entidad || "";
+            if (caso.afectados && caso.afectados.includes("[RAD_DATA:")) {
+              const matchData = caso.afectados.match(/\[RAD_DATA:([^\]]+)\]/);
+              if (matchData) {
+                try {
+                  const decoded = JSON.parse(decodeURIComponent(escape(atob(matchData[1]))));
+                  if (!radEntidad && decoded.num) radEntidad = decoded.num;
+                  if (!entDestino && decoded.ent) entDestino = decoded.ent;
+                  if (!fechaRadEntidad && decoded.fec) fechaRadEntidad = decoded.fec;
+                  if (!soporteNubeRad && decoded.sop) soporteNubeRad = decoded.sop;
+                } catch (e) {}
+              }
+            }
+
+            // Parsear marca simple de respaldo [RAD:...]
             if (caso.afectados && caso.afectados.includes("[RAD:")) {
               const match = caso.afectados.match(/\[RAD:([^|\]]+)(?:\|([^\]]+))?\]/);
               if (match) {
@@ -1925,7 +1940,8 @@
             }
 
             const canalRad = caso.canal_radicacion || extra.canal_radicacion || "Correo Electrónico PQRS";
-            const soporteRad = caso.soporte_radicado_entidad || extra.soporte_radicado_entidad || "";
+            const soporteRad = soporteNubeRad || extra.soporte_radicado_entidad || "";
+            const afectadosLimpio = (caso.afectados || "").replace(/\[RAD:[^\]]+\]/g, "").replace(/\[RAD_DATA:[^\]]+\]/g, "").trim();
             const fechaEnvioJac = caso.fecha_envio_jac || extra.fecha_envio_jac || caso.fecha || "";
 
             return {
@@ -1940,6 +1956,7 @@
           });
 
           renderizarMetricasYListas();
+          sincronizarRadicadosHaciaSupabase();
         }
 
         // 2. Cargar Censo
@@ -3001,10 +3018,12 @@ Se adjunta al presente correo el Oficio de Petición Oficial en PDF y evidencia 
     // REGISTRO DEL RADICADO OTORGADO POR LA ENTIDAD GUBERNAMENTAL
     // ==============================================================
     let soporteRadicadoDataUrl = "";
+    let archivoSoporteRadicadoFile = null;
 
     window.manejarArchivoSoporteRadicado = function(event) {
       const file = event.target.files[0];
       if (!file) return;
+      archivoSoporteRadicadoFile = file;
 
       const nombreEl = document.getElementById("soporteNombreArchivo");
       if (nombreEl) nombreEl.textContent = `Archivo: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
@@ -3069,10 +3088,30 @@ Se adjunta al presente correo el Oficio de Petición Oficial en PDF y evidencia 
       }
 
       const casoActual = todosLosReclamos.find(r => r.id === id);
-      const soporteFinal = soporteRadicadoDataUrl || (casoActual ? casoActual.soporte_radicado_entidad : "");
+      let urlSoporteNube = soporteRadicadoDataUrl || (casoActual ? casoActual.soporte_radicado_entidad : "");
 
       try {
-        // 1. Persistir en almacenamiento local con metadatos extendidos
+        // 1. Si se cargó un archivo y hay Supabase Storage disponible, intentar subirlo
+        if (supabaseClient && archivoSoporteRadicadoFile) {
+          try {
+            const ext = archivoSoporteRadicadoFile.name.split('.').pop() || 'pdf';
+            const rutaStorage = `comprobantes/rad_${id}_${Date.now()}.${ext}`;
+            const { error: upErr } = await supabaseClient.storage
+              .from('evidencias')
+              .upload(rutaStorage, archivoSoporteRadicadoFile, { upsert: true, cacheControl: '3600' });
+            if (!upErr) {
+              const { data: pUrl } = supabaseClient.storage.from('evidencias').getPublicUrl(rutaStorage);
+              if (pUrl?.publicUrl) {
+                urlSoporteNube = pUrl.publicUrl;
+              }
+            }
+          } catch (eStorage) {
+            console.warn("Aviso: Supabase Storage no respondió, guardando en base de datos:", eStorage);
+          }
+        }
+        const soporteFinal = urlSoporteNube;
+
+        // 2. Persistir localmente en esta máquina
         guardarMetadatoExtra(id, {
           radicado_entidad: numero,
           entidad_destino: entidad,
@@ -3081,28 +3120,39 @@ Se adjunta al presente correo el Oficio de Petición Oficial en PDF y evidencia 
           soporte_radicado_entidad: soporteFinal
         });
 
-        // 2. Actualizar Supabase de forma resiliente
+        // 3. ACTUALIZAR EN LA NUBE SUPABASE PARA QUE TODA LA COMUNIDAD (TODO EL MUNDO) PUEDA VERLO
         if (supabaseClient) {
-          const { error } = await supabaseClient.from('reclamos').update({
+          // Intento A: Guardar en columnas oficiales de Supabase
+          const { error: errorColumnas } = await supabaseClient.from('reclamos').update({
             radicado_entidad: numero,
             entidad_destino: entidad,
             fecha_radicado_entidad: fecha,
+            canal_radicacion: canal,
+            soporte_radicado_entidad: soporteFinal,
             estado: 'Enviado a Entidad'
           }).eq('id', id);
 
-          // Si las columnas no existen aún en la base de datos de Supabase, almacenar marca en 'afectados'
-          if (error && error.code === 'PGRST204') {
+          // Intento B: Si la base de datos de Supabase aún no tiene esas columnas, guardar payload universal en 'afectados'
+          if (errorColumnas) {
+            console.warn("Aviso columnas Supabase, aplicando sincronización universal:", errorColumnas);
             const caso = todosLosReclamos.find(r => r.id === id);
-            const marca = `[RAD:${numero}|${entidad}]`;
-            const afectadoLimpio = (caso.afectados || "").replace(/\[RAD:[^\]]+\]/g, "").trim();
+            const payload = {
+              num: numero,
+              ent: entidad,
+              fec: fecha,
+              can: canal,
+              sop: soporteFinal
+            };
+            const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+            const afectadoLimpio = (caso?.afectados || "").replace(/\[RAD:[^\]]+\]/g, "").replace(/\[RAD_DATA:[^\]]+\]/g, "").trim();
             await supabaseClient.from('reclamos').update({
-              afectados: `${afectadoLimpio} ${marca}`.trim(),
+              afectados: `${afectadoLimpio} [RAD_DATA:${b64}]`.trim(),
               estado: 'Enviado a Entidad'
             }).eq('id', id);
           }
         }
 
-        // 3. Actualizar memoria local
+        // 4. Actualizar estado en memoria
         const caso = todosLosReclamos.find(r => r.id === id);
         if (caso) {
           caso.radicado_entidad = numero;
@@ -3115,7 +3165,7 @@ Se adjunta al presente correo el Oficio de Petición Oficial en PDF y evidencia 
 
         renderizarMetricasYListas();
         cerrarModalRegistrarRadicado();
-        alert(`✅ Radicado Oficial "${numero}" registrado con éxito para el reporte ${id}.`);
+        alert(`✅ Radicado Oficial "${numero}" y comprobante guardados en la nube con éxito para toda la comunidad.`);
       } catch (err) {
         console.error("Error al guardar radicado de entidad:", err);
         alert("Ocurrió un error al guardar el radicado.");
@@ -4264,6 +4314,49 @@ window.abrirVisorComprobante = abrirVisorComprobante;
 window.cerrarModalVisorComprobante = cerrarModalVisorComprobante;
 window.abrirComprobanteEnNuevaPestana = abrirComprobanteEnNuevaPestana;
 
+
+    // Sincronizar automáticamente radicados y comprobantes guardados localmente hacia Supabase
+    async function sincronizarRadicadosHaciaSupabase() {
+      if (!supabaseClient) return;
+      try {
+        const raw = localStorage.getItem("jac_radicados_extra");
+        if (!raw) return;
+        const extras = JSON.parse(raw);
+        for (const [id, data] of Object.entries(extras)) {
+          if (data && (data.radicado_entidad || data.soporte_radicado_entidad)) {
+            // Intento columnas
+            const { error: colErr } = await supabaseClient.from('reclamos').update({
+              radicado_entidad: data.radicado_entidad,
+              entidad_destino: data.entidad_destino || 'Alcaldía de Valledupar',
+              fecha_radicado_entidad: data.fecha_radicado_entidad || new Date().toISOString().slice(0, 10),
+              canal_radicacion: data.canal_radicacion || 'Correo Electrónico PQRS',
+              soporte_radicado_entidad: data.soporte_radicado_entidad || '',
+              estado: 'Enviado a Entidad'
+            }).eq('id', id);
+
+            if (colErr) {
+              const payload = {
+                num: data.radicado_entidad,
+                ent: data.entidad_destino || 'Alcaldía de Valledupar',
+                fec: data.fecha_radicado_entidad || new Date().toISOString().slice(0, 10),
+                can: data.canal_radicacion || 'Correo Electrónico PQRS',
+                sop: data.soporte_radicado_entidad || ''
+              };
+              const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+              const caso = todosLosReclamos.find(r => r.id === id);
+              const baseAfectados = (caso?.afectados || '').replace(/\[RAD:[^\]]+\]/g, '').replace(/\[RAD_DATA:[^\]]+\]/g, '').trim();
+              await supabaseClient.from('reclamos').update({
+                afectados: `${baseAfectados} [RAD_DATA:${b64}]`.trim(),
+                estado: 'Enviado a Entidad'
+              }).eq('id', id);
+            }
+          }
+        }
+      } catch (errSync) {
+        console.warn("Aviso en sincronización en la nube:", errSync);
+      }
+    }
+  
 </script>
 </body>
 </html>

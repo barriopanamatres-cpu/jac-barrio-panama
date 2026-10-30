@@ -179,3 +179,5 @@ END $$;
 ALTER TABLE public.reclamos ADD COLUMN IF NOT EXISTS radicado_entidad TEXT;
 ALTER TABLE public.reclamos ADD COLUMN IF NOT EXISTS entidad_destino TEXT;
 ALTER TABLE public.reclamos ADD COLUMN IF NOT EXISTS fecha_radicado_entidad TEXT;
+ALTER TABLE public.reclamos ADD COLUMN IF NOT EXISTS canal_radicacion TEXT;
+ALTER TABLE public.reclamos ADD COLUMN IF NOT EXISTS soporte_radicado_entidad TEXT;

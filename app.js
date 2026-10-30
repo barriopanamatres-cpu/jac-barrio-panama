@@ -427,10 +427,31 @@ async function cargarReclamos() {
               if (raw) extra = JSON.parse(raw)[r.id] || {};
             } catch (e) {}
 
-            let radEntidad = r.radicado_entidad || extra.radicado_entidad || "";
-            let entDestino = r.entidad_destino || extra.entidad_destino || "";
-            let fechaRadEntidad = r.fecha_radicado_entidad || extra.fecha_radicado_entidad || "";
+            // 1. Columnas oficiales si existen en Supabase
+            let radEntidad = r.radicado_entidad || "";
+            let entDestino = r.entidad_destino || "";
+            let fechaRadEntidad = r.fecha_radicado_entidad || "";
+            let canalRad = r.canal_radicacion || "";
+            let soporteRad = r.soporte_radicado_entidad || "";
 
+            // 2. Extraer paquete completo de la nube [RAD_DATA:...] (Visible para toda la comunidad)
+            if (r.afectados && r.afectados.includes("[RAD_DATA:")) {
+              const matchData = r.afectados.match(/\[RAD_DATA:([^\]]+)\]/);
+              if (matchData) {
+                try {
+                  const decoded = JSON.parse(decodeURIComponent(escape(atob(matchData[1]))));
+                  if (!radEntidad && decoded.num) radEntidad = decoded.num;
+                  if (!entDestino && decoded.ent) entDestino = decoded.ent;
+                  if (!fechaRadEntidad && decoded.fec) fechaRadEntidad = decoded.fec;
+                  if (!canalRad && decoded.can) canalRad = decoded.can;
+                  if (!soporteRad && decoded.sop) soporteRad = decoded.sop;
+                } catch (errData) {
+                  console.warn("Aviso decodificando RAD_DATA:", errData);
+                }
+              }
+            }
+
+            // 3. Extraer formato simple [RAD:num|ent]
             if (r.afectados && r.afectados.includes("[RAD:")) {
               const match = r.afectados.match(/\[RAD:([^|\]]+)(?:\|([^\]]+))?\]/);
               if (match) {
@@ -439,10 +460,18 @@ async function cargarReclamos() {
               }
             }
 
-            const afectadosLimpio = (r.afectados || "Comunidad Panamá").replace(/\[RAD:[^\]]+\]/g, "").trim();
+            // 4. Si falta algún dato, recurrir a la caché local como último recurso
+            if (!radEntidad) radEntidad = extra.radicado_entidad || "";
+            if (!entDestino) entDestino = extra.entidad_destino || "";
+            if (!fechaRadEntidad) fechaRadEntidad = extra.fecha_radicado_entidad || "";
+            if (!canalRad) canalRad = extra.canal_radicacion || "Correo Electrónico PQRS";
+            if (!soporteRad) soporteRad = extra.soporte_radicado_entidad || "";
 
-            let soporteRad = r.soporte_radicado_entidad || extra.soporte_radicado_entidad || "";
-            let canalRad = r.canal_radicacion || extra.canal_radicacion || "Correo Electrónico PQRS";
+            const afectadosLimpio = (r.afectados || "Comunidad Panamá")
+              .replace(/\[RAD:[^\]]+\]/g, "")
+              .replace(/\[RAD_DATA:[^\]]+\]/g, "")
+              .trim();
+
             let fechaEnvioJac = r.fecha_envio_jac || extra.fecha_envio_jac || r.fecha || "";
 
             return {
