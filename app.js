@@ -1697,9 +1697,9 @@ window.cambiarFiltroRadicadosPublicos = function(filtro) {
     const btn = document.getElementById(`btnFiltroPub_${b}`);
     if (!btn) return;
     if (b === filtro) {
-      btn.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition bg-[#004884] text-white shadow cursor-pointer";
+      btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-[#004884] text-white shadow-sm cursor-pointer";
     } else {
-      btn.className = "px-3.5 py-2 rounded-xl text-xs font-bold transition bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer";
+      btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer";
     }
   });
   filtrarRadicadosLegalesPublicos();
