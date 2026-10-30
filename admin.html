@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel de Administración y Moderación | JAC Barrio Panamá II y III</title>
+  <title>Panel Directivo · Acción Comunal Comuna 2 Barrio Panamá</title>
+  <link rel="icon" href="assets/logo_asojuntas_comuna2.png" type="image/png">
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -100,21 +101,21 @@
           <span>Portal Público</span>
         </a>
 
-        <div class="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center p-2.5 mx-auto mb-3 shadow-inner">
+        <div class="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center p-2 mx-auto mb-3 shadow-inner">
           <img 
-            src="https://valledupar-sedigov.s-integrations.co/attachment/files/download/A0E2AA57-0D9E-F011-BFB4-08BFB81D5CA8" 
-            alt="Escudo Valledupar" 
+            src="assets/logo_asojuntas_comuna2.png" 
+            alt="Logo Asojuntas Comuna 2" 
             class="w-full h-full object-contain filter drop-shadow"
           >
         </div>
 
         <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-black uppercase tracking-wider mb-2">
           <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-          <span>Panel de Control JAC</span>
+          <span>ASOJUNTAS COMUNA #2</span>
         </div>
 
         <h2 class="text-xl font-black tracking-tight">Acceso Directiva Comunal</h2>
-        <p class="text-xs text-blue-200 mt-1">Junta de Acción Comunal · Barrio Panamá II y III</p>
+        <p class="text-xs text-blue-200 mt-1">Acción Comunal Comuna 2 · Barrio Panamá II y III</p>
       </div>
 
       <div class="p-7 space-y-4">
@@ -192,19 +193,19 @@
         
         <div class="flex items-center gap-3">
           <img 
-            src="https://valledupar-sedigov.s-integrations.co/attachment/files/download/A0E2AA57-0D9E-F011-BFB4-08BFB81D5CA8" 
-            alt="Escudo" 
-            class="h-9 w-auto object-contain"
+            src="assets/logo_asojuntas_comuna2.png" 
+            alt="Logo Asojuntas Comuna 2" 
+            class="h-10 w-auto object-contain drop-shadow"
           >
           <div>
             <div class="flex items-center gap-2">
               <span class="text-[10px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded uppercase tracking-wider">
-                Directiva JAC
+                ASOJUNTAS COMUNA #2
               </span>
-              <span class="text-xs text-blue-200 font-mono hidden sm:inline">Panel de Control & Veeduría</span>
+              <span class="text-xs text-blue-200 font-mono hidden sm:inline">Veeduría Comunitaria</span>
             </div>
             <h1 class="text-base sm:text-lg font-black text-white leading-tight">
-              JAC Barrio Panamá II y III · Valledupar
+              Acción Comunal Comuna 2 · Barrio Panamá
             </h1>
           </div>
         </div>
@@ -1378,20 +1379,20 @@
             <div class="relative z-10 border-b border-white/15 pb-3">
               <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
-                  <!-- Logos locales: JAC y Valledupar -->
-                  <div class="flex items-center -space-x-1.5 shrink-0">
-                    <img src="assets/image1.jpeg" alt="Logo JAC Panamá" class="w-9 h-9 rounded-full object-cover border-2 border-amber-400 shadow-md bg-white">
-                    <img src="assets/image2.png" alt="Escudo Valledupar" class="w-9 h-9 rounded-full object-contain p-0.5 border-2 border-white/80 shadow-md bg-white">
+                  <!-- Logos: Escudo Asojuntas Comuna 2 + Escudo Colombia -->
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <img src="assets/logo_asojuntas_comuna2.png" alt="Logo Asojuntas Comuna 2" class="w-9 h-11 object-contain drop-shadow bg-white/10 rounded-md p-0.5 border border-amber-400/50">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Coat_of_arms_of_Colombia.svg/100px-Coat_of_arms_of_Colombia.svg.png" alt="Escudo Colombia" class="w-8 h-8 object-contain opacity-90">
                   </div>
                   <div>
                     <div class="text-[8px] sm:text-[9px] font-black text-amber-400 uppercase tracking-widest leading-none">
-                      VEEDURÍA CIUDADANA OFICIAL · VALLEDUPAR
+                      ASOJUNTAS COMUNA #2 · VALLEDUPAR
                     </div>
                     <div class="text-xs sm:text-sm font-black text-white leading-tight tracking-tight mt-0.5">
-                      JAC BARRIO PANAMÁ II Y III
+                      ACCIÓN COMUNAL · BARRIO PANAMÁ
                     </div>
                     <div class="text-[7.5px] sm:text-[8px] text-slate-300 font-medium leading-none">
-                      Personería No. 000015 de 2003 · NIT: 900218415-5
+                      Veeduría Ciudadana Oficial · Ley 1757 de 2015
                     </div>
                   </div>
                 </div>
@@ -3997,7 +3998,7 @@ Se adjunta al presente correo el Oficio de Petición Oficial en PDF y evidencia 
       const desc = document.getElementById("igDescripcion")?.textContent || caso.descripcion;
       const tags = document.getElementById("igEntidadTag")?.textContent || "@alcaldiavpar @ernestoorozcodurango";
 
-      const caption = `🚨 DENUNCIA CIUDADANA OFICIAL · BARRIO ${caso.sector ? caso.sector.toUpperCase() : 'PANAMÁ II Y III'} (VALLEDUPAR)
+      const caption = `🚨 DENUNCIA CIUDADANA OFICIAL · ACCIÓN COMUNAL COMUNA 2 · BARRIO ${caso.sector ? caso.sector.toUpperCase() : 'PANAMÁ II Y III'} (VALLEDUPAR)
 📋 Radicado Oficial: ${caso.id}
 📍 Ubicación: ${caso.ubicacion} (${caso.sector || 'Panamá II'})
 ⏱️ Estado de abandono: ${tiempo}
@@ -4013,11 +4014,12 @@ La Junta de Acción Comunal ampara este requerimiento bajo el Artículo 23 de la
 ${tags} · @personeriavalledupar
 
 Vecino: ¡Comparte esta publicación en tus historias y estados de WhatsApp para que la administración cumpla con su deber! 📢
+Síguenos en Instagram: @barriopanamatres
 
 Portal de seguimiento:
 🌐 https://barriopanamatres-cpu.github.io/jac-barrio-panama/
 
-#PanamaExigeSolucion #Valledupar #BarrioPanama #VeeduriaCiudadana #ErnestoOrozco #ValleduparEnAlerta #AlcaldiaValledupar`;
+#PanamaExigeSolucion #Valledupar #BarrioPanama #Comuna2 #VeeduriaCiudadana #ErnestoOrozco #ValleduparEnAlerta #AlcaldiaValledupar`;
 
       const captionEl = document.getElementById("captionText");
       if (captionEl) captionEl.textContent = caption;

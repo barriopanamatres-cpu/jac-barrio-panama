@@ -2156,7 +2156,7 @@ function actualizarCaptionInstagram() {
   const tags = document.getElementById("igEntidadTag")?.textContent || "@alcaldiavpar @ernestoorozcodurango";
   const termino = calcularTerminoLegal15Dias(caso.fechaRadicadoEntidad || caso.fecha_radicado_entidad || caso.fechaEnvioJac || caso.fecha, caso.estado);
 
-  const caption = `🚨 DENUNCIA CIUDADANA OFICIAL · BARRIO ${caso.sector ? caso.sector.toUpperCase() : 'PANAMÁ II Y III'} (VALLEDUPAR)
+  const caption = `🚨 DENUNCIA CIUDADANA OFICIAL · ACCIÓN COMUNAL COMUNA 2 · BARRIO ${caso.sector ? caso.sector.toUpperCase() : 'PANAMÁ II Y III'} (VALLEDUPAR)
 📋 Radicado Oficial JAC: ${caso.id}
 ${caso.radicadoEntidad || caso.radicado_entidad ? '🏢 Radicado Entidad: ' + (caso.radicadoEntidad || caso.radicado_entidad) + '\n' : ''}📍 Ubicación: ${caso.ubicacion} (${caso.sector || 'Panamá II'})
 ⏱️ Afectación en el barrio: ${caso.tiempo || 'Varios meses'} sin intervención.
@@ -2175,11 +2175,12 @@ ${termino.estadoTermino === 'VENCIDO' ? '🚨 ¡La entidad se encuentra en omisi
 ${tags} · @personeriavalledupar
 
 Vecino: ¡Comparte esta publicación en tus historias y estados de WhatsApp para que la administración cumpla con su deber! 📢
+Síguenos en Instagram: @barriopanamatres
 
 Portal de veeduría y seguimiento en vivo:
 🌐 https://barriopanamatres-cpu.github.io/jac-barrio-panama/#radicadosLegales
 
-#PanamaExigeSolucion #Valledupar #BarrioPanama #VeeduriaCiudadana #ErnestoOrozco #ValleduparEnAlerta #AlcaldiaValledupar`;
+#PanamaExigeSolucion #Valledupar #BarrioPanama #Comuna2 #VeeduriaCiudadana #ErnestoOrozco #ValleduparEnAlerta #AlcaldiaValledupar`;
 
   const captionEl = document.getElementById("captionText");
   if (captionEl) captionEl.textContent = caption;
