@@ -698,12 +698,6 @@ function renderizarMuro(filtro = "todos") {
         </div>
       </div>
 
-      <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
-        <button onclick="abrirVisorComprobante('${caso.id}')" class="flex-grow inline-flex items-center justify-center gap-1.5 bg-[#004884] hover:bg-[#013057] text-white font-bold text-xs py-2 px-3 rounded shadow-sm transition cursor-pointer">
-          <i data-lucide="file-check" class="w-3.5 h-3.5 text-yellow-300"></i>
-          <span>Ver Comprobante de Gestión</span>
-        </button>
-      </div>
     `;
 
     contenedor.appendChild(card);
@@ -1887,19 +1881,8 @@ window.renderizarRadicadosLegales = function(filtro = "todos", query = "") {
           </div>
         </div>
 
-        <!-- Acciones de la Tarjeta (Comprobante de Gestión disponible para todos) -->
+        <!-- Acciones de la Tarjeta -->
         <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
-          <div class="flex flex-wrap items-center gap-2">
-            <button 
-              type="button" 
-              onclick="abrirVisorComprobante('${caso.id}')" 
-              class="bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2 cursor-pointer"
-              title="Ver comprobante de gestión y radicado otorgado"
-            >
-              <i data-lucide="file-check" class="w-4 h-4 text-amber-300"></i>
-              <span>Ver Comprobante de Radicado Otorgado</span>
-            </button>
-          </div>
 
           <div class="flex items-center gap-2 ml-auto">
             ${termino.estadoTermino === 'VENCIDO' ? `
