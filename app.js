@@ -699,12 +699,9 @@ function renderizarMuro(filtro = "todos") {
       </div>
 
       <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
-        <button onclick="abrirModalInstagram('${caso.id}')" class="flex-grow inline-flex items-center justify-center gap-1.5 bg-[#004884] hover:bg-[#013057] text-white font-bold text-xs py-2 px-3 rounded shadow-sm transition">
-          <i data-lucide="instagram" class="w-3.5 h-3.5 text-yellow-300"></i>
-          <span>Generar Ficha Instagram</span>
-        </button>
-        <button onclick="cambiarEstado('${caso.id}')" title="Alternar estado" class="p-2 text-slate-500 hover:text-[#004884] bg-white border border-slate-200 rounded hover:bg-slate-100 transition">
-          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+        <button onclick="abrirVisorComprobante('${caso.id}')" class="flex-grow inline-flex items-center justify-center gap-1.5 bg-[#004884] hover:bg-[#013057] text-white font-bold text-xs py-2 px-3 rounded shadow-sm transition cursor-pointer">
+          <i data-lucide="file-check" class="w-3.5 h-3.5 text-yellow-300"></i>
+          <span>Ver Comprobante de Gestión</span>
         </button>
       </div>
     `;
@@ -1887,34 +1884,20 @@ window.renderizarRadicadosLegales = function(filtro = "todos", query = "") {
             </p>
             <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">${caso.descripcion}</p>
 
-            ${caso.soporteRadicadoEntidad ? `
-              <div class="pt-1">
-                <button type="button" onclick="abrirVisorComprobante('${caso.id}')" class="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-3 py-1.5 rounded-xl transition shadow-sm cursor-pointer">
-                  <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
-                  <span>Ver Comprobante de Radicado Otorgado</span>
-                </button>
-              </div>
-            ` : ''}
           </div>
         </div>
 
-        <!-- Acciones de la Tarjeta -->
+        <!-- Acciones de la Tarjeta (Comprobante de Gestión disponible para todos) -->
         <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
           <div class="flex flex-wrap items-center gap-2">
             <button 
-              onclick="abrirModalInstagram('${caso.id}')" 
-              class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold text-xs px-4 py-2 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+              type="button" 
+              onclick="abrirVisorComprobante('${caso.id}')" 
+              class="bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2 cursor-pointer"
+              title="Ver comprobante de gestión y radicado otorgado"
             >
-              <i data-lucide="instagram" class="w-4 h-4 text-amber-300"></i>
-              <span>Generar Ficha Instagram</span>
-            </button>
-
-            <button 
-              onclick="compartirRadicadoLegalWhatsApp('${caso.id}')" 
-              class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm transition flex items-center gap-1.5 cursor-pointer"
-            >
-              <i data-lucide="message-circle" class="w-4 h-4"></i>
-              <span>Compartir en WhatsApp</span>
+              <i data-lucide="file-check" class="w-4 h-4 text-amber-300"></i>
+              <span>Ver Comprobante de Radicado Otorgado</span>
             </button>
           </div>
 
@@ -2695,10 +2678,6 @@ function abrirVisorComprobante(casoId) {
   }
 
   const soporteUrl = caso.soporteRadicadoEntidad || caso.soporte_radicado_entidad || "";
-  if (!soporteUrl) {
-    alert("Este radicado aún no cuenta con un archivo o constancia oficial adjunta.");
-    return;
-  }
 
   const elRadId = document.getElementById("visorComprobanteRadicadoId");
   const elTitulo = document.getElementById("visorComprobanteTitulo");
@@ -2707,6 +2686,7 @@ function abrirVisorComprobante(casoId) {
   const elFecha = document.getElementById("visorComprobanteFecha");
   const elCuerpo = document.getElementById("visorComprobanteCuerpo");
   const btnDescargar = document.getElementById("btnDescargarComprobante");
+  const btnPestana = document.getElementById("btnAbrirNuevaPestanaComprobante");
 
   const entidadNombre = caso.entidadDestino || caso.entidad_destino || "Alcaldía de Valledupar";
   const numRad = caso.radicadoEntidad || caso.radicado_entidad || caso.id;
@@ -2717,6 +2697,92 @@ function abrirVisorComprobante(casoId) {
   if (elEntidad) elEntidad.textContent = entidadNombre;
   if (elNumero) elNumero.textContent = numRad;
   if (elFecha) elFecha.textContent = fechaRad;
+
+  // Si no hay archivo adjunto, renderizar la Constancia Oficial Digital de Gestión Comunitaria
+  if (!soporteUrl) {
+    const termino = calcularTerminoLegal15Dias(caso.fechaRadicadoEntidad || caso.fecha_radicado_entidad || caso.fechaEnvioJac || caso.fecha, caso.estado);
+    
+    if (btnDescargar) btnDescargar.classList.add("hidden");
+    if (btnPestana) btnPestana.classList.add("hidden");
+
+    elCuerpo.innerHTML = `
+      <div class="w-full max-w-2xl bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6 text-slate-800 my-auto">
+        <div class="flex flex-wrap items-center justify-between pb-4 border-b border-slate-200 gap-3">
+          <div class="flex items-center gap-3">
+            <img src="assets/logo_asojuntas_comuna2.png" alt="Logo Asojuntas" class="h-14 w-auto object-contain drop-shadow">
+            <div>
+              <div class="text-[10px] font-bold text-[#004884] uppercase tracking-wider">Asojuntas Comuna #2 · Valledupar</div>
+              <h4 class="text-base font-extrabold text-slate-900 leading-tight">Acción Comunal Comuna 2 · Barrio Panamá</h4>
+              <p class="text-[11px] text-slate-500">Personería No. 000015 de 2003 · NIT: 900218415-5</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-black rounded-lg uppercase">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+              <span>Gestión Verificada</span>
+            </span>
+            <div class="text-[10px] text-slate-400 font-mono mt-1">${fechaRad}</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div>
+            <span class="text-slate-400 block text-[10px] uppercase font-bold">Número de Radicado Oficial:</span>
+            <span class="text-base font-black font-mono text-purple-900">${numRad}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px] uppercase font-bold">Entidad Responsable:</span>
+            <span class="font-bold text-slate-800">${entidadNombre}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px] uppercase font-bold">Código Interno JAC:</span>
+            <span class="font-mono font-bold text-[#004884]">${caso.id}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px] uppercase font-bold">Canal de Radicación:</span>
+            <span class="font-bold text-slate-700">${caso.canalRadicacion || 'Correo Electrónico PQRS / Ventanilla'}</span>
+          </div>
+        </div>
+
+        <div class="space-y-1.5 text-xs">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Problemática Tramitada:</span>
+          <p class="font-extrabold text-slate-900 text-sm leading-snug">${caso.titulo}</p>
+          <p class="text-slate-600 leading-relaxed">${caso.descripcion}</p>
+          <p class="text-slate-500 text-[11px] pt-1">📍 <strong>Ubicación:</strong> ${caso.ubicacion} (${caso.sector || 'Panamá II'})</p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-blue-50/80 border border-blue-200 text-xs space-y-1.5">
+          <div class="flex items-center gap-2 font-bold text-[#004884]">
+            <i data-lucide="scale" class="w-4 h-4"></i>
+            <span>Control de Términos Legales (Ley 1755 de 2015):</span>
+          </div>
+          <p class="text-slate-600 text-[11px] leading-relaxed">
+            • <strong>Término de Ley:</strong> 15 Días Hábiles improrrogables.<br>
+            • <strong>Fecha Límite:</strong> ${termino.fechaVencimientoStr}<br>
+            • <strong>Estado:</strong> <strong class="${termino.colorTexto}">${termino.textoBadge} (${termino.mensajeAccion})</strong>
+          </p>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-slate-400">
+          <span>Constancia comunitaria con validez de veeduría (Ley 1757 de 2015)</span>
+          <button onclick="window.print()" class="text-[#004884] hover:underline font-bold flex items-center gap-1 cursor-pointer">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+            <span>Imprimir Constancia</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    const modal = document.getElementById("modalVisorComprobante");
+    if (modal) {
+      modal.classList.remove("hidden");
+      lucide.createIcons();
+    }
+    return;
+  }
+
+  if (btnDescargar) btnDescargar.classList.remove("hidden");
+  if (btnPestana) btnPestana.classList.remove("hidden");
 
   let urlVisualizacion = soporteUrl;
   let esPdf = false;
