@@ -1113,7 +1113,7 @@
               <i data-lucide="file-check" class="w-3.5 h-3.5"></i>
               <span>Soporte adjunto actualmente</span>
             </span>
-            <a id="soporteActualLink" href="#" target="_blank" class="text-purple-700 underline font-bold text-[11px]">Ver archivo</a>
+            <button type="button" id="soporteActualLink" onclick="abrirVisorComprobanteDesdeRegistro()" class="text-purple-700 underline font-bold text-[11px] cursor-pointer">Ver archivo</button>
           </div>
         </div>
 
@@ -1201,6 +1201,107 @@
           <span>Portal Web Tutela en Línea Rama Judicial</span>
           <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
         </a>
+      </div>
+
+    </div>
+  </div>
+
+
+  
+  <!-- ================= MODAL: VISOR DE COMPROBANTE OFICIAL DE RADICACIÓN ================= -->
+  <div id="modalVisorComprobante" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto flex flex-col max-h-[95vh] animate-in fade-in duration-200">
+      
+      <!-- Encabezado del Visor -->
+      <div class="bg-[#002D54] text-white px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3 border-b border-blue-900/60">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+            <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div class="truncate">
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] bg-purple-500/30 text-purple-200 border border-purple-400/40 font-black px-2 py-0.5 rounded uppercase">
+                Constancia Oficial
+              </span>
+              <span id="visorComprobanteRadicadoId" class="text-xs font-mono font-bold text-amber-300">RAD-PANAMA-2026-0000</span>
+            </div>
+            <h3 id="visorComprobanteTitulo" class="text-xs sm:text-sm font-bold text-white truncate mt-0.5">
+              Comprobante de Radicado Otorgado por la Entidad
+            </h3>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <!-- Botón Descargar -->
+          <a 
+            id="btnDescargarComprobante" 
+            href="#" 
+            download="Comprobante_Radicado_Oficial.pdf" 
+            class="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-3 py-1.5 rounded-lg border border-white/20 transition flex items-center gap-1.5 cursor-pointer"
+            title="Descargar archivo a tu dispositivo"
+          >
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Descargar</span>
+          </a>
+
+          <!-- Botón Abrir en Nueva Pestaña -->
+          <button 
+            type="button" 
+            id="btnAbrirNuevaPestanaComprobante"
+            onclick="abrirComprobanteEnNuevaPestana()" 
+            class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow transition flex items-center gap-1.5 cursor-pointer"
+            title="Abrir en pestaña nueva del navegador"
+          >
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Pestaña Nueva</span>
+          </button>
+
+          <!-- Botón Cerrar -->
+          <button 
+            type="button" 
+            onclick="cerrarModalVisorComprobante()" 
+            class="text-slate-300 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition cursor-pointer"
+            title="Cerrar visor"
+          >
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de Metadatos del Radicado -->
+      <div id="visorComprobanteMeta" class="bg-slate-50 border-b border-slate-200 px-4 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 font-medium">
+        <div class="flex items-center gap-2">
+          <i data-lucide="landmark" class="w-3.5 h-3.5 text-[#004884]"></i>
+          <span>Entidad: <strong id="visorComprobanteEntidad" class="text-slate-900">-</strong></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <i data-lucide="hash" class="w-3.5 h-3.5 text-purple-600"></i>
+          <span>Radicado Asignado: <strong id="visorComprobanteNumero" class="font-mono text-purple-800 font-bold">-</strong></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-500"></i>
+          <span>Fecha: <strong id="visorComprobanteFecha" class="text-slate-900">-</strong></span>
+        </div>
+      </div>
+
+      <!-- Contenedor del Archivo (PDF, Imagen o Fallback) -->
+      <div id="visorComprobanteCuerpo" class="p-3 sm:p-4 overflow-y-auto flex-1 flex flex-col items-center justify-center min-h-[420px] max-h-[72vh] bg-slate-900/5">
+        <!-- Renderizado dinámico -->
+      </div>
+
+      <!-- Pie del Modal con Asistencia al Usuario -->
+      <div class="bg-white border-t border-slate-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+        <span class="flex items-center gap-1.5 text-slate-600">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+          <span>Comprobante validado por la Junta de Acción Comunal Panamá II y III</span>
+        </span>
+        <button 
+          type="button" 
+          onclick="cerrarModalVisorComprobante()" 
+          class="px-4 py-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition cursor-pointer"
+        >
+          Cerrar
+        </button>
       </div>
 
     </div>
@@ -3395,10 +3496,10 @@ Se adjunta al presente correo el Oficio de Petición Oficial en PDF y evidencia 
                 
                 ${caso.soporte_radicado_entidad ? `
                   <div class="pt-1">
-                    <a href="${caso.soporte_radicado_entidad}" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2.5 py-1 rounded-lg transition">
+                    <button type="button" onclick="abrirVisorComprobante('${caso.id}')" class="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2.5 py-1 rounded-lg transition cursor-pointer">
                       <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
                       <span>Ver Comprobante de Radicado Subido</span>
-                    </a>
+                    </button>
                   </div>
                 ` : ''}
               </div>
@@ -3984,6 +4085,185 @@ Portal de seguimiento:
       const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
       window.open(url, '_blank');
     };
-  </script>
+  
+    window.abrirVisorComprobanteDesdeRegistro = function() {
+      const id = document.getElementById("regRadReporteId")?.value;
+      if (id) abrirVisorComprobante(id);
+    };
+    
+// ==============================================================================
+// VISOR PROFESIONAL DE COMPROBANTES DE RADICACIÓN (PDF E IMÁGENES)
+// ==============================================================================
+let comprobanteBlobUrlActual = null;
+
+function cerrarModalVisorComprobante() {
+  const modal = document.getElementById("modalVisorComprobante");
+  if (modal) modal.classList.add("hidden");
+  if (comprobanteBlobUrlActual && comprobanteBlobUrlActual.startsWith("blob:")) {
+    try { URL.revokeObjectURL(comprobanteBlobUrlActual); } catch (e) {}
+    comprobanteBlobUrlActual = null;
+  }
+}
+
+function dataUrlToBlob(dataUrl) {
+  try {
+    const parts = dataUrl.split(",");
+    const mimeMatch = parts[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : "application/pdf";
+    const binStr = atob(parts[1]);
+    const len = binStr.length;
+    const u8arr = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      u8arr[i] = binStr.charCodeAt(i);
+    }
+    return new Blob([u8arr], { type: mime });
+  } catch (err) {
+    console.error("Error al convertir dataUrl a Blob:", err);
+    return null;
+  }
+}
+
+function abrirVisorComprobante(casoId) {
+  const caso = (typeof reclamos !== "undefined" ? reclamos.find(r => r.id === casoId) : null)
+            || (typeof todosLosReclamos !== "undefined" ? todosLosReclamos.find(r => r.id === casoId) : null);
+  
+  if (!caso) {
+    alert("No se encontró el reporte seleccionado.");
+    return;
+  }
+
+  const soporteUrl = caso.soporteRadicadoEntidad || caso.soporte_radicado_entidad || "";
+  if (!soporteUrl) {
+    alert("Este radicado aún no cuenta con un archivo o constancia oficial adjunta.");
+    return;
+  }
+
+  const elRadId = document.getElementById("visorComprobanteRadicadoId");
+  const elTitulo = document.getElementById("visorComprobanteTitulo");
+  const elEntidad = document.getElementById("visorComprobanteEntidad");
+  const elNumero = document.getElementById("visorComprobanteNumero");
+  const elFecha = document.getElementById("visorComprobanteFecha");
+  const elCuerpo = document.getElementById("visorComprobanteCuerpo");
+  const btnDescargar = document.getElementById("btnDescargarComprobante");
+
+  const entidadNombre = caso.entidadDestino || caso.entidad_destino || "Alcaldía de Valledupar";
+  const numRad = caso.radicadoEntidad || caso.radicado_entidad || caso.id;
+  const fechaRad = caso.fechaRadicadoEntidad || caso.fecha_radicado_entidad || caso.fecha || "Reciente";
+
+  if (elRadId) elRadId.textContent = caso.id;
+  if (elTitulo) elTitulo.textContent = `Constancia: ${caso.titulo}`;
+  if (elEntidad) elEntidad.textContent = entidadNombre;
+  if (elNumero) elNumero.textContent = numRad;
+  if (elFecha) elFecha.textContent = fechaRad;
+
+  let urlVisualizacion = soporteUrl;
+  let esPdf = false;
+  let esImagen = false;
+  let nombreArchivo = `Comprobante_${numRad.replace(/[^a-zA-Z0-9_-]/g, "_")}.pdf`;
+
+  if (soporteUrl.startsWith("data:application/pdf") || soporteUrl.toLowerCase().includes(".pdf")) {
+    esPdf = true;
+  } else if (soporteUrl.startsWith("data:image/") || soporteUrl.match(/\.(jpg|jpeg|png|webp|gif)/i)) {
+    esImagen = true;
+    nombreArchivo = `Comprobante_${numRad.replace(/[^a-zA-Z0-9_-]/g, "_")}.jpg`;
+  }
+
+  if (soporteUrl.startsWith("data:")) {
+    const blob = dataUrlToBlob(soporteUrl);
+    if (blob) {
+      if (comprobanteBlobUrlActual && comprobanteBlobUrlActual.startsWith("blob:")) {
+        try { URL.revokeObjectURL(comprobanteBlobUrlActual); } catch (e) {}
+      }
+      comprobanteBlobUrlActual = URL.createObjectURL(blob);
+      urlVisualizacion = comprobanteBlobUrlActual;
+    }
+  } else {
+    comprobanteBlobUrlActual = soporteUrl;
+  }
+
+  if (btnDescargar) {
+    btnDescargar.href = urlVisualizacion;
+    btnDescargar.download = nombreArchivo;
+  }
+
+  if (esPdf) {
+    elCuerpo.innerHTML = `
+      <div class="w-full h-full flex flex-col gap-2">
+        <iframe 
+          id="visorPdfIframe" 
+          src="${urlVisualizacion}#toolbar=1&navpanes=0" 
+          class="w-full h-[65vh] sm:h-[70vh] rounded-xl border border-slate-300 shadow-inner bg-slate-100"
+        ></iframe>
+        <div class="text-center text-xs text-slate-500 py-1 flex flex-wrap items-center justify-center gap-3">
+          <span>¿Tu navegador bloquea el visor de PDF?</span>
+          <button type="button" onclick="abrirComprobanteEnNuevaPestana()" class="text-[#004884] font-bold underline hover:text-blue-800 cursor-pointer">
+            Abrir en pestaña nueva ↗
+          </button>
+          <span>·</span>
+          <a href="${urlVisualizacion}" download="${nombreArchivo}" class="text-purple-700 font-bold underline hover:text-purple-900">
+            Descargar archivo PDF 📥
+          </a>
+        </div>
+      </div>
+    `;
+  } else if (esImagen) {
+    elCuerpo.innerHTML = `
+      <div class="w-full h-full flex flex-col items-center justify-center p-2">
+        <img 
+          src="${urlVisualizacion}" 
+          alt="Comprobante de radicado" 
+          class="max-w-full max-h-[68vh] object-contain rounded-xl shadow-lg border border-slate-200 bg-white"
+        />
+        <div class="mt-2 text-center text-xs text-slate-500 flex flex-wrap items-center justify-center gap-3">
+          <button type="button" onclick="abrirComprobanteEnNuevaPestana()" class="text-[#004884] font-bold underline hover:text-blue-800 cursor-pointer">
+            Ver imagen en pantalla completa ↗
+          </button>
+          <span>·</span>
+          <a href="${urlVisualizacion}" download="${nombreArchivo}" class="text-purple-700 font-bold underline hover:text-purple-900">
+            Descargar imagen 📥
+          </a>
+        </div>
+      </div>
+    `;
+  } else {
+    elCuerpo.innerHTML = `
+      <div class="text-center py-12 px-4">
+        <div class="w-16 h-16 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="file-text" class="w-8 h-8"></i>
+        </div>
+        <h4 class="text-base font-black text-slate-800 mb-1">Comprobante de Radicado Oficial</h4>
+        <p class="text-xs text-slate-500 max-w-md mx-auto mb-4">
+          La constancia de radicación está registrada en el sistema. Puedes descargarla o abrirla directamente en tu dispositivo.
+        </p>
+        <a 
+          href="${urlVisualizacion}" 
+          download="${nombreArchivo}" 
+          class="inline-flex items-center gap-2 bg-[#004884] hover:bg-blue-800 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition"
+        >
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Descargar Constancia Oficial</span>
+        </a>
+      </div>
+    `;
+  }
+
+  const modal = document.getElementById("modalVisorComprobante");
+  if (modal) {
+    modal.classList.remove("hidden");
+    lucide.createIcons();
+  }
+}
+
+function abrirComprobanteEnNuevaPestana() {
+  if (comprobanteBlobUrlActual) {
+    window.open(comprobanteBlobUrlActual, "_blank");
+  }
+}
+
+window.abrirVisorComprobante = abrirVisorComprobante;
+window.cerrarModalVisorComprobante = cerrarModalVisorComprobante;
+window.abrirComprobanteEnNuevaPestana = abrirComprobanteEnNuevaPestana;
+
+</script>
 </body>
 </html>

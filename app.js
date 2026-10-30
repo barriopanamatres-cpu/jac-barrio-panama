@@ -146,34 +146,34 @@ let marcadoresCapa = null;
 // Casos precargados iniciales: limpio en cero según auditoría comunitaria
 const CASOS_INICIALES = [];
 
-// Noticias iniciales en vivo
+// Noticias iniciales oficiales (Actualizadas con Alcaldía de Valledupar)
 const NOTICIAS_DEFAULT = [
   {
     id: "noticia-1",
-    titulo: "Equipo Azul, a dar un paso gigante antes Real Aracataca",
-    fecha: "23 de octubre de 2026",
-    categoria: "Deportes",
-    descripcion: "Los vallenatos vienen de imponerse en la serie sobre Locos por el Fútbol de Nariño, teniendo en cuenta que el partido de ida terminó con victoria 1-0 a favor de los cesarenses.",
-    foto: "https://valledupar-sedigov.s-integrations.co/attachment/files/download/94AE4B3E-F36B-1410-8C8C-00A971D655DB",
-    enlace: "https://www.valledupar-cesar.gov.co/noticias/equipo-azul-a-dar-un-paso-gigante-antes-real-aracataca"
+    titulo: "¡Atención! Valledupar tendrá restricciones para motocicletas durante dos noches por Halloween",
+    fecha: "29 de octubre de 2026",
+    categoria: "Seguridad y Movilidad",
+    descripcion: "El gobierno del alcalde Ernesto Orozco Durán prepara medidas para el 30 y 31 de octubre. También se desplegará un dispositivo de seguridad con más de 400 uniformados y funcionarios.",
+    foto: "https://f002.backblazeb2.com/file/Sedigov/valledupar/images/2026/10/8bb61594-f996-4460-a202-7f18157a217c.jpeg",
+    enlace: "https://www.valledupar-cesar.gov.co/noticias/atencion-valledupar-tendra-restricciones-para-motocicletas-durante-dos-noches-por-halloween"
   },
   {
     id: "noticia-2",
-    titulo: "Gobierno del alcalde Ernesto Orozco suma más de 130.000 acciones contra el dengue",
-    fecha: "23 de octubre de 2026",
-    categoria: "Salud Pública",
-    descripcion: "En dos años y diez meses de la actual administración, los equipos de Enfermedades Transmitidas por Vectores intensifican fumigación y control.",
-    foto: "https://valledupar-sedigov.s-integrations.co/attachment/files/download/3B484A3E-F36B-1410-8C8C-00A971D655DB",
-    enlace: "https://www.valledupar-cesar.gov.co/noticias/gobierno-del-alcalde-ernesto-orozco-suma-mas-de-130000-acciones-contra-el-dengue"
+    titulo: "Más de 900 niños y jóvenes de los corregimientos de Valledupar se forman en las Escuelas Culturales Gratuitas",
+    fecha: "29 de octubre de 2026",
+    categoria: "Cultura y Juventud",
+    descripcion: "La cobertura del programa ofrecido por la Oficina de Cultura Municipal se extiende por las zonas sur, centro y norte con atención integral y formación artística.",
+    foto: "https://f002.backblazeb2.com/file/Sedigov/valledupar/images/2026/10/3079af60-8bf3-4567-8552-a04bf19adce0.jpg",
+    enlace: "https://www.valledupar-cesar.gov.co/noticias/mas-de-900-ninos-y-jovenes-de-los-corregimientos-de-valledupar-se-forman-en-las-escuelas-culturales-gratuitas"
   },
   {
     id: "noticia-3",
-    titulo: "Capturado en Valledupar alias 'El Guajiro', señalado de cometer dos homicidios en Santa Marta",
-    fecha: "22 de octubre de 2026",
-    categoria: "Seguridad",
-    descripcion: "De acuerdo con las autoridades, la captura se produjo en un puesto de registro y control en el perímetro urbano del municipio.",
-    foto: "https://valledupar-sedigov.s-integrations.co/attachment/files/download/290B4A3E-F36B-1410-8C8C-00A971D655DB",
-    enlace: "https://www.valledupar-cesar.gov.co/noticias/capturado-en-valledupar-alias-el-guajiro-senalado-de-cometer-dos-homicidios-en-santa-marta"
+    titulo: "Policía capturó a tres personas con 65 dosis de estupefacientes en un taxi en Valledupar",
+    fecha: "28 de octubre de 2026",
+    categoria: "Seguridad Ciudadana",
+    descripcion: "El procedimiento se realizó en el barrio Los Caciques, durante operativos de registro y control de la Policía Metropolitana para contrarrestar el microtráfico en la ciudad.",
+    foto: "https://f002.backblazeb2.com/file/Sedigov/valledupar/images/2026/10/4c41f228-c897-458d-b8e4-60fce8856fc0.jpg",
+    enlace: "https://www.valledupar-cesar.gov.co/noticias/policia-capturo-a-tres-personas-con-65-dosis-de-estupefacientes-en-un-taxi-en-valledupar"
   }
 ];
 
@@ -909,6 +909,60 @@ async function sincronizarBannersEnVivoDesdeAlcaldia() {
   }
 }
 
+// ==============================================================================
+// GESTIÓN Y SINCRONIZACIÓN EN VIVO DE NOTICIAS DE LA ALCALDÍA DE VALLEDUPAR
+// ==============================================================================
+function extraerTextoResumen(summaryRaw) {
+  if (!summaryRaw) return "";
+  if (typeof summaryRaw !== "string") return String(summaryRaw);
+  if (summaryRaw.trim().startsWith("{")) {
+    try {
+      const parsed = JSON.parse(summaryRaw);
+      const textos = [];
+      function recorrer(nodo) {
+        if (!nodo) return;
+        if (nodo.text) textos.push(nodo.text);
+        if (Array.isArray(nodo.children)) nodo.children.forEach(recorrer);
+      }
+      recorrer(parsed.root);
+      if (textos.length > 0) return textos.join(" ");
+    } catch (e) {}
+  }
+  return summaryRaw.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+}
+
+function generarSlugNoticia(titulo) {
+  if (!titulo) return "noticia";
+  return titulo
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function formatearFechaNoticia(fechaStr) {
+  if (!fechaStr) return "Reciente";
+  try {
+    const d = new Date(fechaStr);
+    if (isNaN(d.getTime())) return "Reciente";
+    const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
+  } catch (e) {
+    return "Reciente";
+  }
+}
+
+function actualizarBadgeSincronizacion(estaEnVivo) {
+  const badge = document.getElementById("badgeSincronizacionNoticias");
+  if (badge) {
+    if (estaEnVivo) {
+      badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span><span>Sincronizado con Alcaldía (En Vivo)</span>`;
+      badge.className = "bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5";
+    }
+  }
+}
+
 // Cargar Noticias
 function cargarNoticias() {
   const guardadas = localStorage.getItem("valledupar_noticias_cache");
@@ -920,66 +974,89 @@ function cargarNoticias() {
     }
   } else {
     noticias = NOTICIAS_DEFAULT;
-    localStorage.setItem("valledupar_noticias_cache", JSON.stringify(noticias));
   }
   renderizarNoticias();
+
+  // Sincronización automática con la Alcaldía oficial en segundo plano al cargar
+  setTimeout(() => {
+    sincronizarNoticiasEnVivo(true);
+  }, 400);
 }
 
-async function sincronizarNoticiasEnVivo() {
+async function sincronizarNoticiasEnVivo(esSilencioso = false) {
   const btn = document.getElementById("btnRecargarNoticias");
-  if (!btn) return;
-  const originalHtml = btn.innerHTML;
-  btn.innerHTML = `<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> <span>Consultando...</span>`;
-  lucide.createIcons();
+  let originalHtml = "";
+  if (btn && !esSilencioso) {
+    originalHtml = btn.innerHTML;
+    btn.innerHTML = `<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> <span class="hidden sm:inline">Sincronizando...</span>`;
+    lucide.createIcons();
+  }
 
   try {
-    const res = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://www.valledupar-cesar.gov.co/"));
+    // Consulta directa a la API oficial GraphQL de SEDIGOV (Alcaldía Municipal de Valledupar)
+    const res = await fetch("https://valledupar-sedigov.s-integrations.co/graphql", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: `query GetNoticiasAlcaldia {
+          newsItems(
+            pagination: { skip: 0, take: 5 },
+            orderBy: [{ publicationDate: DESC }]
+          ) {
+            id
+            title
+            summary
+            date
+            publicationDate
+            alternativeText
+            image {
+              downloadUrl
+            }
+            dependency {
+              name
+            }
+          }
+        }`
+      })
+    });
+
     if (res.ok) {
-      const data = await res.json();
-      const html = data.contents;
-      const newsLinks = [...html.matchAll(/href="\/noticias\/([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)];
-      if (newsLinks.length > 0) {
-        const nuevasNoticias = [];
-        const visitados = new Set();
+      const json = await res.json();
+      const items = json.data?.newsItems;
+      if (Array.isArray(items) && items.length > 0) {
+        const nuevasNoticias = items.map((item, idx) => {
+          const resumenLimpio = extraerTextoResumen(item.summary);
+          const slug = generarSlugNoticia(item.title);
+          return {
+            id: item.id || `noticia-${idx}`,
+            titulo: item.title,
+            fecha: formatearFechaNoticia(item.publicationDate || item.date),
+            categoria: item.dependency?.name || (idx === 0 ? "Comunidad y Orden" : "Alcaldía de Valledupar"),
+            descripcion: resumenLimpio || item.title,
+            foto: item.image?.downloadUrl || NOTICIAS_DEFAULT[idx % NOTICIAS_DEFAULT.length].foto,
+            enlace: `https://www.valledupar-cesar.gov.co/noticias/${slug}`
+          };
+        });
 
-        for (const nl of newsLinks) {
-          const slug = nl[1];
-          if (visitados.has(slug)) continue;
-          visitados.add(slug);
-
-          const inner = nl[2];
-          const imgMatch = inner.match(/src="([^"]+)"/);
-          const textClean = inner.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-          const fechaMatch = textClean.match(/\d{1,2}\s+de\s+[a-záéíóúñ]+\s+de\s+\d{4}/i);
-          const fecha = fechaMatch ? fechaMatch[0] : "Reciente";
-
-          nuevasNoticias.push({
-            id: slug,
-            titulo: slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-            fecha: fecha,
-            categoria: "Alcaldía de Valledupar",
-            descripcion: textClean.slice(0, 160) + "...",
-            foto: imgMatch ? imgMatch[1] : NOTICIAS_DEFAULT[0].foto,
-            enlace: "https://www.valledupar-cesar.gov.co/noticias/" + slug
-          });
-
-          if (nuevasNoticias.length >= 3) break;
-        }
-
-        if (nuevasNoticias.length > 0) {
+        if (nuevasNoticias.length >= 3) {
           noticias = nuevasNoticias;
           localStorage.setItem("valledupar_noticias_cache", JSON.stringify(noticias));
+          localStorage.setItem("valledupar_noticias_last_sync", new Date().toISOString());
           renderizarNoticias();
+          actualizarBadgeSincronizacion(true);
         }
       }
     }
   } catch (err) {
-    console.log("Sincronización utilizó la caché más reciente:", err);
+    console.warn("Aviso en sincronización en vivo de noticias:", err);
   } finally {
-    btn.innerHTML = originalHtml;
-    lucide.createIcons();
+    if (btn && !esSilencioso && originalHtml) {
+      btn.innerHTML = originalHtml;
+      lucide.createIcons();
+    }
   }
 }
+window.sincronizarNoticiasEnVivo = sincronizarNoticiasEnVivo;
 
 function renderizarNoticias() {
   const cont = document.getElementById("contenedorNoticias");
@@ -1783,10 +1860,10 @@ window.renderizarRadicadosLegales = function(filtro = "todos", query = "") {
 
             ${caso.soporteRadicadoEntidad ? `
               <div class="pt-1">
-                <a href="${caso.soporteRadicadoEntidad}" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-3 py-1.5 rounded-xl transition shadow-sm">
+                <button type="button" onclick="abrirVisorComprobante('${caso.id}')" class="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-3 py-1.5 rounded-xl transition shadow-sm cursor-pointer">
                   <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
                   <span>Ver Comprobante de Radicado Otorgado</span>
-                </a>
+                </button>
               </div>
             ` : ''}
           </div>
@@ -2543,3 +2620,178 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+
+
+// ==============================================================================
+// VISOR PROFESIONAL DE COMPROBANTES DE RADICACIÓN (PDF E IMÁGENES)
+// ==============================================================================
+let comprobanteBlobUrlActual = null;
+
+function cerrarModalVisorComprobante() {
+  const modal = document.getElementById("modalVisorComprobante");
+  if (modal) modal.classList.add("hidden");
+  if (comprobanteBlobUrlActual && comprobanteBlobUrlActual.startsWith("blob:")) {
+    try { URL.revokeObjectURL(comprobanteBlobUrlActual); } catch (e) {}
+    comprobanteBlobUrlActual = null;
+  }
+}
+
+function dataUrlToBlob(dataUrl) {
+  try {
+    const parts = dataUrl.split(",");
+    const mimeMatch = parts[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : "application/pdf";
+    const binStr = atob(parts[1]);
+    const len = binStr.length;
+    const u8arr = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      u8arr[i] = binStr.charCodeAt(i);
+    }
+    return new Blob([u8arr], { type: mime });
+  } catch (err) {
+    console.error("Error al convertir dataUrl a Blob:", err);
+    return null;
+  }
+}
+
+function abrirVisorComprobante(casoId) {
+  const caso = (typeof reclamos !== "undefined" ? reclamos.find(r => r.id === casoId) : null)
+            || (typeof todosLosReclamos !== "undefined" ? todosLosReclamos.find(r => r.id === casoId) : null);
+  
+  if (!caso) {
+    alert("No se encontró el reporte seleccionado.");
+    return;
+  }
+
+  const soporteUrl = caso.soporteRadicadoEntidad || caso.soporte_radicado_entidad || "";
+  if (!soporteUrl) {
+    alert("Este radicado aún no cuenta con un archivo o constancia oficial adjunta.");
+    return;
+  }
+
+  const elRadId = document.getElementById("visorComprobanteRadicadoId");
+  const elTitulo = document.getElementById("visorComprobanteTitulo");
+  const elEntidad = document.getElementById("visorComprobanteEntidad");
+  const elNumero = document.getElementById("visorComprobanteNumero");
+  const elFecha = document.getElementById("visorComprobanteFecha");
+  const elCuerpo = document.getElementById("visorComprobanteCuerpo");
+  const btnDescargar = document.getElementById("btnDescargarComprobante");
+
+  const entidadNombre = caso.entidadDestino || caso.entidad_destino || "Alcaldía de Valledupar";
+  const numRad = caso.radicadoEntidad || caso.radicado_entidad || caso.id;
+  const fechaRad = caso.fechaRadicadoEntidad || caso.fecha_radicado_entidad || caso.fecha || "Reciente";
+
+  if (elRadId) elRadId.textContent = caso.id;
+  if (elTitulo) elTitulo.textContent = `Constancia: ${caso.titulo}`;
+  if (elEntidad) elEntidad.textContent = entidadNombre;
+  if (elNumero) elNumero.textContent = numRad;
+  if (elFecha) elFecha.textContent = fechaRad;
+
+  let urlVisualizacion = soporteUrl;
+  let esPdf = false;
+  let esImagen = false;
+  let nombreArchivo = `Comprobante_${numRad.replace(/[^a-zA-Z0-9_-]/g, "_")}.pdf`;
+
+  if (soporteUrl.startsWith("data:application/pdf") || soporteUrl.toLowerCase().includes(".pdf")) {
+    esPdf = true;
+  } else if (soporteUrl.startsWith("data:image/") || soporteUrl.match(/\.(jpg|jpeg|png|webp|gif)/i)) {
+    esImagen = true;
+    nombreArchivo = `Comprobante_${numRad.replace(/[^a-zA-Z0-9_-]/g, "_")}.jpg`;
+  }
+
+  if (soporteUrl.startsWith("data:")) {
+    const blob = dataUrlToBlob(soporteUrl);
+    if (blob) {
+      if (comprobanteBlobUrlActual && comprobanteBlobUrlActual.startsWith("blob:")) {
+        try { URL.revokeObjectURL(comprobanteBlobUrlActual); } catch (e) {}
+      }
+      comprobanteBlobUrlActual = URL.createObjectURL(blob);
+      urlVisualizacion = comprobanteBlobUrlActual;
+    }
+  } else {
+    comprobanteBlobUrlActual = soporteUrl;
+  }
+
+  if (btnDescargar) {
+    btnDescargar.href = urlVisualizacion;
+    btnDescargar.download = nombreArchivo;
+  }
+
+  if (esPdf) {
+    elCuerpo.innerHTML = `
+      <div class="w-full h-full flex flex-col gap-2">
+        <iframe 
+          id="visorPdfIframe" 
+          src="${urlVisualizacion}#toolbar=1&navpanes=0" 
+          class="w-full h-[65vh] sm:h-[70vh] rounded-xl border border-slate-300 shadow-inner bg-slate-100"
+        ></iframe>
+        <div class="text-center text-xs text-slate-500 py-1 flex flex-wrap items-center justify-center gap-3">
+          <span>¿Tu navegador bloquea el visor de PDF?</span>
+          <button type="button" onclick="abrirComprobanteEnNuevaPestana()" class="text-[#004884] font-bold underline hover:text-blue-800 cursor-pointer">
+            Abrir en pestaña nueva ↗
+          </button>
+          <span>·</span>
+          <a href="${urlVisualizacion}" download="${nombreArchivo}" class="text-purple-700 font-bold underline hover:text-purple-900">
+            Descargar archivo PDF 📥
+          </a>
+        </div>
+      </div>
+    `;
+  } else if (esImagen) {
+    elCuerpo.innerHTML = `
+      <div class="w-full h-full flex flex-col items-center justify-center p-2">
+        <img 
+          src="${urlVisualizacion}" 
+          alt="Comprobante de radicado" 
+          class="max-w-full max-h-[68vh] object-contain rounded-xl shadow-lg border border-slate-200 bg-white"
+        />
+        <div class="mt-2 text-center text-xs text-slate-500 flex flex-wrap items-center justify-center gap-3">
+          <button type="button" onclick="abrirComprobanteEnNuevaPestana()" class="text-[#004884] font-bold underline hover:text-blue-800 cursor-pointer">
+            Ver imagen en pantalla completa ↗
+          </button>
+          <span>·</span>
+          <a href="${urlVisualizacion}" download="${nombreArchivo}" class="text-purple-700 font-bold underline hover:text-purple-900">
+            Descargar imagen 📥
+          </a>
+        </div>
+      </div>
+    `;
+  } else {
+    elCuerpo.innerHTML = `
+      <div class="text-center py-12 px-4">
+        <div class="w-16 h-16 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="file-text" class="w-8 h-8"></i>
+        </div>
+        <h4 class="text-base font-black text-slate-800 mb-1">Comprobante de Radicado Oficial</h4>
+        <p class="text-xs text-slate-500 max-w-md mx-auto mb-4">
+          La constancia de radicación está registrada en el sistema. Puedes descargarla o abrirla directamente en tu dispositivo.
+        </p>
+        <a 
+          href="${urlVisualizacion}" 
+          download="${nombreArchivo}" 
+          class="inline-flex items-center gap-2 bg-[#004884] hover:bg-blue-800 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition"
+        >
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Descargar Constancia Oficial</span>
+        </a>
+      </div>
+    `;
+  }
+
+  const modal = document.getElementById("modalVisorComprobante");
+  if (modal) {
+    modal.classList.remove("hidden");
+    lucide.createIcons();
+  }
+}
+
+function abrirComprobanteEnNuevaPestana() {
+  if (comprobanteBlobUrlActual) {
+    window.open(comprobanteBlobUrlActual, "_blank");
+  }
+}
+
+window.abrirVisorComprobante = abrirVisorComprobante;
+window.cerrarModalVisorComprobante = cerrarModalVisorComprobante;
+window.abrirComprobanteEnNuevaPestana = abrirComprobanteEnNuevaPestana;
